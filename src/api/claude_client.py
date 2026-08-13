@@ -659,7 +659,18 @@ class ClaudeClient:
                 "[%s] Diagnostic tronqué (stop_reason=max_tokens) — réponse incomplète, tentative de réparation JSON",
                 grades.copy_id,
             )
-        raw = self._texte_reponse(response)
+        try:
+            raw = self._texte_reponse(response)
+        except ValueError as exc:
+            # Le budget de tokens a pu être entièrement consommé par le bloc
+            # `thinking` d'Opus, sans qu'aucun texte ne soit produit (surtout
+            # en combinaison avec stop_reason=max_tokens ci-dessus). L'appelant
+            # (`_run_phase_b`) traite un diagnostic en échec comme non bloquant
+            # et retente via le fallback GPT-5 : il ne faut donc pas laisser
+            # cette erreur remonter et interrompre toute la Phase B.
+            logger.error("[%s] Diagnostic — %s", grades.copy_id, exc)
+            return ClaudeResponse(success=False, data=None, confidence=0.0,
+                                  raw_response="", error=str(exc))
         return self._parse_response(raw, DiagnosticResult)
 
     # ── Diagnostic contraint (module 4) ───────────────────────────────────────
@@ -990,7 +1001,19 @@ class ClaudeClient:
             ],
         )
 
-        raw = self._texte_reponse(response)
+        try:
+            raw = self._texte_reponse(response)
+        except ValueError as exc:
+            # Même situation que diagnose() : le budget de tokens a pu être
+            # entièrement consommé par un bloc `thinking`, sans qu'aucun texte
+            # ne soit produit. L'appelant (`_run_phase_b`) traite un
+            # enrichissement en échec comme non bloquant (score déjà parfait,
+            # rien à remédier) — il ne faut donc pas laisser cette erreur
+            # remonter et interrompre toute la Phase B.
+            logger.error("[%s] Enrichissement — %s", grade.copy_id, exc)
+            return ClaudeResponse(success=False, data=None, confidence=0.0,
+                                  raw_response="", error=str(exc))
+
         result = self._parse_response(raw, RemediationSubject)
         if result.success and result.data is not None:
             result.data.is_enrichment = True
