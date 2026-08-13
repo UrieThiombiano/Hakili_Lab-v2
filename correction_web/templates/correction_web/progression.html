@@ -4,6 +4,16 @@
 
 {% block tete %}
 {% if correction.en_cours %}
+{% comment %} Rafraîchissement piloté en JavaScript simple, sans dépendance
+   extérieure : la page recharge son propre état à intervalle régulier tant
+   que la correction est en cours. Repli en <noscript> par méta-rafraîchissement.
+   Régression du 2026-08-07 (redesign de l'écran d'attente) : ce bloc avait
+   disparu, laissant la barre de progression figée sur sa valeur de chargement
+   jusqu'à un rechargement manuel. {% endcomment %}
+<script>
+  setTimeout(function () { window.location.reload(); }, 3000);
+</script>
+<noscript><meta http-equiv="refresh" content="3"></noscript>
 <style>
 /* Écran d'attente pendant une correction — style propre à cette page : une
    illustration pour patienter, pas un composant réutilisé ailleurs. Les
