@@ -83,13 +83,23 @@ python -c "from django.core.management.utils import get_random_secret_key as k; 
 Le `Procfile` convient à Railway comme à Render :
 
 ```
-release: python manage.py migrate --noinput
+release: python manage.py collectstatic --noinput && python manage.py migrate --noinput
 web: gunicorn hakili.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 180
 ```
 
 `release` applique les migrations avant chaque mise en ligne. Les fichiers
 statiques sont servis par WhiteNoise, sans serveur web séparé — ni Railway ni
-Render n'en fournissent.
+Render n'en fournissent. Hors `DEBUG`, `STORAGES["staticfiles"]` utilise
+`CompressedManifestStaticFilesStorage` (`hakili/settings.py`), qui exige un
+manifeste : sans `collectstatic` avant `migrate`, la première page utilisant
+`{% static %}` lève `ValueError: Missing staticfiles manifest entry`.
+
+**Compte de service Google (`GOOGLE_SERVICE_ACCOUNT_FILE`) :** le fichier JSON
+n'est jamais versionné (`credentials/` est gitignoré). Sur Railway comme sur
+Render, le déposer via leur mécanisme de **fichier secret** (Render : *Secret
+Files* ; Railway : *volume* ou variable de build) à l'emplacement pointé par
+la variable, par exemple `credentials/service_account.json` — pas de
+changement de code nécessaire, `google_sheets.py` lit un chemin de fichier.
 
 **Pourquoi `--threads 4` :** les corrections tournent dans un thread du processus
 web. Des workers uniquement synchrones bloqueraient une requête pendant toute la
