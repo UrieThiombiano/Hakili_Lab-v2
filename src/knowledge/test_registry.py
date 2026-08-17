@@ -46,6 +46,7 @@ logger = logging.getLogger(__name__)
 
 _ROOT = Path(__file__).parent.parent.parent
 _DOCS_DIR = _ROOT / "data" / "Documents"
+_CORRIGES_DIR = _DOCS_DIR / "corriges"
 _KB_DIR = _ROOT / "data" / "knowledge"
 
 # ── Catalogue des tests Hakili ────────────────────────────────────────────────
@@ -65,8 +66,17 @@ _TEST_CATALOG: dict[str, dict] = {
     # ce format l'élève compose SUR le sujet, donc la copie scannée porte déjà
     # l'énoncé imprimé que l'IA transcrit.
     #
-    # Pas de corrigé complet : le classeur ne donne la bonne réponse que pour les
-    # 71 QCM (sur 280). Voir docs/harmonisation_donnees.md, arbitrage B.
+    # Corrigé enseignant (2026-08-12) : les 7 sujets ont été recomposés (items
+    # déplacés/repondérés entre parties, ajout de problèmes de synthèse en partie C)
+    # et chaque niveau dispose maintenant d'un corrigé PDF complet, relu et validé
+    # par un enseignant de mathématiques — data/Documents/corriges/. C'est un
+    # document imprimable pour la correction papier, PAS la source du barème
+    # utilisé par le pipeline : `bareme_socle_*.yaml` reflète encore l'ancienne
+    # composition (générée le 2026-08-07 depuis Referentiel_Socle_v0.xlsx, non
+    # mis à jour). Tant que le classeur n'est pas aligné sur cette recomposition
+    # et que `scripts/generer_baremes_socle.py` n'a pas été relancé, la notation
+    # automatique et le corrigé imprimé peuvent diverger sur certaines questions.
+    # Voir docs/harmonisation_donnees.md, arbitrage B (mis à jour) et arbitrage H.
     **{
         f"socle_{niveau}": {
             "label": "",
@@ -82,6 +92,9 @@ _TEST_CATALOG: dict[str, dict] = {
             # mathématiques sont vectorielles (voir docs/harmonisation_donnees.md
             # §3bis). L'enseignant doit pouvoir l'imprimer depuis l'application.
             "sujet_pdf": f"Test_diagnostique_entree_{niveau}.pdf",
+            # Corrigé enseignant imprimable — voir note ci-dessus sur le
+            # désalignement encore ouvert avec bareme_socle_*.yaml.
+            "corrige_pdf": f"corriges/Corrige_test_diagnostique_entree_{niveau}.pdf",
         }
         for niveau in ("6eme", "5eme", "4eme", "3eme", "2ndeC", "1ereD", "tleD")
     },
@@ -156,6 +169,7 @@ class HakiliTest:
     official_answers: str = ""  # Corrigé officiel formaté pour injection dans le prompt
     archive: bool = False       # True = plus proposé pour une nouvelle correction
     sujet_pdf: Path | None = None  # sujet imprimable, None si absent
+    corrige_pdf: Path | None = None  # corrigé enseignant imprimable, None si absent
     # {code question: format} — vide pour les tests archivés. Le format décide
     # de ce que le diagnostic contraint peut faire d'une réponse : un QCM se
     # tranche sans modèle, une construction géométrique ne se diagnostique pas.
@@ -300,6 +314,15 @@ class TestRegistry:
                 )
                 sujet_pdf = None
 
+            corrige_pdf_nom = cfg.get("corrige_pdf", "")
+            corrige_pdf = (_DOCS_DIR / corrige_pdf_nom) if corrige_pdf_nom else None
+            if corrige_pdf is not None and not corrige_pdf.exists():
+                logger.warning(
+                    "Test '%s' — corrigé PDF introuvable : %s (correction papier indisponible)",
+                    test_id, corrige_pdf.name,
+                )
+                corrige_pdf = None
+
             rubric, total, bareme_meta = _build_rubric_from_yaml(yaml_path)
 
             # Chargement du corrigé officiel
@@ -321,6 +344,7 @@ class TestRegistry:
                 official_answers=official_answers,
                 archive=archive,
                 sujet_pdf=sujet_pdf,
+                corrige_pdf=corrige_pdf,
                 formats=bareme_meta.get("formats") or {},
             )
             corrige_status = f"corrigé {len(official_answers)} chars" if official_answers else "sans corrigé"

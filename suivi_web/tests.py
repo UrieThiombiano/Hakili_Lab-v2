@@ -130,6 +130,63 @@ class TestProfilEleve(BaseSuivi):
         self.assertNotIn("HAK-2026-0001", contenu)        # identifiant_hakili
 
 
+class TestFicheEleveHypotheses(BaseSuivi):
+    """Les lacunes présumées (module 4, état `hypothese`) doivent apparaître
+    sur la fiche de l'élève, avec la mention qu'elles restent à confirmer par
+    le second test (T1) — sans ça, un problème détecté mais pas encore vérifié
+    reste invisible tant que personne n'ouvre l'écran de parcours."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        from decimal import Decimal
+
+        from referentiel.models import Competence, TypeErreur
+        from suivi.models import Probleme, Session
+
+        cpt = TypeErreur.objects.create(
+            code="CPT", libelle="Erreur conceptuelle", definition="…",
+            signature="…", coefficient=Decimal("0.35"), remediable=True,
+        )
+        idr = Competence.objects.create(
+            code="L.IDR", domaine="Calcul litteral et algebre",
+            libelle="Identites remarquables", niveau_intro="4eme",
+            volume_horaire=Decimal("2"),
+        )
+        self.session = Session.objects.create(identifiant_hakili="HAK-2026-0001")
+        Probleme.objects.create(
+            session=self.session, competence=idr, type_erreur=cpt,
+            cout_estime=Decimal("0.5"),
+        )
+        self.jeton = jeton_eleve("HAK-2026-0001")
+
+    def test_la_fiche_affiche_la_lacune_presumee(self) -> None:
+        self.connecter("DIANE", "Abasse", "1234")
+        reponse = self.client.get(
+            reverse("suivi_web:eleve_detail", args=[self.jeton])
+        )
+        self.assertContains(reponse, "Identites remarquables")
+        self.assertContains(reponse, "à confirmer par le second test (T1)")
+
+    def test_la_fiche_affiche_le_volume_horaire_estime(self) -> None:
+        """Le volume d'encadrement estimé doit être visible dès le diagnostic
+        initial, pas seulement une fois les hypothèses confirmées (T1)."""
+        self.connecter("DIANE", "Abasse", "1234")
+        reponse = self.client.get(
+            reverse("suivi_web:eleve_detail", args=[self.jeton])
+        )
+        self.assertContains(reponse, "0,50 h estimées")
+
+    def test_rien_affiche_une_fois_la_lacune_tranchee(self) -> None:
+        from suivi.models import EtatProbleme
+
+        self.session.problemes.get().changer_etat(EtatProbleme.ECARTE)
+        self.connecter("DIANE", "Abasse", "1234")
+        reponse = self.client.get(
+            reverse("suivi_web:eleve_detail", args=[self.jeton])
+        )
+        self.assertNotContains(reponse, "à confirmer par le second test (T1)")
+
+
 class TestEcranParcours(BaseSuivi):
     """Le plan de remédiation et le bouton d'inscription."""
 
@@ -255,6 +312,33 @@ class TestEcranParcours(BaseSuivi):
             reverse("suivi_web:session_detail", args=[jeton_eleve("99999")])
         )
         self.assertEqual(reponse.status_code, 404)
+
+    def test_le_volume_des_hypotheses_est_affiche_avant_confirmation(self) -> None:
+        """Avant le test de confirmation (T1), les lacunes ne sont que des
+        hypothèses — `construire()` ne les compte pas dans `plan.total_heures`.
+        L'enseignant doit malgré tout voir un ordre de grandeur du volume
+        horaire dès ce stade, pas seulement une fois les hypothèses confirmées."""
+        from decimal import Decimal
+
+        from referentiel.models import Competence, TypeErreur
+        from suivi.models import Probleme, Session
+
+        cpt = TypeErreur.objects.get(code="CPT")
+        competence = Competence.objects.create(
+            code="L.HYP", domaine="Calcul litteral et algebre",
+            libelle="Hypothese en attente", niveau_intro="4eme",
+            volume_horaire=Decimal("1.5"),
+        )
+        session = Session.objects.create(identifiant_hakili="HAK-2026-0002")
+        Probleme.objects.create(
+            session=session, competence=competence, type_erreur=cpt,
+            cout_estime=Decimal("1.5"),
+        )
+        jeton = jeton_eleve(str(session.pk))
+
+        self.connecter("DIANE", "Abasse", "1234")
+        reponse = self.client.get(reverse("suivi_web:session_detail", args=[jeton]))
+        self.assertContains(reponse, "1,50 h")
 
 
 class TestFicheRemediation(BaseSuivi):
@@ -424,6 +508,30 @@ class TestConfirmationT1(BaseSuivi):
         self.assertContains(reponse, "Confirmée")
         self.assertContains(reponse, "Écartée")
         self.assertContains(reponse, "ne peut être qu'écartée")
+
+    def test_bouton_soumission_t1_absent_sans_sujet_genere(self) -> None:
+        """Sans sujet T1 persisté (module 5 jamais tourné, ou pas de client IA
+        disponible à T0), seule la saisie manuelle est proposée."""
+        self.connecter("DIANE", "Abasse", "1234")
+        reponse = self.client.get(reverse("suivi_web:session_detail", args=[self.jeton]))
+        self.assertNotContains(reponse, "Soumettre la copie pour le test de confirmation")
+
+    def test_bouton_soumission_t1_visible_avec_sujet_genere(self) -> None:
+        from suivi.models import Evaluation, TypeEvaluation
+
+        Evaluation.objects.create(
+            session=self.session, type=TypeEvaluation.T0,
+            sujet_confirmation=[
+                {"numero": 1, "topic": "x", "question": "…", "hint": None},
+                {"numero": 2, "topic": "x", "question": "…", "hint": None},
+            ],
+        )
+        self.hyp_confirmable.exercices_confirmation = [1, 2]
+        self.hyp_confirmable.save(update_fields=["exercices_confirmation"])
+
+        self.connecter("DIANE", "Abasse", "1234")
+        reponse = self.client.get(reverse("suivi_web:session_detail", args=[self.jeton]))
+        self.assertContains(reponse, "Soumettre la copie pour le test de confirmation")
 
 
 class TestVuePersonnel(BaseSuivi):

@@ -267,10 +267,19 @@ def eleve_detail(request, jeton: str):
     notes = [c.notes_finales for c in copies if c.notes_finales is not None]
     courbe = construire_courbe(copies)
 
-    from suivi.models import Session
+    from suivi.models import EtatProbleme, Session
 
     parcours = [
-        {"session": s, "jeton": jeton_eleve(str(s.pk))}
+        {
+            "session": s,
+            "jeton": jeton_eleve(str(s.pk)),
+            # Lacunes présumées par le module 4, pas encore vérifiées par le
+            # test de confirmation (T1) — l'enseignant les tranche depuis
+            # l'écran de parcours (`confirmer_hypotheses`), pas ici.
+            "hypotheses": s.problemes.filter(
+                etat=EtatProbleme.HYPOTHESE
+            ).select_related("competence", "type_erreur"),
+        }
         for s in Session.objects.filter(identifiant_hakili=identifiant)
     ]
 
@@ -337,9 +346,45 @@ def document(request, jeton: str, doc_type: str):
 
 
 @connexion_requise
+def supprimer_copie(request, jeton: str):
+    """Supprime une copie depuis le profil élève.
+
+    Miroir de `correction_web.views.supprimer` : même geste (copie, documents en
+    cascade, `Correction` et fichiers de `runs/` si présents). Point d'entrée
+    séparé parce qu'une copie affichée ici peut ne pas avoir de `Correction`
+    associée — celle-ci ne remonte que les cinquante dernières du périmètre
+    (`correction_web:liste`), alors que le profil élève montre tout l'historique.
+    `Evaluation.copy_id` n'est pas une clé étrangère (D-CEO-40) : une copie déjà
+    exploitée par le suivi structuré devient une référence orpheline plutôt que
+    de bloquer la suppression, comme côté `correction_web`.
+    """
+    copy_id = identifiant_depuis_jeton(jeton)
+    if copy_id is None:
+        raise Http404("Lien invalide")
+    copie = get_object_or_404(Copie, copy_id=copy_id)
+    _eleve_autorise(request, copie.identifiant_hakili)
+
+    jeton_retour = jeton_eleve(copie.identifiant_hakili)
+    if request.method != "POST":
+        return redirect("suivi_web:eleve_detail", jeton=jeton_retour)
+
+    import shutil
+
+    from src.core.config import settings
+    from correction_web.models import Correction
+
+    Correction.objects.filter(copy_id=copy_id).delete()
+    copie.delete()
+    shutil.rmtree(Path(settings.runs_dir) / copy_id, ignore_errors=True)
+
+    messages.success(request, "Copie supprimée.")
+    return redirect("suivi_web:eleve_detail", jeton=jeton_retour)
+
+
+@connexion_requise
 def session_detail(request, jeton: str):
     """Parcours de remédiation d'un élève : problèmes, plan, inscription."""
-    from suivi.models import EtatProbleme, Session
+    from suivi.models import EtatProbleme, Session, TypeEvaluation
     from suivi.plan import construire
 
     identifiant = identifiant_depuis_jeton(jeton)
@@ -350,6 +395,14 @@ def session_detail(request, jeton: str):
     eleve = _eleve_autorise(request, session.identifiant_hakili)
 
     plan = construire(session)
+    sujet_t1_disponible = (
+        session.evaluations.filter(type=TypeEvaluation.T0)
+        .exclude(sujet_confirmation__isnull=True)
+        .exists()
+        and session.problemes.filter(etat=EtatProbleme.HYPOTHESE)
+        .exclude(exercices_confirmation=[])
+        .exists()
+    )
     return render(
         request,
         "suivi_web/session_detail.html",
@@ -360,6 +413,7 @@ def session_detail(request, jeton: str):
             "jeton": jeton,
             "jeton_eleve": jeton_eleve(session.identifiant_hakili),
             "plan": plan,
+            "sujet_t1_disponible": sujet_t1_disponible,
             "hypotheses": session.problemes.filter(
                 etat=EtatProbleme.HYPOTHESE
             ).select_related("competence", "type_erreur"),

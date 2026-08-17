@@ -15,11 +15,14 @@ from django.test import TestCase
 
 from referentiel.models import Competence, CoutRemediation, TypeErreur
 from src.models.domain import (
+    CopyGrade,
     DiagnosticContraint,
     ProblemeDetecte,
+    QuestionGrade,
     SourceProbleme,
+    TeacherDecision,
 )
-from suivi.diagnostic import enregistrer
+from suivi.diagnostic import confirmer_depuis_correction, enregistrer
 from suivi.mesure import comparer, repartition_par_type
 from suivi.models import (
     EtatProbleme,
@@ -225,6 +228,120 @@ class TestMesure(TestCase):
     def test_repartition_par_type(self) -> None:
         couples = [("L.IDR", "CPT"), ("M.PER", "CPT"), ("N.ADD", "PRC")]
         self.assertEqual(repartition_par_type(couples), {"CPT": 2, "PRC": 1})
+
+
+class TestConfirmationAutomatique(BaseSuivi):
+    """`confirmer_depuis_correction` — module 5 (suite) : la copie T1 est déjà
+    corrigée et validée, il ne reste qu'à trancher confirmé/écarté."""
+
+    def _hypothese(self, *, competence, type_erreur, exercices, session=None) -> Probleme:
+        session = session or Session.objects.create(identifiant_hakili="HK-0042")
+        return Probleme.objects.create(
+            session=session, competence=competence, type_erreur=type_erreur,
+            etat=EtatProbleme.HYPOTHESE, cout_estime=Decimal("0.5"),
+            exercices_confirmation=exercices,
+        )
+
+    def _evaluation_t1(self, session) -> Evaluation:
+        return Evaluation.objects.create(session=session, type=TypeEvaluation.T1)
+
+    def _grade(self, *notes) -> CopyGrade:
+        return CopyGrade(
+            copy_id="copie-t1",
+            total_score=sum(score for _, score in notes),
+            total_possible=float(len(notes)),
+            questions=[
+                QuestionGrade(
+                    rubric_item_id=str(numero), score=score, confidence=0.9,
+                    comment="", observed_answer="…", requires_review=False,
+                )
+                for numero, score in notes
+            ],
+        )
+
+    def test_toutes_les_questions_reussies_ecarte(self) -> None:
+        probleme = self._hypothese(competence=self.idr, type_erreur=self.cpt, exercices=[1, 2])
+        resultat = confirmer_depuis_correction(
+            self._evaluation_t1(probleme.session), self._grade((1, 1.0), (2, 1.0)),
+        )
+        probleme.refresh_from_db()
+        self.assertEqual(probleme.etat, EtatProbleme.ECARTE)
+        self.assertEqual(resultat.ecartes, [probleme])
+        self.assertEqual(resultat.confirmes, [])
+
+    def test_une_question_ratee_confirme(self) -> None:
+        probleme = self._hypothese(competence=self.idr, type_erreur=self.cpt, exercices=[1, 2])
+        resultat = confirmer_depuis_correction(
+            self._evaluation_t1(probleme.session), self._grade((1, 1.0), (2, 0.0)),
+        )
+        probleme.refresh_from_db()
+        self.assertEqual(probleme.etat, EtatProbleme.CONFIRME)
+        self.assertEqual(resultat.confirmes, [probleme])
+
+    def test_question_absente_de_la_correction_compte_comme_ratee(self) -> None:
+        """Une absence ne se devine jamais en réussite (même principe que
+        `referentiel.diagnostic`)."""
+        probleme = self._hypothese(competence=self.idr, type_erreur=self.cpt, exercices=[1, 2])
+        resultat = confirmer_depuis_correction(
+            self._evaluation_t1(probleme.session), self._grade((1, 1.0)),
+        )
+        probleme.refresh_from_db()
+        self.assertEqual(probleme.etat, EtatProbleme.CONFIRME)
+        self.assertEqual(resultat.confirmes, [probleme])
+
+    def test_att_toujours_ecarte_meme_ratee(self) -> None:
+        """`ATT` ne peut jamais être confirmé (protocole §3) — même raté aux
+        deux questions, il est écarté, jamais promu vers la remédiation."""
+        probleme = self._hypothese(competence=self.idr, type_erreur=self.att, exercices=[1, 2])
+        resultat = confirmer_depuis_correction(
+            self._evaluation_t1(probleme.session), self._grade((1, 0.0), (2, 0.0)),
+        )
+        probleme.refresh_from_db()
+        self.assertEqual(probleme.etat, EtatProbleme.ECARTE)
+        self.assertEqual(resultat.ecartes, [probleme])
+
+    def test_decision_enseignant_prime_sur_lia(self) -> None:
+        """Un refus enseignant avec sa propre note l'emporte sur la proposition IA
+        — la même règle que `reponses_depuis_correction`."""
+        probleme = self._hypothese(competence=self.idr, type_erreur=self.cpt, exercices=[1, 2])
+        grade = self._grade((1, 1.0), (2, 1.0))
+        grade.questions[1].teacher_decision = TeacherDecision.refused
+        grade.questions[1].teacher_score = 0.0
+        resultat = confirmer_depuis_correction(self._evaluation_t1(probleme.session), grade)
+        probleme.refresh_from_db()
+        self.assertEqual(probleme.etat, EtatProbleme.CONFIRME)
+        self.assertEqual(resultat.confirmes, [probleme])
+
+    def test_hypothese_sans_exercices_non_touchee(self) -> None:
+        """Retombe sur la saisie manuelle — aucune correspondance devinée."""
+        session = Session.objects.create(identifiant_hakili="HK-0042")
+        probleme = self._hypothese(
+            competence=self.idr, type_erreur=self.cpt, exercices=[], session=session,
+        )
+        resultat = confirmer_depuis_correction(
+            self._evaluation_t1(session), self._grade((1, 0.0)),
+        )
+        probleme.refresh_from_db()
+        self.assertEqual(probleme.etat, EtatProbleme.HYPOTHESE)
+        self.assertEqual(resultat.confirmes, [])
+        self.assertEqual(resultat.ecartes, [])
+
+    def test_session_corpus_refusee(self) -> None:
+        session = Session.objects.create(
+            identifiant_hakili="CORPUS-3E-01", corpus_reference=True,
+        )
+        probleme = self._hypothese(
+            competence=self.idr, type_erreur=self.cpt, exercices=[1], session=session,
+        )
+        evaluation = Evaluation.objects.create(
+            session=session, type=TypeEvaluation.T1, corpus_reference=True,
+            tague_par="Prénom Nom", date_tagage="2026-07-31",
+        )
+        resultat = confirmer_depuis_correction(evaluation, self._grade((1, 1.0)))
+        probleme.refresh_from_db()
+        self.assertEqual(probleme.etat, EtatProbleme.HYPOTHESE)
+        self.assertEqual(resultat.confirmes, [])
+        self.assertEqual(resultat.ecartes, [])
 
 
 class CommandeDepuisCorrection(TestCase):

@@ -1,12 +1,18 @@
 # Harmonisation des données — ancien système ↔ référentiel v2
-**Document d'analyse et de décision · 2026-07-30**
-**Statut : investigation terminée. Arbitrages A et D rendus le 2026-07-30 et appliqués ; B, C, E, F toujours en attente.**
+**Document d'analyse et de décision · 2026-07-30, mis à jour le 2026-08-13**
+**Statut : investigation terminée. Arbitrages A, D, B et H rendus et appliqués (H clos le 2026-08-13) ; C, E, F toujours en attente.**
 
 > **Décisions prises (2026-07-30)**
 > - **A → A1, archiver.** Les 6 anciens tests sont marqués `archive: True` dans `src/knowledge/test_registry.py`. Appliqué et vérifié.
 > - **D → barème sur 20 en base.** L'échelle du sujet fait foi ; le classeur (sur 60) est converti à la génération. Voir §4.
 > - **Source des données des 7 nouveaux tests → le classeur, pas les PDF** (les énoncés ne sont pas extractibles, voir §3bis). `scripts/generer_baremes_socle.py` produit les 7 `data/knowledge/bareme_socle_*.yaml`. **Les 7 tests sont opérationnels et sélectionnables.**
 > - **Corrigés manquants → champs vides pour l'instant.** `reponse_attendue` / `solution` émis vides sur les 209 questions non-QCM, prêts à être remplis sans changement de schéma. Les 71 QCM sont pleinement corrigeables.
+
+> **Décision prise (2026-08-12)**
+> - **B → corrigés produits, relus et validés par un enseignant de mathématiques.** Livraison `data/New-docs/` : 7 sujets PDF recomposés + 7 corrigés enseignant PDF complets (structure Automatismes/Savoir-faire/Raisonnement). Intégrés au dépôt : sujets dans `data/Documents/` (anciens déplacés vers `data/Documents/archive/`), corrigés dans `data/Documents/corriges/`, servis par `correction_web` (`sujets/<bareme_id>/corrige/`). **Mais** cette recomposition n'était reflétée ni dans `Referentiel_Socle_v0.xlsx` ni dans `bareme_socle_*.yaml` — voir **Arbitrage H**, ci-dessous.
+
+> **Décision close (2026-08-13)**
+> - **H → les 7 `bareme_socle_*.yaml` (6eme à tleD) reconstruits à la main**, directement depuis les sujets et corrigés PDF recomposés, sans attendre la mise à jour de `Referentiel_Socle_v0.xlsx` (décision utilisateur du 2026-08-12 : « le classeur n'est pas la priorité, la plateforme si »). Ces 7 fichiers font foi en avance sur le classeur. Détail §7.
 
 ---
 
@@ -33,6 +39,8 @@ Vérifié par script, extraction des codes de cadre des 7 PDF confrontée à l'o
 280 questions, 280 correspondances exactes, aucun code manquant ni en trop. Contrôle complémentaire sur le contenu : les intitulés de `04_Questions` pour le test de 6ème correspondent mot pour mot aux questions imprimées dans `Test_diagnostique_entree_6eme.pdf` (N1 « soixante mille quatre-vingt-douze », N3 « 3 608 + 947 », N5 « 326 × 48 »…).
 
 **Conséquence :** le couple *(nouveaux PDF + classeur)* forme un système cohérent, complet et directement exploitable. Le travail d'harmonisation ne consiste donc **pas** à réconcilier deux systèmes vivants, mais à décider **quoi faire de l'ancien**, qui n'a plus de sujet correspondant.
+
+> ⚠️ **Ce constat ne tient plus pour les sujets livrés le 2026-08-12.** Les 7 PDF de `data/New-docs/` recomposent les tests (items déplacés entre parties, repondérés, nouveaux problèmes de synthèse) sans que `Referentiel_Socle_v0.xlsx` ait changé (hash identique à la version du 2026-07-29). L'alignement décrit ci-dessus vaut pour les PDF **archivés** dans `data/Documents/archive/`, pas pour les PDF actifs depuis le 2026-08-12. Détail : **Arbitrage H**, §7.
 
 ---
 
@@ -219,13 +227,115 @@ C'est le chemin critique : sans corrigé, rien ne fonctionne en aval.
 
 **Décision attendue :** qui produit ces corrigés, sous quel format, et dans quel délai. Tant que ce point n'est pas tranché, les modules 3 à 9 sont bloqués pour les questions non-QCM.
 
-### Arbitrage C — Le curriculum RAG survit-il ?
+**✅ Rendu le 2026-08-12.** Un enseignant de mathématiques a relu et validé les corrigés des 7 tests, livrés sous forme de 7 PDF imprimables dans `data/New-docs/` (intégrés à `data/Documents/corriges/`). C'est la relecture `00_Notice` qui manquait. **Mais** ce corrigé décrit une composition de test différente de celle encodée dans `bareme_socle_*.yaml` — voir Arbitrage H, qui reste bloquant pour le diagnostic structuré (module 4) et la notation automatique.
+
+### Arbitrage C — Le curriculum RAG survit-il ? *(tranché 2026-08-13, D-CEO-41)*
 
 | Option | Conséquence |
 |---|---|
-| **C1 — Rapprocher les 121 chunks des 101 codes** *(recommandé)* | Ajouter une colonne `code_competence` à chaque chunk. Le contenu pédagogique (savoir-faire, erreurs fréquentes) reste disponible pour le module 7, indexé par une clé stable. Travail manuel estimé de l'ordre de 121 décisions, faisable en une passe. Ne couvre que le collège. |
+| **C1 — Rapprocher les 121 chunks des 101 codes** | Ajouter une colonne `code_competence` à chaque chunk. Le contenu pédagogique (savoir-faire, erreurs fréquentes) reste disponible pour le module 7, indexé par une clé stable. Travail manuel estimé de l'ordre de 121 décisions, faisable en une passe. Ne couvre que le collège. |
 | **C2 — Abandonner** | Le référentiel devient la seule source. Perte du contenu pédagogique rédigé ; le module 7 devra générer ses fiches sans matière préexistante. |
 | **C3 — Laisser en l'état** | Deux ancrages parallèles, non reliés. **À écarter** : c'est exactement le schéma « deux sources de vérité » que le projet a déjà démoli deux fois (D-CEO-20, D-CEO-21). |
+| **C4 — Rapprocher `remediation/` des 101 codes** *(retenu)* | Une source externe au dépôt (`remediation/`, 79 modules, 6e→Tle D) apporte ce que C1 ne pouvait pas donner à budget égal : les 7 niveaux (pas seulement le collège), et surtout des leçons complètes avec méthode, erreurs fréquentes **et** 2 838 exercices notés ★/★★/★★★ corrigés — l'exercice noté qu'aucun chunk curriculum ne portait. Le rapprochement (`manage.py rapprocher_remediation`) suit le principe de C1/`scripts/rapprocher_curriculum.py` (score de similarité), avec un seuil auto-validé plutôt qu'un classeur de relecture bloquant — décision explicite avec l'utilisateur, écart assumé avec Arbitrage B/C1. `curriculum_*.yaml` n'est pas retiré (C3 ne s'applique pas à lui) : il continue de servir l'ancien pipeline `src/pipeline/pipeline.py`, un chemin distinct du module 7. Détail complet : D-CEO-41. |
+
+### Arbitrage H — Les 7 sujets recomposés du 2026-08-12 divergent de `bareme_socle_*.yaml` *(clos le 2026-08-13)*
+
+**Constat.** `data/New-docs/` (livré le 2026-08-12) apporte 7 sujets PDF et 7 corrigés enseignant PDF, validés par un enseignant de mathématiques (Arbitrage B). Réconciliation automatique (grille de report de chaque corrigé, comparée code par code à `bareme_socle_*.yaml`) :
+
+| Niveau | Items dans le corrigé PDF | Items dans le YAML | Items du YAML absents du corrigé | Nouveaux problèmes de synthèse (partie C, absents du YAML) | Items reclassés partie A→B (repondérés) |
+|---|---|---|---|---|---|
+| 6eme, 5eme, 4eme, 3eme | 31 | 40 | 13 | 4 (P1–P4) | 11 |
+| 2ndeC, 1ereD, tleD | 40 | 40 | 6 | 6 (P1–P6) | 14 |
+
+Le motif est identique et cohérent sur les 7 niveaux : passage d'une structure à 2 parties (Automatismes 30×1pt + Rédigé 10×3pt, celle du classeur actuel) à une structure à **3 parties** (Automatismes / Savoir-faire / Raisonnement — cette dernière faite de problèmes croisant plusieurs compétences). Confirmé auprès de l'utilisateur (2026-08-12) : **c'est une recomposition délibérée et définitive**, pas une erreur de version.
+
+**Ce qui n'a pas bougé :** `Referentiel_Socle_v0.xlsx` — hash MD5 identique à la version du 2026-07-29 (comparé au fichier `Referentiel_Urie_v0.xlsx` livré en même temps, lui-même un doublon exact). La recomposition n'existe donc **que dans la mise en page des 7 PDF**, nulle part dans une donnée structurée. `bareme_socle_*.yaml`, généré le 2026-08-07 depuis ce même classeur non modifié, reflète encore l'ancienne composition à 2 parties.
+
+**Conséquence si rien n'est fait :** le pipeline note les copies contre un barème (`bareme_socle_*.yaml`, 2 parties) qui ne correspond plus au sujet réellement composé par l'élève (3 parties, imprimé depuis `data/Documents/`). Les 4 à 6 problèmes de synthèse de la partie C n'ont **aucun** `RubricItem` — une réponse à ces questions ne peut pas être notée par `compute_final_score()`.
+
+**Décision actée avec l'utilisateur (2026-08-12) : régénérer depuis le classeur.** `Referentiel_Socle_v0.xlsx` doit être mis à jour (onglets `04_Questions`, `06_Distracteurs`, `02_Competences` si de nouveaux codes de compétence sont nécessaires pour les problèmes croisés) pour refléter la composition des 7 corrigés PDF, puis `scripts/generer_baremes_socle.py` doit être relancé — **en sauvegardant d'abord tout `reponse_attendue`/`solution` déjà saisi à la main**, la régénération écrase ces champs.
+
+**Ce que ça implique concrètement, dans l'ordre :**
+1. Mettre à jour le classeur (travail pédagogique — code de compétence pour chaque problème de la nouvelle partie C, en particulier ; aucun code inventé, cf. `CLAUDE.md`).
+2. Relancer `scripts/generer_baremes_socle.py`.
+3. Re-remplir `reponse_attendue`/`solution` pour les items dont le code ou le barème a changé (les 11–14 reclassés par niveau, plus les nouveaux problèmes de synthèse) — le corrigé PDF sert de source pour cette étape, il est déjà validé.
+4. Revérifier avec le même script de réconciliation (`reconcile.py`, écarts nuls attendus) avant de considérer le module 1 à jour pour ces 7 niveaux.
+
+**Bloque :** module 1 (socle de données) pour un import strict des 7 tests, module 4 (diagnostic contraint — les nouveaux problèmes croisés n'ont pas de code de compétence), notation automatique fiable de la partie C.
+
+**✅ Pilote appliqué sur `socle_6eme` le 2026-08-12, décision actée avec l'utilisateur : « le classeur n'est pas la priorité, la plateforme si ».** Plutôt que d'attendre la mise à jour du classeur, `data/knowledge/bareme_socle_6eme.yaml` a été **reconstruit à la main** directement depuis le sujet et le corrigé PDF (43 items : 16 A + 11 B + 4 problèmes de partie C, chacun décomposé en 4 sous-items `Pxa`–`Pxd`, un seul code de compétence canonique par sous-item — voir méthode ci-dessous). `Referentiel_Socle_v0.xlsx` reste non modifié : **`bareme_socle_6eme.yaml` fait temporairement foi en avance sur le classeur**, jusqu'à ce que celui-ci soit repris.
+
+*Méthode retenue pour la décomposition de la partie C* — au lieu d'ajouter un champ « compétences multiples » pour porter les 3 à 5 codes que le corrigé associe à chaque problème (« croisée : G-a, M-a, N-c »), chaque problème est éclaté en autant de `RubricItem` que de termes dans son barème imprimé (`Barème. 1 + 2 + 1 + 1` → 4 sous-items), chacun avec **une seule** compétence — schéma existant, aucun champ inventé. Un champ `probleme_parent` (optionnel) regroupe les sous-items pour l'affichage. La compétence de chaque sous-item a été déduite du texte « Si l'élève échoue » et recoupée avec le tableau officiel « profil par domaine » du corrigé (N 10 pts, M 6 pts, G 1 pt, D 5 pts) : l'allocation retenue tombe à N 11 / M 5 — à 1 point près, sur un seul item (`P3b`) qui mélange deux savoir-faire dans un même terme de barème imprimé. Écart mineur, signalé mais non bloquant.
+
+Deux corrections faites en cours de route :
+- Les codes de question (`N1`, `D2`…) ne sont **pas** des identifiants stables entre l'ancien classeur et le nouveau sujet — ce sont des étiquettes de position dans le document. La correspondance a donc été faite par **contenu** (texte des questions, valeurs numériques lues visuellement sur les pages du corrigé PDF rendues en image — les nombres y sont vectoriels, invisibles à l'extraction texte), pas par égalité de code.
+- `G5` et `G6` (tracé de perpendiculaires, construction d'un carré + cercle) ont été retagués `format: construction` (et non `redige`) — ce sont des tracés au compas/équerre, pas des réponses rédigées. Leur `reponse_attendue` reste vide, cohérent avec la convention déjà en place pour les questions `construction` (arbitrage F).
+
+**Validé par les tests :** `tests/test_baremes_socle.py` mis à jour (nouveau jeu d'assertions pour les niveaux « recomposés », ancien jeu conservé pour les 6 niveaux pas encore repris) — 65/65 passent. Suite pipeline complète (`pytest tests/`) : 246/246. `manage.py check` propre.
+
+**Reste à faire :** répliquer la même méthode aux 2 autres niveaux (1ereD, tleD).
+
+**✅ `socle_5eme` reconstruit le 2026-08-12, même jour.** 45 items (16 A + 13 B + 16 sous-items C). Ce corrigé est plus explicite que celui de 6e : chaque terme du barème de partie C indique son domaine entre parenthèses, et la grille finale donne, par problème, la répartition par domaine. Résultat : la vérification contre le tableau officiel « profil par domaine » tombe **exactement juste** (G 2 / M 4 / N 10 / D 6 = 22, aucun écart), sans l'approximation nécessaire en 6e.
+
+Une différence structurelle propre à ce niveau : deux items de partie B (`G7`, `G9`) mélangent calcul et tracé au compas dans un même item à 2 points — contrairement aux items 6e qui étaient soit entièrement rédigés, soit entièrement construction. Décomposés en deux sous-items chacun (`G7a`/`G7b`, `G9a`/`G9b`), portant la partie B à **13 items pour 22 points inchangés**. Le test `test_structure_a_3_parties` a été généralisé en conséquence (somme des points de partie B ± cardinalité, plutôt qu'un compte fixe de 11 items).
+
+Point d'incertitude signalé (pas résolu) : `G3`/`G6` portent sur des angles **supplémentaires** (somme 180°), sans code canonique dédié dans le référentiel actuel — `G.ANG2` (angles complémentaires, somme 90°) est retenu comme meilleure approximation disponible.
+
+Tests : `tests/test_baremes_socle.py` (64/64), suite pipeline complète (245/245), `manage.py check` propre.
+
+**✅ `socle_4eme` reconstruit le 2026-08-13.** 48 items (16 A + 12 B + 20 sous-items C). Ce corrigé est le plus explicite des trois : au-delà du domaine par terme, il donne une phrase récapitulative de la répartition exacte par problème (« P1 donne 2 points à M et 3 à N ; P2, 4 points à L et 1 à D… »), ce qui a permis un recoupement **exact** avec le tableau « profil par domaine », sans aucune approximation.
+
+Deux différences propres à ce niveau :
+- Un nouveau domaine apparaît : **L (calcul littéral et équations)**, distinct de N — première apparition dans la progression 6e→tleD.
+- Le nombre de sous-items par problème de partie C **n'est plus fixé à 4** : certains problèmes ont 5 ou 6 termes de barème distincts (ex. P2 a 5 sous-questions à 1 pt chacune). `test_sous_items_partie_c_rattaches_a_un_probleme` généralisé en conséquence (3 à 6 sous-items, plus la somme exacte du barème).
+- Un seul item mixte calcul/construction cette fois (`G5`, décomposé en `G5a`/`G5b`) — Partie B passe à 12 items pour 22 points inchangés.
+
+Point d'incertitude signalé : `N6` (calcul d'un PPCM) rattaché à `N.PGCD`, faute de code canonique dédié au PPCM dans le référentiel actuel.
+
+Tests : `tests/test_baremes_socle.py` 63/63, suite pipeline complète 244/244, `manage.py check` propre.
+
+**✅ `socle_3eme` reconstruit le 2026-08-13.** 50 items (16 A + 12 B + 22 sous-items C). **Différence méthodologique importante avec 5e/4e :** ce corrigé ne donne pas le domaine de chaque terme de barème en partie C — il rattache chaque problème en bloc à un unique domaine dominant (« P1 et P2 en G, P3 en L, P4 en F »), sans répartition fine. La décomposition en sous-items a donc été maintenue (une compétence par sous-item, cohérente avec le principe du module 4), mais **sans le recoupement exact** qui validait fortement les niveaux précédents. Plusieurs sous-items portent une mention explicite de confiance basse dans leur `objet` (code canonique disponible le plus proche, sans certitude) — à confirmer avec l'enseignant qui a validé le corrigé avant tout usage en notation automatique de ces items précis.
+
+Autres nouveautés : apparition des domaines **G.VEC (vecteurs)** et **F (applications/fonctions)** ; `G7` (partie B) décomposé en construction + déduction, même motif que les niveaux précédents.
+
+Tests : `tests/test_baremes_socle.py` 62/62, suite pipeline complète 243/243, `manage.py check` propre.
+
+**✅ `socle_2ndeC` reconstruit le 2026-08-13 — premier niveau lycée.** 66 items (20 A + 14 B + 32 sous-items C, 6 problèmes). Échelle différente du collège : barème classeur 80 pts, converti /20 par **division par 4** (collège : ÷3) — `tests/test_baremes_socle.py` distingue maintenant les niveaux lycée pour cette conversion.
+
+Ce corrigé revient au motif précis de 5e/4e : répartition exacte des points de chaque problème par domaine (« P1 donne 2 pts à G et 3 pts à N »), recoupement **exact** avec le tableau officiel, aucune approximation — contrairement à 3e. Aucun item hybride calcul/construction cette fois (pas de construction géométrique au programme de ce niveau).
+
+Tests : `tests/test_baremes_socle.py` 61/61, suite pipeline complète 242/242, `manage.py check` propre.
+
+**✅ `socle_1ereD` reconstruit le 2026-08-13 — deuxième niveau lycée, recoupement exact.** 59 items (20 A
++ 14 B + 25 sous-items C, 6 problèmes). Comme pour 2ndeC, le corrigé donne le tableau « profil par
+domaine » avec les totaux (N 12,5 / L 16,5 / F 22 / G 22,5 / D 6,5 = 80 pts) et une clé de répartition
+explicite des points de chaque problème de partie C entre domaines — recoupement **exact** sur les 5
+domaines, aucun écart. Deux sous-items isolés (`P5d`, `P6e`) n'ont pas de code canonique qui colle
+exactement à leur contenu (comparaison numérique de deux carrés ; signalement d'une donnée manquante) —
+rattachés par approximation à `N.RAC` et `N.PROB`, sans effet sur les totaux par domaine.
+
+Tests : `tests/test_baremes_socle.py` 60/60, suite pipeline complète 241/241, `manage.py check` propre.
+
+**✅ `socle_tleD` reconstruit le 2026-08-13 — dernier niveau, arbitrage H clos.** 66 items (20 A + 14 B
++ 32 sous-items C, 6 problèmes). Le corrigé de ce niveau est le plus favorable des 7 : sa grille de fin
+donne directement le barème officiel par domaine (N 4 / L 11 / F 30 / S 11 / T 8 / D 4 / G 12 = 80 pts)
+**et** la clé de répartition exacte des points de chaque problème de partie C entre domaines — recoupement
+**exact** sur les 7 domaines, sans qu'aucune lecture visuelle n'ait été nécessaire pour déterminer la clé
+elle-même (contrairement aux niveaux précédents, où seuls les totaux par domaine étaient parfois donnés).
+Deux nouveautés : 7 domaines actifs (`S` suites/récurrence et `T` trigonométrie apparaissent comme
+domaines à part entière) ; le corrigé classe lui-même les fonctions rationnelles tantôt `L` (résolution
+algébrique isolée) tantôt `F` (étude de variation), suivi à l'identique. Trois sous-items isolés
+(`P4a`/`P4b`, `P6d`) n'ont pas de code canonique dédié à leur contenu précis — rattachés par approximation,
+sans effet sur les totaux par domaine.
+
+Tests : `tests/test_baremes_socle.py` 59/59 (+4 tests devenus vides, `_NIVEAUX_HERITES` est désormais
+une liste vide), suite pipeline complète 240 passent + 4 vides, `manage.py check` propre.
+
+**Arbitrage H clos.** Les 7 niveaux (`6eme` à `tleD`) sont reconstruits à la main sur la structure à 3
+parties. `Referentiel_Socle_v0.xlsx` reste non modifié — ces 7 fichiers YAML font foi jusqu'à ce que le
+classeur soit repris, décision actée avec l'utilisateur le 2026-08-12 (« le classeur n'est pas la priorité,
+la plateforme si »). Reporter cette recomposition dans le classeur reste un travail pédagogique séparé,
+non bloquant pour la suite du chantier v2.
 
 ---
 
@@ -267,10 +377,11 @@ Une fois le module 4 en place pour un niveau, `CompetencyGap.chunk_id` n'est plu
 | A | Archiver / faire coexister / ré-aligner les 6 anciens tests | Utilisateur | Modules 1, 8 | ✅ **A1 — archivés** (2026-07-30, appliqué) |
 | D | Échelle de barème en base : 60 (classeur) ou 20 (sujets) | Utilisateur | Module 1 | ✅ **sur 20** (2026-07-30, §4) |
 | G | Source des données des 7 nouveaux tests | Utilisateur | Modules 1, 8 | ✅ **le classeur** (2026-07-30, §3bis — 7 tests générés et opérationnels) |
-| B | **Qui produit les 209 corrigés manquants, sous quel format, quand** | Utilisateur + enseignant de maths | **Modules 3 à 9 — chemin critique** | ✅ **202/209 produits (2026-08-06)** — brouillon calculé sujet par sujet, relu et validé par l'utilisateur ; **pas encore relu par un enseignant de mathématiques** (validation `00_Notice` toujours due). 7 restants = questions `construction` (arbitrage F). Détail : journal de `docs/v2_roadmap.md`. |
+| B | **Qui produit les 209 corrigés manquants, sous quel format, quand** | Utilisateur + enseignant de maths | **Modules 3 à 9 — chemin critique** | ✅ **relus et validés par un enseignant de mathématiques (2026-08-12)** — 7 corrigés PDF complets, `data/Documents/corriges/`. Validation `00_Notice` faite. Mais leur composition ne correspond plus à `bareme_socle_*.yaml` — voir **arbitrage H**, nouveau chemin critique. |
 | C | Sort du curriculum RAG (121 chunks) | Utilisateur | Modules 4, 7 | 🟨 **rapprochement préparé** — 31 propositions nettes, 85 à trancher, 5 sans candidat ; classeur à valider |
 | E | Volumes horaires du lycée absents → palier incalculable en 2ndeC/1ereD | Utilisateur (point ouvert #2) | Module 6 | ⬜ en attente |
 | F | Format `construction` : diagnostic automatique ou saisie humaine ? | Utilisateur | Modules 2, 4 | ⬜ en attente |
+| H | **Les 7 sujets recomposés (2026-08-12) divergent de `bareme_socle_*.yaml`** | Utilisateur + enseignant de maths | Module 1 (import strict), module 4, notation auto | ✅ **clos (2026-08-13) : les 7 `bareme_socle_*.yaml` (6eme à tleD) reconstruits à la main** depuis les sujets/corrigés PDF, en avance sur le classeur. Reporter la recomposition dans `Referentiel_Socle_v0.xlsx` reste un travail pédagogique séparé, non bloquant. Voir §7 Arbitrage H. |
 
 ### État du catalogue de tests après harmonisation
 
@@ -278,12 +389,14 @@ L'archivage a été fait de façon à **ne pas casser l'historique** : `get_test
 
 | Test | Statut | Questions | Corrigé |
 |---|---|---|---|
-| `socle_6eme` → `socle_tleD` (7) | ✅ actifs | 40 chacun, 280 au total | 71 QCM ✅ · 209 en attente (arbitrage B) |
+| `socle_6eme` → `socle_tleD` (7) | ✅ actifs | 40 chacun dans le YAML · 31 à 40 dans le sujet/corrigé imprimé (arbitrage H) | ✅ PDF enseignant complet et validé (`data/Documents/corriges/`), servi via `correction_web:corrige` |
 | `hakili_*` (6) | 🗄 archivés | — | conservés, non corrigés (dette assumée) |
 
 Les 7 nouveaux tests sont **opérationnels et sélectionnables**. Chacun déclare `classe` = une classe canonique unique (`6e`, `5e`, `4e`, `3e`, `2nde`, `1ere`, `Tle`), ce qui améliore la détermination de la classe par rapport aux anciens tests : `resolve_classe` dispose d'un garde-fou exact et, en cas d'échec d'extraction de l'en-tête, d'un repli fiable (un seul niveau déclaré). Les anciens tests déclaraient les *niveaux évalués* (« 6e · 5e · 4e »), ce qui pouvait faire échouer le garde-fou quand la classe extraite était celle de l'élève.
 
 **Attention si le classeur est mis à jour :** les fichiers `bareme_socle_*.yaml` sont générés. Relancer `python scripts/generer_baremes_socle.py` — mais **sauvegarder d'abord tout corrigé saisi à la main**, la régénération écrase les champs `reponse_attendue` / `solution`.
+
+**Sujets imprimables (`data/Documents/*.pdf`) mis à jour le 2026-08-12** — ce sont désormais les 7 sujets recomposés (structure Automatismes/Savoir-faire/Raisonnement), pas ceux décrits au §1/§4 de ce document. Les anciens sont conservés dans `data/Documents/archive/` pour l'historique des copies déjà corrigées avec l'ancienne composition. Voir **arbitrage H** pour le désalignement avec `bareme_socle_*.yaml` que cette mise à jour a révélé.
 
 ---
 

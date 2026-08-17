@@ -1,0 +1,22 @@
+- question: Q1, Q2, Q3, Q4
+  module: '**Module 1**: Calculer juste'
+- question: Q5
+  module: '**Module 2**: Identités de degré 3'
+- question: Q6
+  module: '**Module 3**: Comparer et ordonner'
+- question: Q7, Q8
+  module: '**Module 4**: Intervalles et valeur absolue'
+- question: Q9
+  module: '**Module 5**: Encadrer et approcher'
+- question: Q10
+  module: '**Module 6**: Majorant, minorant, raisonnement'
+- question: Q11, Q12
+  module: '**Module 7**: Second degré et signes'
+- question: Q13, Q14
+  module: '**Module 8**: Fonctions et lecture graphique'
+- question: Q15, Q16
+  module: '**Module 9**: Vecteurs et repérage dans le plan'
+- question: Q17, Q18
+  module: '**Module 10**: Droites et fonctions affines'
+- question: Q19, Q20
+  module: '**Module 11**: Trigonométrie de base'

@@ -1,651 +1,908 @@
-# Généré par scripts/generer_baremes_socle.py — ne pas éditer à la main.
-# Source : Referentiel_Socle_v0.xlsx. Relancer le script après toute
-# mise à jour du classeur. Exception : les champs reponse_attendue et
-# solution peuvent être complétés à la main (arbitrage B) — dans ce cas,
-# les sauvegarder avant de régénérer.
+# Reconstruit manuellement le 2026-08-13 depuis le sujet et le corrige PDF recomposes
+# (data/Documents/, livraison data/New-docs/ du 2026-08-12) — PAS depuis Referentiel_Socle_v0.xlsx,
+# qui n'a pas ete mis a jour (voir docs/harmonisation_donnees.md, arbitrage H).
+# Ne pas relancer scripts/generer_baremes_socle.py sur ce fichier sans avoir d'abord
+# reporte la nouvelle composition (structure a 3 parties) dans le classeur, sous peine
+# d'ecraser ce travail et de revenir a l'ancienne composition a 2 parties.
 
 meta:
   test_id: socle_2ndeC
   titre: Test diagnostique d'entrée en 2nde C
   niveau_test: 2ndeC
   classe: 2nde
-  total_questions: 40
+  total_questions: 66
   total_possible: 20
-  somme_baremes_reelle: 19.99999
-  bareme_classeur_total: 60.0
-  source: Referentiel_Socle_v0.xlsx — onglets 04_Questions, 06_Distracteurs, 02_Competences
-  genere_par: scripts/generer_baremes_socle.py
-  note_corriges: 10 QCM avec bonne réponse ; 0 questions sans corrigé (absent du classeur — arbitrage
-    B de docs/harmonisation_donnees.md). Les champs reponse_attendue et solution sont prêts à être remplis.
+  somme_baremes_reelle: 20.0
+  bareme_classeur_total: 80.0
+  structure: Partie A 20 pts (20 x 1) - Partie B 28 pts (14 x 2) - Partie C 32 pts (4x5 + 2x6, 6 problemes
+    decomposes en 5 ou 6 sous-items chacun) — echelle lycee, bareme_classeur_total 80 converti /20 par
+    division par 4 (pas 3, comme au college)
+  source: data/Documents/Test_diagnostique_entree_2ndeC.pdf et data/Documents/corriges/Corrige_test_diagnostique_entree_2ndeC.pdf
+    (livraison 2026-08-12, corrige valide par un enseignant de mathematiques)
+  genere_par: 'reconstruction manuelle assistee (2026-08-13) — voir docs/harmonisation_donnees.md, arbitrage
+    H. Referentiel_Socle_v0.xlsx n''a PAS ete mis a jour : ce fichier est temporairement la source de
+    verite du bareme socle_2ndeC, en avance sur le classeur.'
+  note_corriges: Reponses et demarches extraites en lisant les pages du corrige PDF (rendues en image,
+    les valeurs numeriques y sont en vectoriel et invisibles a l'extraction texte). Ce corrige donne la
+    repartition exacte des points de partie C par domaine et par probleme (ex. 'P1 donne 2 pts a G et
+    3 pts a N'), recoupee EXACTEMENT avec le tableau officiel 'profil par domaine' (aucun ecart), comme
+    pour 5e et 4e — contrairement a 3e.
 questions:
-- code: D1
+- code: N1
   partie: A
   format: court
-  bareme: 0.333333
+  bareme: 0.25
   bareme_classeur: 1.0
-  competence: D.STAT1
+  competence: N.PRIO
   competence_secondaire: null
-  domaine: Donnees, proportionnalite, statistique
-  objet: Fréquence en pourcentage des 12 femmes sur 40 membres
-  reponse_attendue: 30 %
+  domaine: Activites numeriques
+  objet: Calculer une expression avec fractions et priorites operatoires
+  reponse_attendue: 9/8
   solution: ''
-- code: D2
-  partie: B
-  format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: D.STAT1
+  si_echoue: Soustraction de deux fractions de denominateurs differents, ou produit de deux fractions,
+    non automatises.
+- code: N2
+  partie: A
+  format: court
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: N.RAC
   competence_secondaire: null
-  domaine: Donnees, proportionnalite, statistique
-  objet: Effectif total, note moyenne et fréquence de la note 10
-  reponse_attendue: effectif total = 25 ; moyenne = 9,92 ; frequence(10) = 32 %
-  solution: somme=5x3+8x6+10x8+12x5+15x3=15+48+80+60+45=248 ; 248/25=9,92 ; 8/25x100=32%.
-- code: F1
+  domaine: Activites numeriques
+  objet: Simplifier une racine carree sous la forme a√b
+  reponse_attendue: 6√5
+  solution: ''
+  si_echoue: Extraction du plus grand carre parfait sous un radical non acquise.
+- code: N3
   partie: A
   format: qcm
-  bareme: 0.333333
+  bareme: 0.25
   bareme_classeur: 1.0
-  competence: F.LIN
+  competence: N.SCI
   competence_secondaire: null
-  domaine: Fonctions et applications
-  objet: Image de -3 par l'application affine f(x) = 2x - 5
-  reponse_attendue: c
+  domaine: Activites numeriques
+  objet: Ecrire un quotient de puissances de 10 en notation scientifique (QCM)
+  reponse_attendue: c) 3 × 10⁻⁸
   solution: ''
-  options:
-  - lettre: a
-    texte: '-1'
-    correcte: false
-    type_erreur: PRC
-    erreur: Signe du terme constant -5 mal traité (-6 + 5)
-  - lettre: b
-    texte: '-16'
-    correcte: false
-    type_erreur: CPT
-    erreur: 'Opérations inversées : soustraction avant multiplication'
-  - lettre: c
-    texte: '-11'
-    correcte: true
-  - lettre: d
-    texte: '1'
-    correcte: false
-    type_erreur: PRQ
-    erreur: Signe de -3 ignoré lors de la substitution
-- code: F2
+  si_echoue: 'Regle du quotient de deux puissances de 10 : les exposants se soustraient.'
+- code: N4
   partie: A
   format: court
-  bareme: 0.333333
+  bareme: 0.25
   bareme_classeur: 1.0
-  competence: F.LIN
+  competence: N.INT
   competence_secondaire: null
-  domaine: Fonctions et applications
-  objet: Équation de la droite passant par A(0 ; 3), coefficient directeur -2
-  reponse_attendue: y = -2x + 3
+  domaine: Activites numeriques
+  objet: Ecrire un ensemble de reels sous forme d'intervalle
+  reponse_attendue: ']-4 ; +∞['
   solution: ''
-- code: F3
-  partie: B
-  format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: F.LIN
-  competence_secondaire: null
-  domaine: Fonctions et applications
-  objet: Exprimer f(x), calculer f(12) puis l'antécédent de 3 500
-  reponse_attendue: f(x) = 500 + 150x ; f(12) = 2 300 F ; masse = 20 kg
-  solution: f(12)=500+150x12=2300 ; 500+150x=3500 -> 150x=3000 -> x=20.
-- code: G1
+  si_echoue: Passage d'une inegalite stricte a l'ecriture par intervalle, et sens des crochets, non maitrises.
+- code: N5
   partie: A
   format: qcm
-  bareme: 0.333333
+  bareme: 0.25
   bareme_classeur: 1.0
-  competence: G.PYT
+  competence: N.RAC
   competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Calculer BC, triangle rectangle en A, AB=9, AC=12
-  reponse_attendue: a
+  domaine: Activites numeriques
+  objet: Calculer une expression avec racines carrees, identite remarquable (QCM)
+  reponse_attendue: b) 7
   solution: ''
-  options:
-  - lettre: a
-    texte: 15 cm
-    correcte: true
-  - lettre: b
-    texte: 21 cm
-    correcte: false
-    type_erreur: CNS
-    erreur: Théorème de Pythagore non mobilisé, simple addition des côtés
-  - lettre: c
-    texte: √21 cm
-    correcte: false
-    type_erreur: CPT
-    erreur: Racine appliquée à la somme des longueurs au lieu des carrés
-  - lettre: d
-    texte: √63 cm
-    correcte: false
-    type_erreur: PRC
-    erreur: Carrés soustraits au lieu d'être additionnés
-- code: G2
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.RON
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Coordonnées du milieu I de [AB], A(-2 ; 3), B(4 ; -1)
-  reponse_attendue: I(1 ; 1)
-  solution: ''
-- code: G3
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.VEC
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Réduire la somme des vecteurs AB + BC + CD
-  reponse_attendue: vecteur AD
-  solution: ''
-- code: G4
-  partie: A
-  format: qcm
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: T.TRIR
-  competence_secondaire: null
-  domaine: Trigonometrie
-  objet: Cosinus de ABC, rectangle en A, AB=5, BC=13
-  reponse_attendue: d
-  solution: ''
-  options:
-  - lettre: a
-    texte: 12/13
-    correcte: false
-    type_erreur: CPT
-    erreur: Cosinus confondu avec le sinus de l'angle ABC
-  - lettre: b
-    texte: 5/12
-    correcte: false
-    type_erreur: CNS
-    erreur: Définition du cosinus non disponible, quotient des deux cathètes
-  - lettre: c
-    texte: 13/5
-    correcte: false
-    type_erreur: PRC
-    erreur: 'Quotient inverse : hypoténuse sur côté adjacent'
-  - lettre: d
-    texte: 5/13
-    correcte: true
-- code: G5
-  partie: A
-  format: qcm
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.RON
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Distance AB avec A(1 ; 2) et B(5 ; 5)
-  reponse_attendue: b
-  solution: ''
-  options:
-  - lettre: a
-    texte: '7'
-    correcte: false
-    type_erreur: CNS
-    erreur: Formule de distance non mobilisée, écarts additionnés
-  - lettre: b
-    texte: '5'
-    correcte: true
-  - lettre: c
-    texte: √7
-    correcte: false
-    type_erreur: CPT
-    erreur: Racine appliquée à la somme des écarts, carrés oubliés
-  - lettre: d
-    texte: '25'
-    correcte: false
-    type_erreur: PRC
-    erreur: Somme des carrés correcte mais racine finale omise
-- code: G6
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.THA
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Calculer AC avec (MN)//(BC), AM=3, AB=9, AN=4
-  reponse_attendue: 12 cm
-  solution: ''
-- code: G7
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.COL
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Déterminer k tel que v=k u, u(3;-2), v(-9;6)
-  reponse_attendue: k = -3
-  solution: ''
-- code: G8
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.PYT
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: 'Préciser le sommet de l''angle droit : 8, 15, 17'
-  reponse_attendue: Angle droit en S
-  solution: ''
-- code: G9
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: T.TRIR
-  competence_secondaire: null
-  domaine: Trigonometrie
-  objet: 'Distance au mur : échelle de 4 m à 60 degrés'
-  reponse_attendue: 2 m
-  solution: ''
-- code: G10
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.RON
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: 'Coordonnées de F : I(2;-1) milieu de [EF], E(-3;5)'
-  reponse_attendue: F(7 ; -7)
-  solution: ''
-- code: G11
-  partie: B
-  format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: G.COL
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Coordonnées de AB et AC, puis alignement de A, B et C
-  reponse_attendue: vecteur AB(4;2) ; vecteur AC(6;3) ; A, B, C sont alignes
-  solution: 'AC=1,5 x AB (6/4=3/2=1,5 et 3/2=1,5) donc les vecteurs sont colineaires : A, B, C alignes.'
-- code: G12
-  partie: B
-  format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: G.PYT
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Comparer le trajet par la diagonale AC et le trajet par B
-  reponse_attendue: diagonale AC = 50 m ; trajet par B = 70 m ; difference = 20 m
-  solution: AC=racine(40^2+30^2)=racine(2500)=50 ; AB+BC=40+30=70 ; 70-50=20.
-- code: G13
-  partie: B
-  format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: G.THA
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Calculer BC et AN, (MN)//(BC), AM=4, MB=6
-  reponse_attendue: BC = 12,5 cm ; AN = 6 cm
-  solution: 'AB=AM+MB=4+6=10 ; Thales : 4/10=AN/15=5/BC -> AN=6 ; BC=12,5.'
+  si_echoue: Identite (a-b)(a+b)=a²-b² non reconnue, ou (√2)²=2 non su.
 - code: L1
   partie: A
   format: qcm
-  bareme: 0.333333
+  bareme: 0.25
   bareme_classeur: 1.0
   competence: L.IDR
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Développer (2x - 3)^2
-  reponse_attendue: c
+  objet: Choisir le developpement d'un carre d'une difference (QCM)
+  reponse_attendue: d) 4x² - 20x + 25
   solution: ''
-  options:
-  - lettre: a
-    texte: 4x^2 + 9
-    correcte: false
-    type_erreur: CNS
-    erreur: Identité remarquable non mobilisée, double produit absent
-  - lettre: b
-    texte: 4x^2 - 6x + 9
-    correcte: false
-    type_erreur: PRC
-    erreur: Double produit calculé 2x3 au lieu de 2 x 2x x 3
-  - lettre: c
-    texte: 4x^2 - 12x + 9
-    correcte: true
-  - lettre: d
-    texte: 2x^2 - 12x + 9
-    correcte: false
-    type_erreur: CPT
-    erreur: Coefficient 2 non élève au carré dans (2x)^2
+  si_echoue: 'Carre d''une difference : le double produit est oublie ou mal calcule.'
 - code: L2
   partie: A
   format: court
-  bareme: 0.333333
+  bareme: 0.25
   bareme_classeur: 1.0
   competence: L.FAC2
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Factoriser x^2 - 49
-  reponse_attendue: (x - 7)(x + 7)
+  objet: Factoriser une difference de deux carres
+  reponse_attendue: (3x - 5)(3x + 5)
   solution: ''
+  si_echoue: Reconnaissance d'une difference de deux carres non acquise.
 - code: L3
   partie: A
-  format: qcm
-  bareme: 0.333333
+  format: court
+  bareme: 0.25
   bareme_classeur: 1.0
   competence: L.EQ1
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Résoudre 5x - 7 = 3x + 11
-  reponse_attendue: d
+  objet: Resoudre une equation du premier degre dans R
+  reponse_attendue: x = 4, soit S = {4}
   solution: ''
-  options:
-  - lettre: a
-    texte: x = -9
-    correcte: false
-    type_erreur: PRC
-    erreur: Signe faux introduit lors de la division de 18 par 2
-  - lettre: b
-    texte: x = 2
-    correcte: false
-    type_erreur: CPT
-    erreur: Transposition de -7 sans changement de signe
-  - lettre: c
-    texte: x = -2
-    correcte: false
-    type_erreur: PRQ
-    erreur: Cumul d'erreurs de signe sur les relatifs
-  - lettre: d
-    texte: x = 9
-    correcte: true
+  si_echoue: Regroupement des termes en x d'un cote et des constantes de l'autre, avec changement de signe,
+    non automatise.
 - code: L4
   partie: A
-  format: court
-  bareme: 0.333333
+  format: qcm
+  bareme: 0.25
   bareme_classeur: 1.0
   competence: L.INEQ1
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Résoudre dans R l'inéquation 3x - 5 <= 7
-  reponse_attendue: x <= 4
+  objet: Choisir l'ensemble des solutions d'une inequation du premier degre (QCM)
+  reponse_attendue: a) ]-∞ ; -3]
   solution: ''
+  si_echoue: Inversion du sens de l'inegalite lors de la division par un nombre negatif non appliquee.
 - code: L5
   partie: A
-  format: qcm
-  bareme: 0.333333
+  format: court
+  bareme: 0.25
   bareme_classeur: 1.0
   competence: L.IDR
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Réduire (x + 5)(x - 5) - (x - 2)^2
-  reponse_attendue: b
+  objet: Developper et reduire une expression avec identites remarquables
+  reponse_attendue: G = 5x - 9
   solution: ''
-  options:
-  - lettre: a
-    texte: -4x - 29
-    correcte: false
-    type_erreur: PRC
-    erreur: Signe du double produit -4x non changé après la parenthèse
-  - lettre: b
-    texte: 4x - 29
-    correcte: true
-  - lettre: c
-    texte: 4x - 21
-    correcte: false
-    type_erreur: CPT
-    erreur: Signe moins distribué partiellement, le +4 reste positif
-  - lettre: d
-    texte: -4x - 21
-    correcte: false
-    type_erreur: CNS
-    erreur: Identités remarquables non mobilisées, aucun terme correct
+  si_echoue: Distribution du signe moins devant un produit.
 - code: L6
   partie: A
   format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: L.FAC1
-  competence_secondaire: null
-  domaine: Calcul litteral et algebre
-  objet: Factoriser (3x - 1)(x + 4) + (3x - 1)^2
-  reponse_attendue: (3x - 1)(4x + 3)
-  solution: ''
-- code: L7
-  partie: A
-  format: court
-  bareme: 0.333333
+  bareme: 0.25
   bareme_classeur: 1.0
   competence: L.SYS
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Résoudre le système x+y=7 ; 2x-y=5
-  reponse_attendue: x = 4 ; y = 3
+  objet: Resoudre un systeme de deux equations a deux inconnues
+  reponse_attendue: (x ; y) = (4 ; 2)
   solution: ''
-- code: L8
+  si_echoue: Resolution d'un systeme par combinaison ou par substitution non automatisee.
+- code: L7
   partie: A
   format: court
-  bareme: 0.333333
+  bareme: 0.25
   bareme_classeur: 1.0
   competence: L.EQP
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Résoudre (2x - 6)(x + 5) = 0
-  reponse_attendue: x = 3 ou x = -5
+  objet: Resoudre une equation produit
+  reponse_attendue: S = {-4 ; 0}
   solution: ''
-- code: L9
+  si_echoue: 'Equation produit : un produit de facteurs est nul si et seulement si l''un au moins des
+    facteurs est nul.'
+- code: G1
+  partie: A
+  format: court
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: G.PYT
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Calculer une longueur dans un triangle rectangle par le theoreme de Pythagore
+  reponse_attendue: MP = 5 cm
+  solution: ''
+  si_echoue: Identification de l'hypotenuse dans un triangle rectangle.
+- code: G2
+  partie: A
+  format: court
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: G.VEC
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Reduire une somme de vecteurs par la relation de Chasles
+  reponse_attendue: CB (vecteur)
+  solution: ''
+  si_echoue: Relation de Chasles et oppose d'un vecteur.
+- code: G3
   partie: A
   format: qcm
-  bareme: 0.333333
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: G.RON
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Calculer une distance dans un repere orthonormal (QCM)
+  reponse_attendue: b) 5
+  solution: ''
+  si_echoue: Formule de la distance dans un repere orthonormal non memorisee, ou racine carree finale
+    oubliee.
+- code: G4
+  partie: A
+  format: qcm
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: G.THA
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Calculer une longueur par le theoreme de Thales (QCM)
+  reponse_attendue: a) 15 cm
+  solution: ''
+  si_echoue: Ecriture des rapports de Thales dans le bon sens.
+- code: G5
+  partie: A
+  format: court
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: G.VEC
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Calculer les coordonnees d'un vecteur dans un repere
+  reponse_attendue: AB(3 ; 5) (vecteur)
+  solution: ''
+  si_echoue: 'Coordonnees d''un vecteur : xB-xA et yB-yA, dans cet ordre et avec les signes.'
+- code: G6
+  partie: A
+  format: court
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: T.TRIR
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Calculer une hauteur par trigonometrie dans le triangle rectangle
+  reponse_attendue: 6 m
+  solution: ''
+  si_echoue: 'Choix de la ligne trigonometrique : la hauteur est le cote oppose a l''angle.'
+- code: F1
+  partie: A
+  format: qcm
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: F.LIN
+  competence_secondaire: null
+  domaine: Fonctions et applications
+  objet: Determiner l'antecedent par une application affine (QCM)
+  reponse_attendue: c) -3
+  solution: ''
+  si_echoue: 'Distinction image et antecedent : chercher l''antecedent, c''est resoudre f(x)=valeur.'
+- code: D1
+  partie: A
+  format: court
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: D.STAT1
+  competence_secondaire: null
+  domaine: Organisation de donnees
+  objet: Calculer une moyenne simple
+  reponse_attendue: 12 sacs
+  solution: ''
+  si_echoue: 'Calcul d''une moyenne simple : somme des valeurs divisee par l''effectif.'
+- code: N6
+  partie: B
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: N.RAC
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: Reduire une expression avec racines carrees et juger le signe du resultat
+  reponse_attendue: P = 2√2, l'affirmation d'Aminata est fausse
+  solution: P=√50-3√8+√18=5√2-3×2√2+3√2=2√2 ; 2√2>0 donc P est un nombre positif.
+  si_echoue: 'Reduction de radicaux semblables : les racines doivent d''abord etre ecrites avec le meme
+    radical.'
+- code: N7
+  partie: B
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: N.INT
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: Encadrer une expression a partir d'un intervalle donne, puis l'ecrire en intervalle
+  reponse_attendue: 3 - 2x ∈ ]-5 ; 5]
+  solution: x∈[-1;4[ donne -1≤x<4 ; en multipliant par -2, -8<-2x≤2 ; en ajoutant 3, -5<3-2x≤5.
+  si_echoue: 'Multiplication d''un encadrement par un nombre negatif : les bornes echangent leur role
+    et le sens des inegalites s''inverse.'
+- code: L8
+  partie: B
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: L.IDR
+  competence_secondaire: null
+  domaine: Calcul litteral et algebre
+  objet: Developper et reduire une expression avec identites remarquables, juger une affirmation
+  reponse_attendue: E = 24x, Boukary a raison
+  solution: E=(2x+3)²-(2x-3)²=(4x²+12x+9)-(4x²-12x+9)=24x ; si x est entier, E=24x=12×2x est un multiple
+    de 12.
+  si_echoue: 'Difference de deux carres developpes : le signe moins porte sur les trois termes de la seconde
+    parenthese.'
+- code: L9
+  partie: B
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: L.FAC2
+  competence_secondaire: null
+  domaine: Calcul litteral et algebre
+  objet: Factoriser une expression et juger si elle s'annule pour une valeur donnee
+  reponse_attendue: F = (4x + 5)(3x - 2), l'affirmation de Salif est fausse
+  solution: '16x²-25=(4x-5)(4x+5) donc F=(4x+5)[(4x-5)-(x-3)]=(4x+5)(3x-2) ; pour x=5/4 : F=10×7/4=35/2,
+    non nul.'
+  si_echoue: Mise en evidence d'un facteur commun apres reconnaissance d'une identite remarquable.
+- code: L10
+  partie: B
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: L.MISE
+  competence_secondaire: null
+  domaine: Calcul litteral et algebre
+  objet: Traduire une situation par une equation, puis la resoudre
+  reponse_attendue: stock du matin = 80 pagnes
+  solution: x-2/5x-18=30 donne 3/5x=48, puis x=48×5/3=80.
+  si_echoue: 'Traduction d''un enonce en equation : la fraction porte sur le stock initial, et le reste
+    s''obtient par soustractions successives.'
+- code: L11
+  partie: B
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: L.INEQ1
+  competence_secondaire: null
+  domaine: Calcul litteral et algebre
+  objet: Traduire une contrainte de budget par une inequation, la resoudre et donner un nombre entier
+    maximal
+  reponse_attendue: au plus 28 participants
+  solution: 15000+800n≤38000 donne 800n≤23000, n≤28,75 ; le nombre de participants etant un entier, au
+    plus 28.
+  si_echoue: Passage du langage courant a une inequation, et interpretation d'une solution decimale dans
+    un contexte ou l'inconnue est un nombre entier.
+- code: L12
+  partie: B
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: L.SYS
+  competence_secondaire: null
+  domaine: Calcul litteral et algebre
+  objet: Traduire une situation par un systeme de deux equations, puis le resoudre
+  reponse_attendue: un bidon contient 11 L, un seau contient 6 L
+  solution: 'Systeme 4b+3s=62, b=s+5 ; en substituant : 4(s+5)+3s=62, 7s=42, s=6, puis b=11.'
+  si_echoue: Traduction d'une situation par deux equations a deux inconnues.
+- code: G7
+  partie: B
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: G.COL
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Calculer des coordonnees de vecteurs et determiner un parametre pour un alignement
+  reponse_attendue: m = 7
+  solution: AB(3;2) et AC(9;m-1) ; alignement si 3(m-1)-2×9=0, soit 3m-3=18, m=7.
+  si_echoue: Condition de colinearite de deux vecteurs par le produit en croix.
+- code: G8
+  partie: B
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: G.RON
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Determiner les coordonnees d'un point par une propriete de milieu, puis calculer une distance
+  reponse_attendue: F(5 ; -2), EF = 10
+  solution: 'I milieu de [EF] : xF=2×1-(-3)=5, yF=2×1-4=-2 ; EF=√((5+3)²+(-2-4)²)=√100=10.'
+  si_echoue: 'Usage inverse de la formule du milieu : les coordonnees du milieu sont connues, celles d''une
+    extremite sont cherchees.'
+- code: G9
+  partie: B
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: G.PYT
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Verifier la reciproque du theoreme de Pythagore, puis calculer la longueur qui donnerait un angle
+    droit
+  reponse_attendue: l'angle en A n'est pas droit ; il faudrait BC = 15 m
+  solution: AB²+AC²=81+144=225 et BC²=196 ; 225≠196 donc l'angle en A n'est pas droit ; il faudrait BC²=225,
+    soit BC=15m.
+  si_echoue: 'Reciproque du theoreme de Pythagore : comparer le carre du plus grand cote a la somme des
+    carres des deux autres.'
+- code: G10
+  partie: B
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: G.THA
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Calculer deux longueurs par le theoreme de Thales
+  reponse_attendue: MN = 9 cm, NC = 6 cm
+  solution: 'AB=AM+MB=10cm ; Thales : AM/AB=AN/AC=MN/BC=6/10 ; MN=6/10×15=9cm ; AC=15cm, NC=15-9=6cm.'
+  si_echoue: Reconstitution du cote entier a partir de ses deux morceaux, et distinction entre AC et NC
+    dans l'ecriture des rapports.
+- code: G11
+  partie: B
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: T.TRIR
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Calculer un sinus et un angle, puis un denivele par trigonometrie
+  reponse_attendue: angle = 30°, denivele de la seconde piste = 60 m
+  solution: sinα=45/90=0,5 donc α=30° ; pour la seconde piste, denivele=120×sin30°=60m.
+  si_echoue: 'Sinus dans le triangle rectangle : le denivele est le cote oppose, la longueur de la piste
+    est l''hypotenuse.'
+- code: F2
+  partie: B
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: F.LIN
+  competence_secondaire: null
+  domaine: Fonctions et applications
+  objet: Determiner une equation de droite a partir de deux points, puis verifier l'appartenance d'un
+    point
+  reponse_attendue: '(D) : y = -2x + 3 ; C appartient a (D)'
+  solution: 'a=(-3-5)/(3-(-1))=-2 ; y=-2x+b, A(-1;5) donne b=3 ; pour x=2 : y=-1, qui est l''ordonnee
+    de C.'
+  si_echoue: Determination d'une equation de droite a partir de deux points, puis verification par substitution.
+- code: D2
+  partie: B
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: D.STAT1
+  competence_secondaire: null
+  domaine: Organisation de donnees
+  objet: Determiner un effectif manquant, puis calculer une moyenne ponderee
+  reponse_attendue: x = 7, moyenne = 3,4
+  solution: 'Effectif total 25 : 6+x+8+4=25 donne x=7 ; moyenne=(2×6+3×7+4×8+5×4)/25=85/25=3,4.'
+  si_echoue: 'Moyenne ponderee par les effectifs : les valeurs ne se moyennent pas entre elles sans tenir
+    compte du nombre de membres concernes.'
+- code: P1a
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: G.PYT
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: '[P1, sous-question 1/5] Calculer une longueur par le theoreme de Pythagore'
+  reponse_attendue: AC = 100 m
+  solution: ''
+  si_echoue: Somme de longueurs dans une figure composee, ou passage d'un budget a une quantite par division.
+  probleme_parent: P1
+- code: P1b
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: G.PYT
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: '[P1, sous-question 2/5] Calculer une longueur totale (perimetre et diagonale) d''une figure
+    composee'
+  reponse_attendue: 380 m
+  solution: ''
+  si_echoue: Somme de longueurs dans une figure composee, ou passage d'un budget a une quantite par division.
+  probleme_parent: P1
+- code: P1c
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: N.PRIO
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: '[P1, sous-question 3/5] Calculer une longueur achetable a partir d''un budget et d''un prix
+    au metre'
+  reponse_attendue: 320 m
+  solution: ''
+  si_echoue: Somme de longueurs dans une figure composee, ou passage d'un budget a une quantite par division.
+  probleme_parent: P1
+- code: P1d
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: N.PRIO
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: '[P1, sous-question 4/5] Comparer une longueur achetable a une longueur necessaire'
+  reponse_attendue: 320 m < 380 m
+  solution: ''
+  si_echoue: Somme de longueurs dans une figure composee, ou passage d'un budget a une quantite par division.
+  probleme_parent: P1
+- code: P1e
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: N.PRIO
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: '[P1, sous-question 5/5] Rediger la conclusion sur la realisation d''un projet'
+  reponse_attendue: la somme disponible ne permet pas de realiser le projet
+  solution: ''
+  si_echoue: Somme de longueurs dans une figure composee, ou passage d'un budget a une quantite par division.
+  probleme_parent: P1
+- code: P2a
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: D.STAT1
+  competence_secondaire: null
+  domaine: Organisation de donnees
+  objet: '[P2, sous-question 1/5] Calculer une moyenne ponderee a partir d''un tableau d''effectifs'
+  reponse_attendue: 2 problemes par membre
+  solution: ''
+  si_echoue: Lecture d'un tableau d'effectifs, cumul d'effectifs pour un « au moins », ou usage de la
+    moyenne comme equation pour retrouver un total.
+  probleme_parent: P2
+- code: P2b
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: D.STAT1
+  competence_secondaire: null
+  domaine: Organisation de donnees
+  objet: '[P2, sous-question 2/5] Calculer un pourcentage de membres au-dessus d''un seuil'
+  reponse_attendue: 40 %
+  solution: ''
+  si_echoue: Lecture d'un tableau d'effectifs, cumul d'effectifs pour un « au moins », ou usage de la
+    moyenne comme equation pour retrouver un total.
+  probleme_parent: P2
+- code: P2c
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: D.STAT1
+  competence_secondaire: null
+  domaine: Organisation de donnees
+  objet: '[P2, sous-question 3/5] Comparer un effectif cumule a la moitie du total et juger une affirmation'
+  reponse_attendue: 19 > 15, l'affirmation est vraie
+  solution: ''
+  si_echoue: Lecture d'un tableau d'effectifs, cumul d'effectifs pour un « au moins », ou usage de la
+    moyenne comme equation pour retrouver un total.
+  probleme_parent: P2
+- code: P2d
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: L.MISE
+  competence_secondaire: null
+  domaine: Calcul litteral et algebre
+  objet: '[P2, sous-question 4/5] Calculer un total a partir d''une moyenne donnee sur un effectif elargi'
+  reponse_attendue: 90 problemes
+  solution: ''
+  si_echoue: Lecture d'un tableau d'effectifs, cumul d'effectifs pour un « au moins », ou usage de la
+    moyenne comme equation pour retrouver un total.
+  probleme_parent: P2
+- code: P2e
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: L.MISE
+  competence_secondaire: null
+  domaine: Calcul litteral et algebre
+  objet: '[P2, sous-question 5/5] Calculer une valeur individuelle a partir d''un total et d''un effectif'
+  reponse_attendue: 5 problemes par nouveau membre
+  solution: ''
+  si_echoue: Lecture d'un tableau d'effectifs, cumul d'effectifs pour un « au moins », ou usage de la
+    moyenne comme equation pour retrouver un total.
+  probleme_parent: P2
+- code: P3a
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: G.RON
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: '[P3, sous-question 1/5] Calculer deux distances dans un repere orthonormal'
+  reponse_attendue: AB = 10, AC = 12 unites
+  solution: ''
+  si_echoue: Formules de distance et de milieu dans un repere orthonormal, egalite de deux vecteurs, ou
+    conversion des unites du repere en metres.
+  probleme_parent: P3
+- code: P3b
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: G.RON
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: '[P3, sous-question 2/5] Calculer les coordonnees d''un milieu'
+  reponse_attendue: (4 ; 6)
+  solution: ''
+  si_echoue: Formules de distance et de milieu dans un repere orthonormal, egalite de deux vecteurs, ou
+    conversion des unites du repere en metres.
+  probleme_parent: P3
+- code: P3c
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: G.VEC
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: '[P3, sous-question 3/5] Determiner les coordonnees d''un point par egalite vectorielle'
+  reponse_attendue: D(7 ; -6)
+  solution: ''
+  si_echoue: Formules de distance et de milieu dans un repere orthonormal, egalite de deux vecteurs, ou
+    conversion des unites du repere en metres.
+  probleme_parent: P3
+- code: P3d
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: N.PRIO
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: '[P3, sous-question 4/5] Convertir un perimetre exprime en unites de repere vers des metres'
+  reponse_attendue: 320 m
+  solution: ''
+  si_echoue: Formules de distance et de milieu dans un repere orthonormal, egalite de deux vecteurs, ou
+    conversion des unites du repere en metres.
+  probleme_parent: P3
+- code: P3e
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: N.PRIO
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: '[P3, sous-question 5/5] Comparer un cout a un budget disponible et conclure'
+  reponse_attendue: 384 000 FCFA, le budget de 400 000 FCFA suffit
+  solution: ''
+  si_echoue: Formules de distance et de milieu dans un repere orthonormal, egalite de deux vecteurs, ou
+    conversion des unites du repere en metres.
+  probleme_parent: P3
+- code: P4a
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: F.LIN
+  competence_secondaire: null
+  domaine: Fonctions et applications
+  objet: '[P4, sous-question 1/5] Exprimer deux prix en fonction du nombre de sacs par des applications
+    affines'
+  reponse_attendue: f(x)=300x+12000, g(x)=500x
+  solution: ''
+  si_echoue: Modelisation d'un tarif par une application affine, ou comparaison de deux tarifs par une
+    inequation plutot que par essais successifs.
+  probleme_parent: P4
+- code: P4b
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: F.LIN
+  competence_secondaire: null
+  domaine: Fonctions et applications
+  objet: '[P4, sous-question 2/5] Calculer les deux prix pour un nombre de sacs donne'
+  reponse_attendue: 21 000 FCFA et 15 000 FCFA pour 30 sacs
+  solution: ''
+  si_echoue: Modelisation d'un tarif par une application affine, ou comparaison de deux tarifs par une
+    inequation plutot que par essais successifs.
+  probleme_parent: P4
+- code: P4c
+  partie: C
+  format: redige
+  bareme: 0.25
   bareme_classeur: 1.0
   competence: L.INEQ1
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Résoudre l'inéquation -2x + 1 > 7
-  reponse_attendue: c
+  objet: '[P4, sous-question 3/5] Resoudre une inequation comparant deux tarifs'
+  reponse_attendue: x > 60
   solution: ''
-  options:
-  - lettre: a
-    texte: ']-3 ; +∞['
-    correcte: false
-    type_erreur: CPT
-    erreur: Sens de l'inégalité non inverse lors de la division par -2
-  - lettre: b
-    texte: ']3 ; +∞['
-    correcte: false
-    type_erreur: PRQ
-    erreur: Signe du quotient et sens de l'inégalité tous deux erronés
-  - lettre: c
-    texte: ']-∞ ; -3['
-    correcte: true
-  - lettre: d
-    texte: ']-∞ ; 3['
-    correcte: false
-    type_erreur: PRC
-    erreur: Sens correctement inverse mais signe du quotient faux
-- code: L10
-  partie: B
+  si_echoue: Modelisation d'un tarif par une application affine, ou comparaison de deux tarifs par une
+    inequation plutot que par essais successifs.
+  probleme_parent: P4
+- code: P4d
+  partie: C
   format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: L.FAC2
-  competence_secondaire: L.FAC1
-  domaine: Calcul litteral et algebre
-  objet: Factoriser R = 4x^2-9-(2x-3)(x+1) puis calculer R(-2)
-  reponse_attendue: R = (2x-3)(x+2) ; R(-2) = 0
-  solution: 4x^2-9=(2x-3)(2x+3) ; R=(2x-3)(2x+3)-(2x-3)(x+1)=(2x-3)[(2x+3)-(x+1)]=(2x-3)(x+2) ; R(-2)=(-7)(0)=0.
-- code: L11
-  partie: B
-  format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: L.MISE
-  competence_secondaire: L.EQ1
-  domaine: Calcul litteral et algebre
-  objet: Mettre en équation et calculer le prix des deux sacs
-  reponse_attendue: 2x + 5000 = 41000 ; mil = 18 000 F, riz = 23 000 F
-  solution: x+(x+5000)=41000 -> 2x=36000 -> x=18000 ; riz=18000+5000=23000.
-- code: L12
-  partie: B
-  format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: L.SYS
-  competence_secondaire: L.MISE
-  domaine: Calcul litteral et algebre
-  objet: Prix du kilo de niébé et de sorgho (système)
-  reponse_attendue: niebe = 800 F/kg ; sorgho = 600 F/kg
-  solution: '3n+2s=3600 ; 5n+2s=5200 ; soustraction : 2n=1600 -> n=800 ; 3x800+2s=3600 -> s=600.'
-- code: N1
-  partie: A
-  format: court
-  bareme: 0.333333
+  bareme: 0.25
   bareme_classeur: 1.0
-  competence: N.FRA2
-  competence_secondaire: N.PRIO
-  domaine: Activites numeriques
-  objet: Calculer 3/4 - 2/3 x 5/2, résultat en fraction irréductible
-  reponse_attendue: -11/12
-  solution: ''
-- code: N2
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.SCI
+  competence: N.INT
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Écrire 45 000 x 10^-7 en notation scientifique
-  reponse_attendue: 4,5 x 10 puissance -3
+  objet: '[P4, sous-question 4/5] Ecrire l''ensemble solution d''une comparaison de tarifs sous forme
+    d''intervalle'
+  reponse_attendue: ']60 ; +∞['
   solution: ''
-- code: N3
-  partie: A
-  format: court
-  bareme: 0.333333
+  si_echoue: Modelisation d'un tarif par une application affine, ou comparaison de deux tarifs par une
+    inequation plutot que par essais successifs.
+  probleme_parent: P4
+- code: P4e
+  partie: C
+  format: redige
+  bareme: 0.25
   bareme_classeur: 1.0
-  competence: N.RAC
+  competence: F.LIN
   competence_secondaire: null
-  domaine: Activites numeriques
-  objet: Écrire √50 sous la forme a√2
-  reponse_attendue: a = 5
+  domaine: Fonctions et applications
+  objet: '[P4, sous-question 5/5] Conclure en designant le tarif le moins cher pour un nombre de sacs
+    donne'
+  reponse_attendue: le transporteur X est le moins cher pour 75 sacs
   solution: ''
-- code: N4
-  partie: A
-  format: qcm
-  bareme: 0.333333
+  si_echoue: Modelisation d'un tarif par une application affine, ou comparaison de deux tarifs par une
+    inequation plutot que par essais successifs.
+  probleme_parent: P4
+- code: P5a
+  partie: C
+  format: redige
+  bareme: 0.25
   bareme_classeur: 1.0
-  competence: N.SCI
+  competence: G.PYT
   competence_secondaire: null
-  domaine: Activites numeriques
-  objet: Simplifier (10^-3 x 10^5) / 10^4
-  reponse_attendue: b
+  domaine: Activites geometriques
+  objet: '[P5, sous-question 1/6] Calculer une longueur par le theoreme de Pythagore'
+  reponse_attendue: BC = 100 m
   solution: ''
-  options:
-  - lettre: a
-    texte: 10^2
-    correcte: false
-    type_erreur: PRC
-    erreur: Numérateur simplifié mais division par 10^4 oubliée
-  - lettre: b
-    texte: 10^-2
-    correcte: true
-  - lettre: c
-    texte: 10^6
-    correcte: false
-    type_erreur: CPT
-    erreur: Exposant du dénominateur ajoute au lieu d'être soustrait
-  - lettre: d
-    texte: 10^-6
-    correcte: false
-    type_erreur: PRQ
-    erreur: Erreur de signe dans -3 + 5, puis soustraction de 4
-- code: N5
-  partie: A
-  format: court
-  bareme: 0.333333
+  si_echoue: Coefficient de reduction de Thales applique a toutes les longueurs de la configuration, ou
+    choix du cote adjacent et de l'hypotenuse dans le calcul d'un cosinus.
+  probleme_parent: P5
+- code: P5b
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: G.THA
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: '[P5, sous-question 2/6] Calculer une longueur par le theoreme de Thales'
+  reponse_attendue: AN = 60 m
+  solution: ''
+  si_echoue: Coefficient de reduction de Thales applique a toutes les longueurs de la configuration, ou
+    choix du cote adjacent et de l'hypotenuse dans le calcul d'un cosinus.
+  probleme_parent: P5
+- code: P5c
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: G.THA
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: '[P5, sous-question 3/6] Calculer une seconde longueur par le theoreme de Thales'
+  reponse_attendue: MN = 75 m
+  solution: ''
+  si_echoue: Coefficient de reduction de Thales applique a toutes les longueurs de la configuration, ou
+    choix du cote adjacent et de l'hypotenuse dans le calcul d'un cosinus.
+  probleme_parent: P5
+- code: P5d
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: T.TRIR
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: '[P5, sous-question 4/6] Calculer un cosinus dans un triangle rectangle'
+  reponse_attendue: cos(ABC) = 0,6
+  solution: ''
+  si_echoue: Coefficient de reduction de Thales applique a toutes les longueurs de la configuration, ou
+    choix du cote adjacent et de l'hypotenuse dans le calcul d'un cosinus.
+  probleme_parent: P5
+- code: P5e
+  partie: C
+  format: redige
+  bareme: 0.25
   bareme_classeur: 1.0
   competence: N.PRIO
-  competence_secondaire: N.RELOP
-  domaine: Activites numeriques
-  objet: Calculer -3 + 4 x (-2)^2 - (-6)/3
-  reponse_attendue: '15'
-  solution: ''
-- code: N6
-  partie: A
-  format: qcm
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.INT
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Écrire en intervalle l'ensemble des x tels que -2<=x<5
-  reponse_attendue: a
+  objet: '[P5, sous-question 5/6] Calculer un cout a partir d''un perimetre'
+  reponse_attendue: 216 000 FCFA
   solution: ''
-  options:
-  - lettre: a
-    texte: '[-2 ; 5['
-    correcte: true
-  - lettre: b
-    texte: ']-2 ; 5]'
-    correcte: false
-    type_erreur: CPT
-    erreur: Correspondance large/strict inversée sur les deux bornes
-  - lettre: c
-    texte: '[-2 ; 5]'
-    correcte: false
-    type_erreur: CPT
-    erreur: Inégalité stricte x < 5 traitée comme une inégalité large
-  - lettre: d
-    texte: ']-2 ; 5['
-    correcte: false
-    type_erreur: CNS
-    erreur: Convention des crochets non mobilisée, intervalle ouvert par défaut
-- code: N7
-  partie: A
-  format: court
-  bareme: 0.333333
+  si_echoue: Coefficient de reduction de Thales applique a toutes les longueurs de la configuration, ou
+    choix du cote adjacent et de l'hypotenuse dans le calcul d'un cosinus.
+  probleme_parent: P5
+- code: P5f
+  partie: C
+  format: redige
+  bareme: 0.25
   bareme_classeur: 1.0
-  competence: N.RAC
+  competence: G.THA
   competence_secondaire: null
-  domaine: Activites numeriques
-  objet: Écrire 6/√3 sous la forme a√3
-  reponse_attendue: a = 2
+  domaine: Activites geometriques
+  objet: '[P5, sous-question 6/6] Verifier une affirmation par un calcul de proportion'
+  reponse_attendue: 'MN = 75 m, soit les trois quarts de BC : l''affirmation est vraie'
   solution: ''
-- code: N8
-  partie: A
-  format: court
-  bareme: 0.333333
+  si_echoue: Coefficient de reduction de Thales applique a toutes les longueurs de la configuration, ou
+    choix du cote adjacent et de l'hypotenuse dans le calcul d'un cosinus.
+  probleme_parent: P5
+- code: P6a
+  partie: C
+  format: redige
+  bareme: 0.25
   bareme_classeur: 1.0
   competence: N.SCI
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Masse de 6x10^4 grains pesant chacun 1x10^-5 kg
-  reponse_attendue: 0,6 kg
+  objet: '[P6, sous-question 1/6] Ecrire une consommation quotidienne en notation scientifique'
+  reponse_attendue: 2 × 10⁴ litres
   solution: ''
-- code: N9
-  partie: B
+  si_echoue: Ecriture d'un nombre en notation scientifique, bilan d'un apport et d'un prelevement quotidiens,
+    ou mise en equation d'une evolution jour apres jour.
+  probleme_parent: P6
+- code: P6b
+  partie: C
   format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: N.RAC
-  competence_secondaire: L.IDR
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: N.PRIO
+  competence_secondaire: null
   domaine: Activites numeriques
-  objet: Simplifier P = √75 - 2√12 + √27 et calculer Q
-  reponse_attendue: P = 4 racine(3) ; Q = 19
-  solution: sqrt(75)=5sqrt(3), 2sqrt(12)=4sqrt(3), sqrt(27)=3sqrt(3) -> P=5sqrt(3)-4sqrt(3)+3sqrt(3)=4sqrt(3)
-    ; Q=(2sqrt(5))^2-1=20-1=19.
-- code: N10
-  partie: B
+  objet: '[P6, sous-question 2/6] Calculer une variation quotidienne de volume (apport moins consommation)'
+  reponse_attendue: -10⁴ litres par jour
+  solution: ''
+  si_echoue: Ecriture d'un nombre en notation scientifique, bilan d'un apport et d'un prelevement quotidiens,
+    ou mise en equation d'une evolution jour apres jour.
+  probleme_parent: P6
+- code: P6c
+  partie: C
   format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: L.MISE
+  competence_secondaire: null
+  domaine: Calcul litteral et algebre
+  objet: '[P6, sous-question 3/6] Mettre en equation le nombre de jours avant epuisement d''une reserve'
+  reponse_attendue: 1,2 × 10⁵ - 10⁴n = 0
+  solution: ''
+  si_echoue: Ecriture d'un nombre en notation scientifique, bilan d'un apport et d'un prelevement quotidiens,
+    ou mise en equation d'une evolution jour apres jour.
+  probleme_parent: P6
+- code: P6d
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: L.EQ1
+  competence_secondaire: null
+  domaine: Calcul litteral et algebre
+  objet: '[P6, sous-question 4/6] Resoudre l''equation obtenue'
+  reponse_attendue: n = 12
+  solution: ''
+  si_echoue: Ecriture d'un nombre en notation scientifique, bilan d'un apport et d'un prelevement quotidiens,
+    ou mise en equation d'une evolution jour apres jour.
+  probleme_parent: P6
+- code: P6e
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
   competence: N.INT
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Encadrer 5-2x pour 2<=x<=3, puis donner l'intervalle
-  reponse_attendue: -1 <= 5-2x <= 1 ; intervalle [-1;1]
-  solution: x=2 -> 5-2x=1 ; x=3 -> 5-2x=-1 (fonction decroissante en x).
+  objet: '[P6, sous-question 5/6] Convertir une duree en jours pour permettre une comparaison'
+  reponse_attendue: 14 jours
+  solution: ''
+  si_echoue: Ecriture d'un nombre en notation scientifique, bilan d'un apport et d'un prelevement quotidiens,
+    ou mise en equation d'une evolution jour apres jour.
+  probleme_parent: P6
+- code: P6f
+  partie: C
+  format: redige
+  bareme: 0.25
+  bareme_classeur: 1.0
+  competence: N.PRIO
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: '[P6, sous-question 6/6] Conclure sur une affirmation par comparaison de deux durees'
+  reponse_attendue: Yacouba a tort, la reserve tient 12 jours, moins de deux semaines
+  solution: ''
+  si_echoue: Ecriture d'un nombre en notation scientifique, bilan d'un apport et d'un prelevement quotidiens,
+    ou mise en equation d'une evolution jour apres jour.
+  probleme_parent: P6

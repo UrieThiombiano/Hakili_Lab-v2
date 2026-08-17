@@ -1,0 +1,22 @@
+- question: Q1, Q2
+  module: '**Module 1** : Décimaux'
+- question: Q3, Q4
+  module: '**Module 2** : Opérations et priorités'
+- question: Q5, Q6
+  module: '**Module 3** : Fractions'
+- question: Q7, Q8
+  module: '**Module 4** : Égalités à trous'
+- question: Q9, Q10
+  module: '**Module 5** : Nombres relatifs'
+- question: Q11, Q12
+  module: '**Module 6** : Proportionnalité'
+- question: Q13, Q14
+  module: '**Module 7** : Droites et angles'
+- question: Q15, Q16
+  module: '**Module 8** : Triangle et cercle'
+- question: Q17, Q18
+  module: '**Module 9** : Parallélogrammes'
+- question: Q19, Q20
+  module: '**Module 10** : Symétrie et repérage'
+- question: Q21, Q22
+  module: '**Module 11** : Aires et volumes'

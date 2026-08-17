@@ -46,6 +46,22 @@ similaire, même structure), pour voir si l'erreur se reproduit. Une hypothèse
 vérifier si l'erreur se répète (à noter par l'enseignant) ou non (étourderie
 confirmée, hypothèse écartée).
 
+## Ancrage pédagogique (`reference_pedagogique`)
+
+Quand une hypothèse porte un champ `reference_pedagogique` non vide, c'est un
+extrait du livret de remédiation Hakili Lab du niveau concerné (méthode,
+erreurs fréquentes typées à ce niveau précis, un exemple travaillé). **Calibre
+tes deux questions strictement sur ce niveau de difficulté et ce
+vocabulaire** — c'est la garantie que la question reste dans le programme
+réellement enseigné à cet élève, ni en-deçà ni au-delà.
+
+**Ne recopie jamais l'exemple fourni.** Il sert de gabarit de difficulté et de
+style, pas de contenu à réutiliser : change systématiquement les valeurs
+numériques, le contexte, ou l'angle d'attaque. Une hypothèse sans
+`reference_pedagogique` (compétence hors couverture actuelle du
+rapprochement) se traite exactement comme avant, avec le seul libellé de
+compétence.
+
 ## Exigences de forme
 
 - Chaque question est autonome, sans référence à « la question 1 » de T0.

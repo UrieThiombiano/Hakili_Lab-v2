@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block titre %}Test de confirmation (T1) — {{ eleve.nom }}{% endblock %}
+
+{% block page_titre %}Test de confirmation (T1) — {{ eleve.nom }} {{ eleve.prenom }}{% endblock %}
+{% block contenu %}
+<p class="sous-titre">
+  Le sujet de confirmation a déjà été généré à partir des hypothèses de T0 —
+  déposez uniquement le scan des réponses de l'élève, rien d'autre à choisir.
+</p>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="champ">
+    <label for="copie">Copie scannée (test de confirmation)</label>
+    <input type="file" id="copie" name="copie" multiple required
+           accept=".pdf,.jpg,.jpeg,.png">
+    <p class="aide">PDF ou photos, 50 Mo maximum par fichier.</p>
+  </div>
+
+  <div class="actions">
+    <button type="submit">Lancer la correction</button>
+  </div>
+</form>
+{% endblock %}

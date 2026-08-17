@@ -36,7 +36,13 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from referentiel.couts import cout_precalcule
-from src.models.domain import DiagnosticContraint, ProblemeDetecte, SourceProbleme
+from src.models.domain import (
+    CopyGrade,
+    DiagnosticContraint,
+    ProblemeDetecte,
+    SourceProbleme,
+    TeacherDecision,
+)
 from suivi.models import ETATS_SESSION_TERMINES, EtatProbleme, Evaluation, Probleme, Session
 
 logger = logging.getLogger(__name__)
@@ -170,5 +176,91 @@ def enregistrer(
         len(resultat.crees),
         len(resultat.deja_suivis),
         resultat.cout_total,
+    )
+    return resultat
+
+
+# ── Confirmation automatique (T1, module 5 — suite) ─────────────────────────
+#
+# La copie T1 est corrigée par le même pipeline que toute copie (transcription,
+# proposition IA, tableau de validation enseignant) — ce n'est plus ici qu'une
+# question de barème. `Probleme.exercices_confirmation` (écrit à la génération
+# du sujet, `correction_web/taches.py::_persister_sujet_confirmation`) donne
+# les numéros d'exercice qui ciblent chaque hypothèse ; le barème de la
+# correction T1 est construit avec ces mêmes numéros comme `rubric_item_id`
+# (voir `suivi_web/views.py::soumettre_confirmation`). Rien n'est deviné après
+# coup : la correspondance existe depuis la génération du sujet.
+
+
+@dataclass
+class ResultatConfirmation:
+    """Ce que la confirmation automatique a tranché."""
+
+    confirmes: list[Probleme] = field(default_factory=list)
+    ecartes: list[Probleme] = field(default_factory=list)
+
+
+@transaction.atomic
+def confirmer_depuis_correction(
+    evaluation: Evaluation, grade: CopyGrade
+) -> ResultatConfirmation:
+    """Tranche automatiquement chaque hypothèse ouverte à partir d'une copie T1
+    déjà corrigée et validée par l'enseignant.
+
+    Règle binaire simple : l'élève rate au moins une des questions ciblant
+    l'hypothèse → `confirme`. Il réussit tout ce qui la cible → `ecarte`. Une
+    question absente de `grade.questions` (non transcrite, non gradée) compte
+    comme non réussie plutôt que comme une réussite supposée — même principe
+    que `referentiel.diagnostic` : une absence ne se devine jamais en succès.
+
+    `ATT` reste un cas à part : `Probleme.clean()` interdit `confirme` pour ce
+    type (protocole §3, une inattention ne se remédie pas), donc un problème
+    `ATT` est toujours écarté ici, quel que soit le résultat des exercices —
+    même règle que la saisie manuelle (`session_detail.html` masque déjà la
+    case « Confirmée » pour ce type).
+    """
+    resultat = ResultatConfirmation()
+
+    if evaluation.session.corpus_reference:
+        return resultat
+
+    reussite_par_numero: dict[int, bool] = {}
+    for question in grade.questions:
+        try:
+            numero = int(question.rubric_item_id)
+        except (TypeError, ValueError):
+            continue
+        if question.teacher_decision == TeacherDecision.refused and question.teacher_score is not None:
+            score = question.teacher_score
+        else:
+            score = question.score
+        reussite_par_numero[numero] = score >= 1.0
+
+    hypotheses = list(
+        evaluation.session.problemes.filter(etat=EtatProbleme.HYPOTHESE)
+        .exclude(exercices_confirmation=[])
+        .select_related("competence", "type_erreur")
+    )
+
+    for probleme in hypotheses:
+        if probleme.type_erreur_id == "ATT":
+            probleme.changer_etat(EtatProbleme.ECARTE, evaluation=evaluation)
+            resultat.ecartes.append(probleme)
+            continue
+
+        numeros = probleme.exercices_confirmation
+        reussi = all(reussite_par_numero.get(n, False) for n in numeros)
+        if reussi:
+            probleme.changer_etat(EtatProbleme.ECARTE, evaluation=evaluation)
+            resultat.ecartes.append(probleme)
+        else:
+            probleme.changer_etat(EtatProbleme.CONFIRME, evaluation=evaluation)
+            resultat.confirmes.append(probleme)
+
+    logger.info(
+        "[%s] Module 5 — %d confirmé(s), %d écarté(s) automatiquement.",
+        evaluation.copy_id or evaluation.pk,
+        len(resultat.confirmes),
+        len(resultat.ecartes),
     )
     return resultat

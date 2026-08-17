@@ -269,6 +269,14 @@ class ConfirmationHypothesis(BaseModel):
     type_erreur_label: str
     justification: str
     is_att: bool = False  # ATT ne peut être que confirmé « écarté » — jamais remédié
+    # Ajoutés pour Arbitrage C (D-CEO-41) : sans eux, le prompt ne sait ni à
+    # quel niveau calibrer la question, ni sur quelle leçon de `remediation/`
+    # s'appuyer pour un exemple de la bonne difficulté. `competence_code` et
+    # `niveau` viennent directement de `Probleme.competence` côté appelant
+    # (correction_web/taches.py) — aucune requête supplémentaire.
+    competence_code: str | None = None
+    niveau: str | None = None
+    reference_pedagogique: str | None = None
 
 
 class ConfirmationRequest(BaseModel):
@@ -299,6 +307,10 @@ class VerificationItem(BaseModel):
     competence_label: str
     type_erreur_label: str
     contexte: str  # ce qui avait été relevé (justification du problème)
+    # Même ajout que `ConfirmationHypothesis`, même raison (D-CEO-41).
+    competence_code: str | None = None
+    niveau: str | None = None
+    reference_pedagogique: str | None = None
 
 
 class VerificationRequest(BaseModel):

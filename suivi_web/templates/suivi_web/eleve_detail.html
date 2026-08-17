@@ -115,6 +115,27 @@
         </div>
         <a class="bouton discret" href="{% url 'suivi_web:session_detail' p.jeton %}">Voir le plan</a>
       </div>
+
+      {% if p.hypotheses %}
+        {% with n=p.hypotheses|length %}
+        <div class="lignes">
+          <p class="aide">
+            {{ n }} lacune{{ n|pluralize }} présumée{{ n|pluralize }}
+            &middot; {{ p.session.cout_total_hypothese|floatformat:"-2" }} h estimées —
+            à confirmer par le second test (T1).
+          </p>
+          {% for h in p.hypotheses %}
+            <div class="ligne">
+              <span>
+                <strong>{{ h.competence.libelle }}</strong>
+                <span class="code">{{ h.competence.code }}</span>
+              </span>
+              <span class="pastille type-erreur te-{{ h.type_erreur.code }}">{{ h.type_erreur.libelle }}</span>
+            </div>
+          {% endfor %}
+        </div>
+        {% endwith %}
+      {% endif %}
     </div>
   {% endfor %}
 {% endif %}
@@ -136,6 +157,12 @@
         {% endif %}
       </div>
     </div>
+
+    <form method="post" action="{% url 'suivi_web:supprimer_copie' entree.jeton %}"
+          onsubmit="return confirm('Supprimer définitivement cette copie du {{ entree.copie.date_soumission }} ?');">
+      {% csrf_token %}
+      <button type="submit" class="grave petit">Supprimer cette copie</button>
+    </form>
 
     {% if entree.documents %}
       {% comment %} Le navigateur affiche PDF et images nativement : « Voir » ouvre

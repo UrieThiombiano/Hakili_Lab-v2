@@ -1,6 +1,13 @@
 # Mise en service — Railway ou Render
 **2026-07-30** · décisions : [architecture_cible.md](architecture_cible.md), D-CEO-28
 
+⚠ **Cible de déploiement changée le 2026-08-17 : VPS Hetzner**, voir
+[deploiement_vps_hetzner.md](deploiement_vps_hetzner.md). Ce document reste la
+source de vérité pour tout ce qui est indépendant de l'hébergeur (variables
+d'environnement, étape `migrate suivi 0007 --fake`, données personnelles) —
+seule la partie "Déploiement" plus bas (Procfile, `$PORT`, stockage éphémère)
+ne s'applique plus telle quelle sur un VPS.
+
 L'application tournait jusqu'ici **en local**, sur le poste de l'utilisateur. Elle
 devient multi-utilisateurs : tuteurs sur téléphone, responsables, administrateur.
 Elle a donc besoin d'une adresse joignable.

@@ -200,7 +200,8 @@ python manage.py makemigrations
 | `docs/audit_donnees.md` | Audit de la base et de la connaissance — constats classés par gravité, plan en 9 étapes |
 | `docs/v2_roadmap.md` | Chantier v2 — avancement détaillé, jalons, journal de bord — source de vérité sur "où en est-on" |
 | `docs/harmonisation_donnees.md` | Écart ancien système ↔ référentiel v2 — arbitrages en attente, défauts constatés. **À lire avant le module 1** |
-| `docs/deploiement.md` | Mise en service Railway/Render — variables, limites de stockage, données de mineurs |
+| `docs/deploiement.md` | Mise en service Railway/Render (hébergeur précédent) — variables d'environnement, données de mineurs, valeur historique pour tout ce qui est indépendant de l'hébergeur |
+| `docs/deploiement_vps_hetzner.md` | **Cible de déploiement actuelle** — VPS Hetzner : provisionnement, systemd, nginx/HTTPS, script de mise à jour (`deploy/`) |
 | `docs/architecture_cible.md` | Recommandation de sortie de Streamlit — **appliquée** (D-CEO-39), valeur historique |
 | `docs/accents_a_corriger.md` | Généré — liste des accents à corriger dans le classeur, à remettre au docteur |
 | `guide-v2.md` | Chantier v2 — les 9 modules, détaillés |

@@ -1,420 +1,58 @@
-# Généré par scripts/generer_baremes_socle.py — ne pas éditer à la main.
-# Source : Referentiel_Socle_v0.xlsx. Relancer le script après toute
-# mise à jour du classeur. Exception : les champs reponse_attendue et
-# solution peuvent être complétés à la main (arbitrage B) — dans ce cas,
-# les sauvegarder avant de régénérer.
+# Reconstruit manuellement le 2026-08-12 depuis le sujet et le corrige PDF recomposes
+# (data/Documents/, livraison data/New-docs/ du 2026-08-12) — PAS depuis Referentiel_Socle_v0.xlsx,
+# qui n'a pas ete mis a jour (voir docs/harmonisation_donnees.md, arbitrage H).
+# Ne pas relancer scripts/generer_baremes_socle.py sur ce fichier sans avoir d'abord
+# reporte la nouvelle composition (structure a 3 parties) dans le classeur, sous peine
+# d'ecraser ce travail et de revenir a l'ancienne composition a 2 parties.
 
 meta:
   test_id: socle_6eme
   titre: Test diagnostique d'entrée en 6ème
   niveau_test: 6eme
   classe: 6e
-  total_questions: 40
+  total_questions: 43
   total_possible: 20
-  somme_baremes_reelle: 19.99999
+  somme_baremes_reelle: 20.0
   bareme_classeur_total: 60.0
-  source: Referentiel_Socle_v0.xlsx — onglets 04_Questions, 06_Distracteurs, 02_Competences
-  genere_par: scripts/generer_baremes_socle.py
-  note_corriges: 10 QCM avec bonne réponse ; 2 questions sans corrigé (absent du classeur — arbitrage
-    B de docs/harmonisation_donnees.md). Les champs reponse_attendue et solution sont prêts à être remplis.
+  structure: Partie A 16 pts (16 x 1) - Partie B 22 pts (11 x 2) - Partie C 22 pts (2x5 + 2x6, 4 problemes
+    decomposes en 4 sous-items chacun)
+  source: data/Documents/Test_diagnostique_entree_6eme.pdf et data/Documents/corriges/Corrige_test_diagnostique_entree_6eme.pdf
+    (livraison 2026-08-12, corrige valide par un enseignant de mathematiques)
+  genere_par: 'reconstruction manuelle assistee (2026-08-12) — voir docs/harmonisation_donnees.md, arbitrage
+    H. Referentiel_Socle_v0.xlsx n''a PAS ete mis a jour : ce fichier est temporairement la source de
+    verite du bareme socle_6eme, en avance sur le classeur.'
+  note_corriges: 'Reponses et demarches extraites en lisant les pages du corrigé PDF (rendues en image,
+    les valeurs numeriques y sont en vectoriel et invisibles a l''extraction texte). Competence de chaque
+    sous-item de Partie C deduite du texte (barème détaillé + ''si l''eleve echoue'') et recoupee avec
+    le tableau officiel ''profil par domaine'' du corrige (N 10 pts, M 6 pts, G 1 pt, D 5 pts) : l''allocation
+    retenue tombe a N 11 / M 5 (a 1 pt pres de l''officiel, sur l''item P3b qui merge deux savoir-faire).
+    A confirmer par l''enseignant qui a valide le corrige avant tout usage en notation automatique.'
 questions:
-- code: D1
-  partie: A
-  format: qcm
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: D.PROP
-  competence_secondaire: null
-  domaine: Donnees, proportionnalite, statistique
-  objet: Calculer le prix unitaire, 5 cahiers pour 1 750 FCFA
-  reponse_attendue: b
-  solution: ''
-  options:
-  - lettre: a
-    texte: 250 FCFA
-    correcte: false
-    type_erreur: PRC
-    erreur: Estimer le quotient sans poser la division (250 x 5 = 1 250).
-  - lettre: b
-    texte: 350 FCFA
-    correcte: true
-  - lettre: c
-    texte: 305 FCFA
-    correcte: false
-    type_erreur: PRC
-    erreur: 'Oublier d''abaisser un chiffre dans la potence de 1 750 : 5.'
-  - lettre: d
-    texte: 875 FCFA
-    correcte: false
-    type_erreur: MOD
-    erreur: 'Diviser par 2 au lieu de 5 : le nombre de cahiers n''est pas modelise.'
-- code: D2
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: D.TAB
-  competence_secondaire: D.POUR
-  domaine: Donnees, proportionnalite, statistique
-  objet: Calculer le pourcentage de savons vendus le mardi
-  reponse_attendue: 31 %
-  solution: ''
-- code: D3
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: D.PROP
-  competence_secondaire: null
-  domaine: Donnees, proportionnalite, statistique
-  objet: Calculer le prix de 8 m de tissu proportionnellement
-  reponse_attendue: 12 000 F
-  solution: ''
-- code: D4
-  partie: B
-  format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: D.PROP
-  competence_secondaire: null
-  domaine: Donnees, proportionnalite, statistique
-  objet: Completer un tableau de proportionnalite prix-sacs de riz
-  reponse_attendue: '5 sacs : 85 000 F ; 9 sacs : 153 000 F'
-  solution: prix unitaire=51000/3=17000 FCFA ; 5x17000=85000 ; 9x17000=153000.
-- code: D5
-  partie: B
-  format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: D.POUR
-  competence_secondaire: D.TAB
-  domaine: Donnees, proportionnalite, statistique
-  objet: Comparer les pourcentages de reussite de deux classes
-  reponse_attendue: 'CM2 A : 80 % ; CM2 B : 70 % ; CM2 A a le meilleur pourcentage'
-  solution: 'CM2 A : 40/50x100=80% ; CM2 B : 21/30x100=70% ; 80%>70%.'
-- code: G1
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.VOC
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Donner AM, M milieu de [AB] avec AB = 9 cm
-  reponse_attendue: 4,5 cm
-  solution: ''
-- code: G2
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.ANG1
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Donner la nature d'un angle de 47 degres
-  reponse_attendue: Angle aigu
-  solution: ''
-- code: G3
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.FIG
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Donner la nature d'un triangle de cotes 6, 6 et 4 cm
-  reponse_attendue: Isocele
-  solution: ''
-- code: G4
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.VOC
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Calculer AC, points alignes, AB = 4,5 cm, BC = 6 cm
-  reponse_attendue: 10,5 cm
-  solution: ''
-- code: G5
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.PARA
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Designer le cote du rectangle ABCD parallele a [AB]
-  reponse_attendue: '[CD]'
-  solution: ''
-- code: G6
-  partie: A
-  format: qcm
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.ANG1
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Lire au rapporteur un angle entre graduations 70 et 80
-  reponse_attendue: d
-  solution: ''
-  options:
-  - lettre: a
-    texte: 70 degres
-    correcte: false
-    type_erreur: PRC
-    erreur: Lire la graduation inferieure sans traiter la position intermediaire.
-  - lettre: b
-    texte: 72 degres
-    correcte: false
-    type_erreur: CPT
-    erreur: Attribuer une valeur fausse aux graduations intermediaires du rapporteur.
-  - lettre: c
-    texte: 80 degres
-    correcte: false
-    type_erreur: PRC
-    erreur: Lire la graduation superieure sans traiter la position intermediaire.
-  - lettre: d
-    texte: 75 degres
-    correcte: true
-- code: G7
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.FIG
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Situer P (OP = 4 cm) par rapport au cercle
-  reponse_attendue: P est a l'interieur du cercle
-  solution: ''
-- code: G8
-  partie: B
-  format: construction
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: G.PARA
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Tracer la perpendiculaire et la parallele a (d) passant par A
-  reponse_attendue: ''
-  solution: ''
-- code: G9
-  partie: B
-  format: construction
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: G.FIG
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Construire le triangle EFG de cotes 6, 5 et 4 cm
-  reponse_attendue: ''
-  solution: ''
-- code: M1
-  partie: A
-  format: qcm
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: M.CONV
-  competence_secondaire: null
-  domaine: Mesures et grandeurs
-  objet: Convertir 3,2 km en metres
-  reponse_attendue: b
-  solution: ''
-  options:
-  - lettre: a
-    texte: 32 m
-    correcte: false
-    type_erreur: CNS
-    erreur: Ignorer 1 km = 1 000 m et multiplier 3,2 par 10.
-  - lettre: b
-    texte: 3 200 m
-    correcte: true
-  - lettre: c
-    texte: 320 m
-    correcte: false
-    type_erreur: PRC
-    erreur: Decaler la virgule de deux rangs au lieu de trois.
-  - lettre: d
-    texte: 32 000 m
-    correcte: false
-    type_erreur: PRC
-    erreur: Decaler la virgule de quatre rangs dans le tableau de conversion.
-- code: M2
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: M.AIRE
-  competence_secondaire: null
-  domaine: Mesures et grandeurs
-  objet: Calculer l'aire d'un rectangle de 12 cm sur 7 cm
-  reponse_attendue: 84 cm2
-  solution: ''
-- code: M3
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: M.CONV
-  competence_secondaire: null
-  domaine: Mesures et grandeurs
-  objet: Convertir 4 500 g en kilogrammes
-  reponse_attendue: 4,5 kg
-  solution: ''
-- code: M4
-  partie: A
-  format: qcm
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: M.PER
-  competence_secondaire: null
-  domaine: Mesures et grandeurs
-  objet: Calculer le perimetre d'un carre de 9 cm de cote
-  reponse_attendue: d
-  solution: ''
-  options:
-  - lettre: a
-    texte: 18 cm
-    correcte: false
-    type_erreur: CPT
-    erreur: Croire que le perimetre du carre vaut 2 x cote.
-  - lettre: b
-    texte: 45 cm
-    correcte: false
-    type_erreur: CNS
-    erreur: Multiplier le cote par 5, faute de disposer de la formule du perimetre.
-  - lettre: c
-    texte: 81 cm
-    correcte: false
-    type_erreur: CPT
-    erreur: Calculer l'aire 9 x 9 et la donner comme perimetre.
-  - lettre: d
-    texte: 36 cm
-    correcte: true
-- code: M5
-  partie: A
-  format: qcm
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: M.CONV
-  competence_secondaire: null
-  domaine: Mesures et grandeurs
-  objet: Calculer la duree entre 8 h 45 et 10 h 20
-  reponse_attendue: c
-  solution: ''
-  options:
-  - lettre: a
-    texte: 1 h 25 min
-    correcte: false
-    type_erreur: PRC
-    erreur: Inverser la soustraction des minutes (45 - 20) pour eviter l'emprunt.
-  - lettre: b
-    texte: 1 h 75 min
-    correcte: false
-    type_erreur: CPT
-    erreur: Faire l'emprunt en base 10 (120 - 45) au lieu de 60 minutes.
-  - lettre: c
-    texte: 1 h 35 min
-    correcte: true
-  - lettre: d
-    texte: 2 h 35 min
-    correcte: false
-    type_erreur: ATT
-    erreur: Oublier de retirer l'heure empruntee apres avoir calcule 35 minutes.
-- code: M6
-  partie: A
-  format: qcm
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: M.AIRE
-  competence_secondaire: null
-  domaine: Mesures et grandeurs
-  objet: Calculer l'aire d'un triangle, base 10 cm, hauteur 6
-  reponse_attendue: a
-  solution: ''
-  options:
-  - lettre: a
-    texte: 30 cm2
-    correcte: true
-  - lettre: b
-    texte: 16 cm2
-    correcte: false
-    type_erreur: CPT
-    erreur: Additionner base et hauteur au lieu de les multiplier.
-  - lettre: c
-    texte: 15 cm2
-    correcte: false
-    type_erreur: PRC
-    erreur: 'Diviser deux fois par 2 (60 : 2 : 2) apres un produit correct.'
-  - lettre: d
-    texte: 60 cm2
-    correcte: false
-    type_erreur: CNS
-    erreur: Appliquer base x hauteur sans la division par 2.
-- code: M7
-  partie: B
-  format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: M.PER
-  competence_secondaire: null
-  domaine: Mesures et grandeurs
-  objet: Calculer trois tours de fil autour d'un jardin rectangulaire
-  reponse_attendue: 258 m
-  solution: perimetre=2x(25+18)=86 m ; 3 tours=3x86=258 m de fil.
-- code: M8
-  partie: B
-  format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: M.AIRE
-  competence_secondaire: null
-  domaine: Mesures et grandeurs
-  objet: Calculer l'aire d'un mur diminuee d'une porte carree
-  reponse_attendue: 14 m2
-  solution: aire mur=6x3=18 m2 ; aire porte=2x2=4 m2 ; aire a peindre=18-4=14 m2.
 - code: N1
   partie: A
   format: court
   bareme: 0.333333
   bareme_classeur: 1.0
-  competence: N.NUM
+  competence: N.CMP
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Ecrire en chiffres soixante mille quatre-vingt-douze
-  reponse_attendue: 60 092
+  objet: Ranger quatre nombres decimaux dans l'ordre decroissant
+  reponse_attendue: 9,8 ; 9,1 ; 9,081 ; 9,08
   solution: ''
+  si_echoue: 'Comparaison de decimaux : la partie decimale est lue comme un entier (9,081 juge plus grand
+    que 9,1).'
 - code: N2
   partie: A
   format: qcm
   bareme: 0.333333
   bareme_classeur: 1.0
-  competence: N.CMP
+  competence: N.NUM
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Choisir le plus grand parmi quatre nombres decimaux
-  reponse_attendue: a
+  objet: Ecrire en chiffres un nombre donne en centaines et centiemes
+  reponse_attendue: d) 500,09
   solution: ''
-  options:
-  - lettre: a
-    texte: 7,5
-    correcte: true
-  - lettre: b
-    texte: 7,48
-    correcte: false
-    type_erreur: CPT
-    erreur: Comparer 48 et 5 comme des entiers, sans tenir compte des rangs decimaux.
-  - lettre: c
-    texte: 7,409
-    correcte: false
-    type_erreur: CPT
-    erreur: Croire que le nombre ayant le plus de chiffres decimaux est le plus grand.
-  - lettre: d
-    texte: 7,09
-    correcte: false
-    type_erreur: ATT
-    erreur: Selection au hasard apres lecture hative, sans comparaison effectuee.
+  si_echoue: 'Valeur de position : confusion entre centaine et centieme, ou entre dixieme et centieme.'
 - code: N3
   partie: A
   format: court
@@ -423,40 +61,11 @@ questions:
   competence: N.ADD
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Effectuer l'addition 3 608 + 947
-  reponse_attendue: 4 555
+  objet: Effectuer une addition de deux decimaux
+  reponse_attendue: 7,25
   solution: ''
+  si_echoue: 'Technique operatoire de la soustraction/addition de decimaux : virgules non alignees.'
 - code: N4
-  partie: A
-  format: qcm
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.NUM
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: Ecrire le nombre valant 3 unites et 7 centiemes
-  reponse_attendue: c
-  solution: ''
-  options:
-  - lettre: a
-    texte: 3,7
-    correcte: false
-    type_erreur: CPT
-    erreur: Confondre centiemes et dixiemes en placant le 7 au premier rang decimal.
-  - lettre: b
-    texte: 3,70
-    correcte: false
-    type_erreur: CPT
-    erreur: Placer le 7 en dixiemes et completer par un zero, en croyant marquer les centiemes.
-  - lettre: c
-    texte: 3,07
-    correcte: true
-  - lettre: d
-    texte: 0,37
-    correcte: false
-    type_erreur: CPT
-    erreur: 'Inverser partie entiere et partie decimale : les rangs ne sont pas identifies.'
-- code: N5
   partie: A
   format: court
   bareme: 0.333333
@@ -464,187 +73,531 @@ questions:
   competence: N.MUL
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Effectuer la multiplication 326 x 48
-  reponse_attendue: 15 648
+  objet: Effectuer une multiplication d'un decimal par un entier
+  reponse_attendue: 101,5
   solution: ''
+  si_echoue: 'Technique operatoire de la multiplication d''un decimal par un entier : placement de la
+    virgule dans le produit.'
+- code: N5
+  partie: A
+  format: qcm
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: N.FRA1
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: Calculer les trois quarts d'une quantite en kg (QCM)
+  reponse_attendue: c) 45 kg
+  solution: ''
+  si_echoue: 'Sens de la fraction d''une quantite : prendre les trois quarts, c''est diviser par 4 puis
+    multiplier par 3.'
 - code: N6
   partie: A
   format: court
   bareme: 0.333333
   bareme_classeur: 1.0
-  competence: N.CMP
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: Ranger 5,7 ; 5,09 ; 5,71 ; 5,2 dans l'ordre croissant
-  reponse_attendue: 5,09 ; 5,2 ; 5,7 ; 5,71
-  solution: ''
-- code: N7
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
   competence: N.DIVE
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Donner le reste de la division euclidienne de 758 par 6
-  reponse_attendue: '2'
+  objet: Effectuer une division euclidienne, donner quotient et reste
+  reponse_attendue: quotient 33, reste 17
   solution: ''
-- code: N8
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.ADD
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: Completer l'egalite 12,4 + ... = 20
-  reponse_attendue: 7,6
-  solution: ''
-- code: N9
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.FRA1
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: Calculer le quart de 60 mangues
-  reponse_attendue: '15'
-  solution: ''
-- code: N10
+  si_echoue: 'Division euclidienne : la division n''est pas posee, ou le reste obtenu n''est pas plus
+    petit que le diviseur.'
+- code: N7
   partie: A
   format: qcm
   bareme: 0.333333
   bareme_classeur: 1.0
+  competence: N.PROB
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: Choisir le calcul qui donne la somme rendue apres un achat (QCM)
+  reponse_attendue: b) 20 000 - 4 x 3 500
+  solution: ''
+  si_echoue: 'Sens de l''operation et ordre des calculs : l''eleve ne voit pas qu''il faut d''abord multiplier,
+    puis soustraire.'
+- code: M1
+  partie: A
+  format: court
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: M.CONV
+  competence_secondaire: null
+  domaine: Mesures et grandeurs
+  objet: Convertir des metres en centimetres
+  reponse_attendue: 307 cm
+  solution: ''
+  si_echoue: 'Conversion des longueurs : la relation entre le metre et le centimetre n''est pas installee.'
+- code: M2
+  partie: A
+  format: court
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: M.PER
+  competence_secondaire: null
+  domaine: Mesures et grandeurs
+  objet: Calculer le perimetre d'un triangle a partir de ses trois cotes
+  reponse_attendue: 14,3 cm
+  solution: ''
+  si_echoue: 'Perimetre d''un triangle, ou addition de decimaux : les trois cotes ne sont pas additionnes.'
+- code: M3
+  partie: A
+  format: qcm
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: M.AIRE
+  competence_secondaire: null
+  domaine: Mesures et grandeurs
+  objet: Calculer l'aire d'un triangle a partir de la base et la hauteur (QCM)
+  reponse_attendue: a) 14 cm²
+  solution: ''
+  si_echoue: 'Aire du triangle : le cote donne est pris pour la hauteur, ou la division par deux est oubliee.'
+- code: G1
+  partie: A
+  format: court
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: G.VOC
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Calculer une longueur a partir du milieu d'un segment
+  reponse_attendue: EF = 7 cm
+  solution: ''
+  si_echoue: 'Milieu d''un segment : le milieu partage le segment en deux longueurs egales, donc EF est
+    le double de IE.'
+- code: G2
+  partie: A
+  format: court
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: G.PARA
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Nommer les deux cotes d'un carre perpendiculaires a un cote donne
+  reponse_attendue: '[AD] et [BC]'
+  solution: ''
+  si_echoue: Perpendicularite dans le carre, ou nom des cotes d'un quadrilatere.
+- code: G3
+  partie: A
+  format: qcm
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: G.ANG1
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Lire un angle obtus au rapporteur entre deux graduations (QCM)
+  reponse_attendue: b) 140°
+  solution: ''
+  si_echoue: 'Lecture d''un instrument : la graduation du rapporteur n''est pas choisie d''apres la nature
+    de l''angle.'
+- code: G4
+  partie: A
+  format: court
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: G.FIG
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Determiner lequel de deux points appartient a un cercle de rayon donne
+  reponse_attendue: le point Q
+  solution: ''
+  si_echoue: 'Definition du cercle : un point appartient au cercle lorsque sa distance au centre est egale
+    au rayon.'
+- code: D1
+  partie: A
+  format: court
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: D.PROP
+  competence_secondaire: null
+  domaine: Organisation de donnees et proportionnalite
+  objet: Calculer un prix proportionnel (masse de riz)
+  reponse_attendue: 4 550 FCFA
+  solution: ''
+  si_echoue: 'Prix unitaire : le passage par le prix d''un kilogramme n''est pas fait.'
+- code: D2
+  partie: A
+  format: qcm
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: D.POUR
+  competence_secondaire: null
+  domaine: Organisation de donnees et proportionnalite
+  objet: Calculer un pourcentage simple d'eleves (QCM)
+  reponse_attendue: d) 25 %
+  solution: ''
+  si_echoue: 'Pourcentage simple : le rapport est inverse, ou l''effectif est recopie tel quel.'
+- code: N8
+  partie: B
+  format: redige
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: N.ADD
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: Retrouver une quantite initiale a partir d'ajouts et de retraits successifs (reservoir d'essence)
+  reponse_attendue: 2,45 litres
+  solution: 3,2 + 1,75 = 4,95 (avant retrait) ; 4,95 - 2,5 = 2,45 litres au depart.
+  si_echoue: 'Raisonnement inverse : les operations de l''enonce sont refaites dans le sens direct au
+    lieu d''etre remontees.'
+- code: N9
+  partie: B
+  format: redige
+  bareme: 0.666667
+  bareme_classeur: 2.0
   competence: N.MUL
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Calculer le produit 12,6 x 5
-  reponse_attendue: d
-  solution: ''
-  options:
-  - lettre: a
-    texte: 6,3
-    correcte: false
-    type_erreur: PRC
-    erreur: Placer deux chiffres apres la virgule au lieu d'un dans le produit 630.
-  - lettre: b
-    texte: 60,30
-    correcte: false
-    type_erreur: CPT
-    erreur: Multiplier separement 12 x 5 et 6 x 5 puis juxtaposer les deux resultats.
-  - lettre: c
-    texte: '630'
-    correcte: false
-    type_erreur: PRC
-    erreur: Effectuer 126 x 5 sans replacer la virgule dans le resultat.
-  - lettre: d
-    texte: '63'
-    correcte: true
+  objet: Calculer un prix total et verifier une affirmation (achat de savons)
+  reponse_attendue: 3 900 FCFA ; Ousseni a raison
+  solution: '12 x 325 = 3 900 FCFA ; 3 900 < 4 000 : Ousseni a raison, il lui reste meme 100 FCFA.'
+  si_echoue: Technique operatoire de la multiplication, ou absence de conclusion.
+- code: N10
+  partie: B
+  format: redige
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: N.DIVE
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: Repartir des oeufs en plateaux (quotient, reste, nombre de plateaux a prendre)
+  reponse_attendue: 16 plateaux pleins, reste 20, il faut prendre 17 plateaux
+  solution: '500 = 30 x 16 + 20 ; 16 plateaux complets et 20 oeufs restants occupent un plateau de plus
+    : 17 plateaux.'
+  si_echoue: 'Division euclidienne et interpretation du reste : le reste est calcule mais n''est pas traduit
+    dans la situation.'
 - code: N11
-  partie: A
-  format: court
+  partie: B
+  format: redige
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: N.FRA1
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: Calculer l'effectif total d'une classe a partir du tiers de filles
+  reponse_attendue: 36 eleves, dont 24 garcons
+  solution: 12 filles = tiers de la classe donc 12 x 3 = 36 eleves ; 36 - 12 = 24 garcons.
+  si_echoue: 'Sens de la fraction d''une quantite : l''eleve divise par trois au lieu de multiplier.'
+- code: N12
+  partie: B
+  format: redige
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: N.PROB
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: Calculer un benefice et verifier une affirmation (achat-revente de poulets)
+  reponse_attendue: 7 000 FCFA, l'affirmation est fausse
+  solution: 8 x 2 750 = 22 000 FCFA (vente) ; 22 000 - 15 000 = 7 000 FCFA de benefice ; 7 000 < 8 000.
+  si_echoue: 'Choix de l''operation dans un probleme a deux etapes : le benefice est confondu avec la
+    recette.'
+- code: M4
+  partie: B
+  format: redige
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: M.PER
+  competence_secondaire: null
+  domaine: Mesures et grandeurs
+  objet: Calculer une largeur puis une longueur de grillage (perimetre d'un jardin)
+  reponse_attendue: largeur 9 m, 92 m de grillage
+  solution: '46 : 2 = 23 m (demi-perimetre) ; 23 - 14 = 9 m (largeur) ; deux tours = 2 x 46 = 92 m.'
+  si_echoue: Formule du perimetre du rectangle employee a l'envers.
+- code: M5
+  partie: B
+  format: redige
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: M.AIRE
+  competence_secondaire: null
+  domaine: Mesures et grandeurs
+  objet: Calculer une aire restante apres soustraction d'un hangar carre
+  reponse_attendue: 536 m²
+  solution: Aire du terrain 30 x 20 = 600 m² ; aire du hangar 8 x 8 = 64 m² ; aire libre 600 - 64 = 536
+    m².
+  si_echoue: Aire du rectangle et du carre, ou aire vue comme une difference de longueurs.
+- code: G5
+  partie: B
+  format: construction
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: G.PARA
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Tracer deux perpendiculaires successives et conclure sur leur position relative
+  reponse_attendue: ''
+  solution: 'Trace attendu : droite (d), point A hors de (d), (d1) perpendiculaire a (d) passant par A,
+    (d2) perpendiculaire a (d1) passant par A. (d2) est parallele a (d) : deux droites perpendiculaires
+    a une meme troisieme droite sont paralleles entre elles.'
+  si_echoue: Usage de l'equerre, ou lien entre perpendicularite et parallelisme.
+- code: G6
+  partie: B
+  format: construction
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: G.FIG
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Construire un carre a partir de son perimetre puis un cercle passant par un sommet
+  reponse_attendue: ''
+  solution: 'Cote du carre = 20 : 4 = 5 cm ; construction du carre EFGH de 5 cm de cote a la regle et
+    a l''equerre ; le cercle a pour centre E et pour rayon EG (diagonale, ouverture au compas reportee
+    sans mesurer, elle vaut environ 7,1 cm).'
+  si_echoue: Raisonnement inverse sur le perimetre du carre, ou definition du cercle donnee par son centre
+    et un point.
+- code: G7
+  partie: B
+  format: redige
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: G.ANG1
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: Calculer la mesure d'un angle par difference et verifier une affirmation sur sa nature
+  reponse_attendue: 90°, Kadidiatou a tort (angle droit, pas aigu)
+  solution: 130° - 40° = 90° ; un angle de 90° est un angle droit, non un angle aigu.
+  si_echoue: 'Addition et soustraction d''angles adjacents, ou nature d''un angle : un angle aigu mesure
+    moins de 90°.'
+- code: D3
+  partie: B
+  format: redige
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: D.PROP
+  competence_secondaire: null
+  domaine: Organisation de donnees et proportionnalite
+  objet: Calculer un prix unitaire puis un nombre d'unites achetees (sacs de riz)
+  reponse_attendue: 8 500 FCFA le sac, 7 sacs achetes
+  solution: '34 000 : 4 = 8 500 FCFA (prix d''un sac) ; 59 500 : 8 500 = 7 sacs.'
+  si_echoue: 'Prix unitaire et proportionnalite : l''eleve multiplie au lieu de diviser.'
+- code: P1a
+  partie: C
+  format: redige
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: G.VOC
+  competence_secondaire: null
+  domaine: Activites geometriques
+  objet: '[P1, sous-question 1/4] Determiner si un point intermediaire est le milieu d''un trajet (proportionnalite/distance)'
+  reponse_attendue: 'oui, justifie par 180 = 360 : 2'
+  solution: ''
+  si_echoue: 'Calcul sur les heures et les minutes : l''heure est traitee comme 100 minutes. Ou milieu
+    d''un segment non relie a la moitie de la longueur.'
+  probleme_parent: P1
+- code: P1b
+  partie: C
+  format: redige
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: M.CONV
+  competence_secondaire: null
+  domaine: Mesures et grandeurs
+  objet: '[P1, sous-question 2/4] Calculer une heure d''arrivee avec un temps de trajet puis un arret'
+  reponse_attendue: 9 h 10, puis 9 h 35 apres l'arret
+  solution: ''
+  si_echoue: 'Calcul sur les heures et les minutes : l''heure est traitee comme 100 minutes. Ou milieu
+    d''un segment non relie a la moitie de la longueur.'
+  probleme_parent: P1
+- code: P1c
+  partie: C
+  format: redige
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: M.CONV
+  competence_secondaire: null
+  domaine: Mesures et grandeurs
+  objet: '[P1, sous-question 3/4] Calculer une heure d''arrivee finale a partir d''un second temps de
+    trajet'
+  reponse_attendue: 12 h 20
+  solution: ''
+  si_echoue: 'Calcul sur les heures et les minutes : l''heure est traitee comme 100 minutes. Ou milieu
+    d''un segment non relie a la moitie de la longueur.'
+  probleme_parent: P1
+- code: P1d
+  partie: C
+  format: redige
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: N.ADD
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: '[P1, sous-question 4/4] Calculer une duree totale et conclure sur une affirmation (comparaison
+    a une duree donnee)'
+  reponse_attendue: 5 h 40 min, le voyageur a raison (moins de 6 heures)
+  solution: ''
+  si_echoue: 'Calcul sur les heures et les minutes : l''heure est traitee comme 100 minutes. Ou milieu
+    d''un segment non relie a la moitie de la longueur.'
+  probleme_parent: P1
+- code: P2a
+  partie: C
+  format: redige
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: N.ADD
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: '[P2, sous-question 1/4] Calculer une somme totale a partir de billets et pieces de differentes
+    valeurs'
+  reponse_attendue: 37 500 FCFA
+  solution: ''
+  si_echoue: 'Numeration en contexte monetaire : passage de l''ecriture chiffree a l''ecriture en lettres,
+    ou calcul d''un pourcentage d''une somme.'
+  probleme_parent: P2
+- code: P2b
+  partie: C
+  format: redige
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: N.NUM
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: '[P2, sous-question 2/4] Ecrire une somme en toutes lettres'
+  reponse_attendue: trente-sept mille cinq cents
+  solution: ''
+  si_echoue: 'Numeration en contexte monetaire : passage de l''ecriture chiffree a l''ecriture en lettres,
+    ou calcul d''un pourcentage d''une somme.'
+  probleme_parent: P2
+- code: P2c
+  partie: C
+  format: redige
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: D.POUR
+  competence_secondaire: null
+  domaine: Organisation de donnees et proportionnalite
+  objet: '[P2, sous-question 3/4] Calculer un pourcentage d''une somme'
+  reponse_attendue: 7 500 FCFA
+  solution: ''
+  si_echoue: 'Numeration en contexte monetaire : passage de l''ecriture chiffree a l''ecriture en lettres,
+    ou calcul d''un pourcentage d''une somme.'
+  probleme_parent: P2
+- code: P2d
+  partie: C
+  format: redige
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: N.PROB
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: '[P2, sous-question 4/4] Comparer un total a une depense et conclure, avec la somme manquante'
+  reponse_attendue: 45 000 FCFA au total, il manque 15 000 FCFA
+  solution: ''
+  si_echoue: 'Numeration en contexte monetaire : passage de l''ecriture chiffree a l''ecriture en lettres,
+    ou calcul d''un pourcentage d''une somme.'
+  probleme_parent: P2
+- code: P3a
+  partie: C
+  format: redige
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: M.AIRE
+  competence_secondaire: null
+  domaine: Mesures et grandeurs
+  objet: '[P3, sous-question 1/4] Calculer l''aire d''une salle rectangulaire'
+  reponse_attendue: 54 m²
+  solution: ''
+  si_echoue: Aire du rectangle, division pour trouver un nombre de paquets, ou incapacite a reperer qu'une
+    donnee manque.
+  probleme_parent: P3
+- code: P3b
+  partie: C
+  format: redige
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: N.DIVE
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: '[P3, sous-question 2/4] Calculer un nombre de paquets necessaires puis leur prix total'
+  reponse_attendue: 27 paquets, 94 500 FCFA
+  solution: ''
+  si_echoue: Aire du rectangle, division pour trouver un nombre de paquets, ou incapacite a reperer qu'une
+    donnee manque.
+  probleme_parent: P3
+- code: P3c
+  partie: C
+  format: redige
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: N.PROB
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: '[P3, sous-question 3/4] Comparer une depense totale a un budget et conclure, avec la somme restante'
+  reponse_attendue: 119 500 FCFA, le directeur peut payer, il reste 10 500 FCFA
+  solution: ''
+  si_echoue: Aire du rectangle, division pour trouver un nombre de paquets, ou incapacite a reperer qu'une
+    donnee manque.
+  probleme_parent: P3
+- code: P3d
+  partie: C
+  format: redige
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: M.PER
+  competence_secondaire: null
+  domaine: Mesures et grandeurs
+  objet: '[P3, sous-question 4/4] Reperer une donnee manquante necessaire a un second calcul d''aire (murs)'
+  reponse_attendue: la hauteur des murs manque
+  solution: ''
+  si_echoue: Aire du rectangle, division pour trouver un nombre de paquets, ou incapacite a reperer qu'une
+    donnee manque.
+  probleme_parent: P3
+- code: P4a
+  partie: C
+  format: redige
+  bareme: 0.333333
+  bareme_classeur: 1.0
+  competence: N.DIVE
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: '[P4, sous-question 1/4] Calculer un nombre de sacs a partir d''une masse totale et d''une masse
+    unitaire'
+  reponse_attendue: 24 sacs
+  solution: ''
+  si_echoue: Choix de l'operation dans une comparaison de deux offres, ou generalisation d'un cas particulier
+    sans verification.
+  probleme_parent: P4
+- code: P4b
+  partie: C
+  format: redige
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: D.PROP
+  competence_secondaire: null
+  domaine: Organisation de donnees et proportionnalite
+  objet: '[P4, sous-question 2/4] Calculer le prix de deux offres tarifaires (l''une proportionnelle,
+    l''autre avec frais fixe)'
+  reponse_attendue: 'offre A : 36 000 FCFA ; offre B : 34 400 FCFA'
+  solution: ''
+  si_echoue: Choix de l'operation dans une comparaison de deux offres, ou generalisation d'un cas particulier
+    sans verification.
+  probleme_parent: P4
+- code: P4c
+  partie: C
+  format: redige
   bareme: 0.333333
   bareme_classeur: 1.0
   competence: N.CMP
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Encadrer 8,36 par deux entiers qui se suivent
-  reponse_attendue: 8 < 8,36 < 9
+  objet: '[P4, sous-question 3/4] Comparer deux offres et calculer l''economie realisee'
+  reponse_attendue: offre B moins chere, economie de 1 600 FCFA
   solution: ''
-- code: N12
-  partie: A
-  format: qcm
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.PROB
+  si_echoue: Choix de l'operation dans une comparaison de deux offres, ou generalisation d'un cas particulier
+    sans verification.
+  probleme_parent: P4
+- code: P4d
+  partie: C
+  format: redige
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: D.PROP
   competence_secondaire: null
-  domaine: Activites numeriques
-  objet: Choisir le calcul donnant la masse de 18 sacs de 50 kg
-  reponse_attendue: a
+  domaine: Organisation de donnees et proportionnalite
+  objet: '[P4, sous-question 4/4] Verifier une affirmation de generalisation en recalculant les deux offres
+    pour un autre volume'
+  reponse_attendue: 'pour 10 sacs, offre A 15 000 FCFA moins chere : l''affirmation est fausse'
   solution: ''
-  options:
-  - lettre: a
-    texte: 18 x 50
-    correcte: true
-  - lettre: b
-    texte: 18 + 50
-    correcte: false
-    type_erreur: MOD
-    erreur: Additionner les deux donnees de l'enonce sans modeliser la situation.
-  - lettre: c
-    texte: 50 - 18
-    correcte: false
-    type_erreur: MOD
-    erreur: Choisir la soustraction d'apres l'ordre des nombres, sans traduire l'enonce.
-  - lettre: d
-    texte: 18 x 5
-    correcte: false
-    type_erreur: ATT
-    erreur: Bonne operation mais la donnee 50 kg est recopiee en 5.
-- code: N13
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.DIVE
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: Completer l'egalite ... x 6 = 174
-  reponse_attendue: '29'
-  solution: ''
-- code: N14
-  partie: A
-  format: court
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.PROB
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: Calculer le reste sur 5 000 FCFA apres trois cahiers
-  reponse_attendue: 3 650 F
-  solution: ''
-- code: N15
-  partie: B
-  format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: N.ADD
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: Additionner trois livraisons de mil puis retrancher la vente
-  reponse_attendue: 1 155 kg
-  solution: 1250+875+1430=3555 kg recus ; 3555-2400=1155 kg restants.
-- code: N16
-  partie: B
-  format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: N.DIVE
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: 'Repartir 253 savons en cartons de 12 : cartons pleins et reste'
-  reponse_attendue: 21 cartons pleins, 1 savon restant
-  solution: 253 = 12x21 + 1.
-- code: N17
-  partie: B
-  format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: N.FRA1
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: Calculer le tiers et le quart de 240 livres
-  reponse_attendue: 'CM1 : 80 livres ; CM2 : 60 livres'
-  solution: 240/3=80 (CM1) ; 240/4=60 (CM2).
-- code: N18
-  partie: B
-  format: redige
-  bareme: 1.0
-  bareme_classeur: 3.0
-  competence: N.PROB
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: Calculer la monnaie rendue sur 50 000 FCFA apres deux achats
-  reponse_attendue: 22 500 F
-  solution: 3x6500=19500 ; 2x4000=8000 ; depense totale=19500+8000=27500 ; monnaie=50000-27500=22500 FCFA.
+  si_echoue: Choix de l'operation dans une comparaison de deux offres, ou generalisation d'un cas particulier
+    sans verification.
+  probleme_parent: P4

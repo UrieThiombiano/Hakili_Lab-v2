@@ -31,6 +31,16 @@ Réussite aux deux questions : le problème peut être considéré résolu.
 Échec à l'une des deux : le problème n'est pas encore résolu — l'enseignant
 tranchera avec le contexte de la séance, ce sujet ne décide pas seul.
 
+## Ancrage pédagogique (`reference_pedagogique`)
+
+Quand un problème porte un champ `reference_pedagogique` non vide, c'est un
+extrait du livret de remédiation Hakili Lab du niveau concerné (méthode,
+erreurs fréquentes typées, un exemple travaillé). Calibre tes deux questions
+strictement sur ce niveau de difficulté et ce vocabulaire. Ne recopie jamais
+l'exemple fourni — change les valeurs numériques et le contexte, il ne sert
+que de gabarit. Sans ce champ, traite le problème comme avant, avec le seul
+libellé de compétence.
+
 ## Format de sortie
 
 Retourne UNIQUEMENT un objet JSON valide (sans balises markdown, sans texte

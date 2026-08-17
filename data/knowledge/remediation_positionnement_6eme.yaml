@@ -1,0 +1,20 @@
+- question: Q1, Q2
+  module: '**Module 1** : Lire, écrire et comparer les nombres'
+- question: Q3, Q4
+  module: '**Module 2** : Les quatre opérations : sens et technique'
+- question: Q5, Q6
+  module: '**Module 3** : Calcul réfléchi, priorités et ordres de grandeur'
+- question: Q7, Q8
+  module: '**Module 4** : Les fractions : partager, lire, représenter'
+- question: Q9, Q10
+  module: '**Module 5** : Grandeurs et mesures : longueurs, masses, capacités, durées'
+- question: Q11, Q12
+  module: '**Module 6** : La proportionnalité au quotidien'
+- question: Q13, Q14
+  module: '**Module 7** : Les instruments et le vocabulaire de la géométrie'
+- question: Q15, Q16
+  module: '**Module 8** : Les figures planes usuelles'
+- question: Q17, Q18
+  module: '**Module 9** : Périmètres et aires'
+- question: Q19, Q20
+  module: '**Module 10** : Repérage, symétrie et solides'

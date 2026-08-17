@@ -1,0 +1,24 @@
+- question: Q1, Q2
+  module: '**Module 1** : Bien calculer (décimaux, priorités, arrondis)'
+- question: Q3, Q4
+  module: '**Module 2** : Les nombres relatifs'
+- question: Q5, Q6
+  module: '**Module 3** : Fractions et quotients'
+- question: Q7, Q8
+  module: '**Module 4** : Puissances et écriture scientifique'
+- question: Q9, Q10
+  module: '**Module 5** : Calcul littéral'
+- question: Q11, Q12
+  module: '**Module 6** : Équations et inéquations'
+- question: Q13, Q14
+  module: '**Module 7** : Proportionnalité, pourcentages et grandeurs'
+- question: Q15, Q16
+  module: '**Module 8** : Droites, angles et triangles'
+- question: Q17, Q18
+  module: '**Module 9** : Quadrilatères, polygones et cercle'
+- question: Q19, Q20
+  module: '**Module 10** : Théorème des milieux et projections'
+- question: Q21, Q22
+  module: '**Module 11** : Périmètres, aires et volumes'
+- question: Q23, Q24
+  module: '**Module 12** : Repérage, translations et vecteurs'

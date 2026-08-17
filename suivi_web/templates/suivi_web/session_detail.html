@@ -279,6 +279,24 @@
     — reportez ici le résultat après l'avoir corrigé.
   </p>
   <div class="carte">
+    <div class="stats">
+      <div class="stat">
+        <span class="etiquette">Volume estimé (hypothèses, avant confirmation)</span>
+        <span class="valeur">{{ session.cout_total_hypothese|floatformat:"-2" }} h</span>
+      </div>
+    </div>
+    {% if sujet_t1_disponible %}
+      <a class="bouton" href="{% url 'correction_web:soumettre_confirmation' jeton %}">
+        Soumettre la copie pour le test de confirmation (T1)
+      </a>
+      <p class="aide">
+        Dépose le scan des réponses de l'élève : le système corrige, puis
+        confirme ou écarte chaque hypothèse automatiquement. La saisie
+        manuelle ci-dessous reste disponible si vous préférez trancher vous-même.
+      </p>
+    {% endif %}
+  </div>
+  <div class="carte">
     <form method="post" action="{% url 'suivi_web:confirmer_hypotheses' jeton %}">
       {% csrf_token %}
       <div class="lignes">

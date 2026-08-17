@@ -426,6 +426,21 @@ class Session(models.Model):
         )["total"]
         return total or Decimal("0")
 
+    @property
+    def cout_total_hypothese(self):
+        """Somme des coûts des lacunes encore à l'état d'hypothèse (avant T1).
+
+        Sert à donner à l'enseignant un ordre de grandeur du volume horaire dès
+        le diagnostic initial, avant que le test de confirmation ne tranche
+        lesquelles de ces hypothèses deviennent des problèmes confirmés.
+        """
+        from decimal import Decimal
+
+        total = self.problemes.filter(etat=EtatProbleme.HYPOTHESE).aggregate(
+            total=models.Sum("cout_estime")
+        )["total"]
+        return total or Decimal("0")
+
 
 class Evaluation(models.Model):
     """Une passation (T0 à T5).
@@ -473,6 +488,16 @@ class Evaluation(models.Model):
         default=1,
         help_text="Rang de cette évaluation parmi celles du même type dans la "
         "session. Le premier T3 porte 1, le suivant 2, etc.",
+    )
+
+    sujet_confirmation = models.JSONField(
+        "sujet T1 généré",
+        null=True,
+        blank=True,
+        help_text="Liste des exercices du sujet de confirmation (module 5) généré "
+        "à la suite de cette évaluation T0 — numéro, énoncé, indice. Sert à la fois "
+        "au PDF déjà produit et à construire le barème de la correction T1, sans "
+        "rien deviner d'un sujet réextrait après coup.",
     )
 
     # ── Corpus de référence (module 3) ───────────────────────────────────────
@@ -661,6 +686,15 @@ class Probleme(models.Model):
         "Saisie à la main pour le corpus de référence (module 3), remplie par la "
         "citation du diagnostic pour le module 4 — c'est ce qui rend un désaccord "
         "entre les deux arbitrable plutôt qu'un simple écart de comptage.",
+    )
+    exercices_confirmation = models.JSONField(
+        "exercices du sujet T1",
+        default=list,
+        blank=True,
+        help_text="Numéros des exercices du sujet de confirmation (module 5) qui "
+        "ciblent cette hypothèse — sert à retrouver, dans la correction T1, quelles "
+        "questions départagent confirmé/écarté pour ce problème précis. Vide pour un "
+        "problème hors de ce circuit (corpus de référence, saisie manuelle).",
     )
 
     class Meta:

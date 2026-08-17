@@ -1,0 +1,47 @@
+# Service systemd — Hakili Lab (gunicorn)
+#
+# Installation :
+#   sudo cp deploy/hakili.service /etc/systemd/system/hakili.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now hakili
+#
+# Les variables d'environnement (DJANGO_SECRET_KEY, DATABASE_URL, clés API…)
+# sont lues depuis Hakili_Lab/.env par python-dotenv, chargé dans
+# hakili/settings.py — pas besoin d'EnvironmentFile ici, à condition que
+# WorkingDirectory pointe vers la racine du projet (là où vit .env).
+
+[Unit]
+Description=Hakili Lab — serveur Django (gunicorn)
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=hakili
+Group=hakili
+WorkingDirectory=/opt/hakili/Hakili_Lab
+RuntimeDirectory=hakili
+RuntimeDirectoryMode=0750
+
+ExecStart=/opt/hakili/Hakili_Lab/.venv/bin/gunicorn hakili.wsgi:application \
+    --bind unix:/run/hakili/gunicorn.sock \
+    --workers 2 \
+    --threads 4 \
+    --timeout 180 \
+    --access-logfile - \
+    --error-logfile -
+
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+
+# Durcissement minimal — l'app a seulement besoin d'écrire dans son propre
+# répertoire (runs/, logs/, staticfiles/, credentials/) et dans /run/hakili.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/hakili/Hakili_Lab
+
+[Install]
+WantedBy=multi-user.target

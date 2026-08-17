@@ -88,18 +88,29 @@ def lancer_transcription(
     rubric,
     test,
     sujet: Path | None = None,
+    subject_text: str = "",
 ) -> None:
     """`test` vaut None en mode libre ; `sujet` est alors le PDF de l'énoncé, dont
-    le pipeline extrait lui-même le barème."""
+    le pipeline extrait lui-même le barème. `subject_text`, s'il est fourni,
+    prime sur `test.subject_text` — cas de la confirmation T1, dont l'énoncé est
+    déjà connu en base et n'a donc rien à extraire (voir `suivi_web/views.py::
+    soumettre_confirmation`)."""
     correction.etat = EtatCorrection.TRANSCRIPTION
     correction.etape = "Lecture de la copie"
     correction.progression = 2
     correction.save(update_fields=["etat", "etape", "progression", "maj_le"])
-    _dans_un_thread(_executer_transcription, correction.pk, chemins, rubric, test, sujet)
+    _dans_un_thread(
+        _executer_transcription, correction.pk, chemins, rubric, test, sujet, subject_text
+    )
 
 
 def _executer_transcription(
-    correction_id: int, chemins: list[Path], rubric, test, sujet: Path | None = None
+    correction_id: int,
+    chemins: list[Path],
+    rubric,
+    test,
+    sujet: Path | None = None,
+    subject_text: str = "",
 ) -> None:
     from src.pipeline.pipeline import run_transcription
 
@@ -111,7 +122,7 @@ def _executer_transcription(
             student_name=f"{correction.eleve_prenom} {correction.eleve_nom}".strip(),
             file_paths=chemins,
             rubric=rubric,
-            subject_text=getattr(test, "subject_text", ""),
+            subject_text=subject_text or getattr(test, "subject_text", ""),
             subject_file_path=sujet,
             expert_instructions=correction.instructions_expert,
             bareme_id=correction.bareme_id,
@@ -311,15 +322,22 @@ def _client_diagnostic_module4():
 
 def _ecrire_hypotheses_module4(correction: Correction, resultat) -> None:
     """Point d'injection module 4 : écrit les lacunes de cette copie comme
-    hypothèses dans le cycle de suivi (`Evaluation`/`Probleme`).
+    hypothèses dans le cycle de suivi (`Evaluation`/`Probleme`) — ou, pour une
+    copie T1, tranche automatiquement les hypothèses déjà ouvertes.
 
     Best-effort, comme les autres points d'injection du pipeline (voir
     `src/pipeline/pipeline.py`) : un diagnostic contraint en échec ne doit
-    jamais faire échouer une correction déjà terminée. Limité aux tests du
-    référentiel v2 (`bareme_id` préfixé `socle_`) — un test hors référentiel
-    n'a pas de codes de question à rattacher, comme pour `manage.py
-    diagnostiquer --correction`.
+    jamais faire échouer une correction déjà terminée.
     """
+    from suivi.models import TypeEvaluation
+
+    if correction.type_evaluation == TypeEvaluation.T1:
+        _confirmer_hypotheses_module4(correction, resultat)
+        return
+
+    # Limité aux tests du référentiel v2 (`bareme_id` préfixé `socle_`) — un test
+    # hors référentiel n'a pas de codes de question à rattacher, comme pour
+    # `manage.py diagnostiquer --correction`.
     if not correction.bareme_id.startswith("socle_"):
         return
     if resultat.grade is None or resultat.rubric is None:
@@ -354,10 +372,44 @@ def _ecrire_hypotheses_module4(correction: Correction, resultat) -> None:
         correction.copy_id, len(ecriture.crees), evaluation.session_id, ecriture.cout_total,
     )
 
-    from suivi.models import TypeEvaluation
-
     if correction.type_evaluation == TypeEvaluation.T0 and ecriture.crees:
         _generer_sujet_confirmation(correction, evaluation)
+
+
+def _confirmer_hypotheses_module4(correction: Correction, resultat) -> None:
+    """Point d'injection module 5 (suite) : tranche automatiquement les
+    hypothèses ouvertes à partir d'une copie T1 déjà corrigée et validée.
+
+    Best-effort, même logique que `_ecrire_hypotheses_module4` : un échec ici
+    ne doit jamais faire échouer une correction déjà terminée — l'enseignant
+    garde la main via la saisie manuelle (`confirmer_hypotheses`) si ce
+    circuit automatique ne peut pas trancher (pas de sujet T1 persisté, pas de
+    correspondance exercice → hypothèse).
+    """
+    if resultat.grade is None:
+        return
+
+    from suivi.diagnostic import confirmer_depuis_correction, preparer_evaluation
+
+    try:
+        evaluation = preparer_evaluation(
+            identifiant_hakili=correction.identifiant_hakili,
+            type_evaluation=correction.type_evaluation,
+            copy_id=correction.copy_id,
+        )
+        ecriture = confirmer_depuis_correction(evaluation, resultat.grade)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "[%s] Module 5 : confirmation automatique impossible (%s)",
+            correction.copy_id, exc,
+        )
+        return
+
+    logger.info(
+        "[%s] Module 5 — %d confirmé(s), %d écarté(s) sur la session %s.",
+        correction.copy_id, len(ecriture.confirmes), len(ecriture.ecartes),
+        evaluation.session_id,
+    )
 
 
 def _generer_sujet_confirmation(correction: Correction, evaluation) -> None:
@@ -394,17 +446,26 @@ def _generer_sujet_confirmation(correction: Correction, evaluation) -> None:
             )
             return
 
+        from src.knowledge.remediation_retriever import get_remediation_retriever
+
+        niveau = _niveau_test(correction.bareme_id)
+        retriever = get_remediation_retriever()
+
+        def _hypothese(p) -> ConfirmationHypothesis:
+            chunk = retriever.get_by_competence(p.competence.code, niveau) if niveau else None
+            return ConfirmationHypothesis(
+                competence_label=p.competence.libelle,
+                type_erreur_label=p.type_erreur.libelle,
+                justification=p.justification,
+                is_att=p.type_erreur_id == "ATT",
+                competence_code=p.competence.code,
+                niveau=niveau or None,
+                reference_pedagogique=chunk.to_context_text() if chunk else None,
+            )
+
         request = ConfirmationRequest(
             copy_id=correction.copy_id,
-            hypotheses=[
-                ConfirmationHypothesis(
-                    competence_label=p.competence.libelle,
-                    type_erreur_label=p.type_erreur.libelle,
-                    justification=p.justification,
-                    is_att=p.type_erreur_id == "ATT",
-                )
-                for p in hypotheses
-            ],
+            hypotheses=[_hypothese(p) for p in hypotheses],
         )
         reponse = client.generate_confirmation_subject(request)
         if not reponse.success or reponse.data is None:
@@ -435,6 +496,7 @@ def _generer_sujet_confirmation(correction: Correction, evaluation) -> None:
             type_document="sujet_confirmation",
             contenu=pdf_path.read_bytes(),
         )
+        _persister_sujet_confirmation(evaluation, hypotheses, validation.data)
     except Exception as exc:  # noqa: BLE001
         logger.warning("[%s] Module 5 : sujet T1 non généré (%s)", correction.copy_id, exc)
         return
@@ -443,6 +505,47 @@ def _generer_sujet_confirmation(correction: Correction, evaluation) -> None:
         "[%s] Module 5 — sujet T1 généré et attaché (%d hypothèse(s)).",
         correction.copy_id, len(hypotheses),
     )
+
+
+def _persister_sujet_confirmation(evaluation, hypotheses: list, sujet) -> None:
+    """Enregistre le sujet T1 et le lien exercice → hypothèse, pour que la
+    correction de la copie T1 (module 5, suite) dispose d'un barème connu à
+    l'avance au lieu d'en deviner un après coup — voir `suivi/diagnostic.py`.
+
+    Le prompt (`prompts/confirmation_subject_prompt.md`) impose que `topic`
+    reprenne **textuellement** `"<compétence> × <type d'erreur>"` de
+    l'hypothèse visée, identique pour les 2 questions d'une même hypothèse et
+    distinct d'une hypothèse à l'autre. On s'appuie sur cette reprise plutôt
+    que sur la position dans la liste, plus fragile face à un modèle qui
+    réordonnerait légèrement sa sortie : une hypothèse dont le `topic` ne
+    correspond à aucune étiquette connue reste simplement sans exercice
+    assigné, elle retombe sur la confirmation manuelle (aucune correspondance
+    devinée).
+    """
+    from collections import defaultdict
+
+    numeros_par_topic: dict[str, list[int]] = defaultdict(list)
+    for exercice in sujet.exercises:
+        numeros_par_topic[exercice.topic].append(exercice.number)
+
+    for probleme in hypotheses:
+        topic = f"{probleme.competence.libelle} × {probleme.type_erreur.libelle}"
+        numeros = numeros_par_topic.get(topic)
+        if not numeros:
+            continue
+        probleme.exercices_confirmation = numeros
+        probleme.save(update_fields=["exercices_confirmation"])
+
+    evaluation.sujet_confirmation = [
+        {
+            "numero": exercice.number,
+            "topic": exercice.topic,
+            "question": exercice.question,
+            "hint": exercice.hint,
+        }
+        for exercice in sujet.exercises
+    ]
+    evaluation.save(update_fields=["sujet_confirmation"])
 
 
 # ── Corrections abandonnées ──────────────────────────────────────────────────

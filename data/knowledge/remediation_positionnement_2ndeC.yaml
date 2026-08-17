@@ -1,0 +1,24 @@
+- question: Q1, Q2
+  module: '**M1** : Calculer juste dans $\mathbb{Q}$'
+- question: Q3, Q4
+  module: '**M2** : Racines carrées'
+- question: Q5, Q6
+  module: '**M3** : Calcul littéral'
+- question: Q7, Q8
+  module: '**M4** : Équations et systèmes'
+- question: Q9, Q10
+  module: '**M5** : Applications affines'
+- question: Q11, Q12
+  module: '**M6** : Repérage'
+- question: Q13, Q14
+  module: '**M7** : Vecteurs'
+- question: Q15, Q16
+  module: '**M8** : Thalès'
+- question: Q17, Q18
+  module: '**M9** : Pythagore et trigonométrie'
+- question: Q19, Q20
+  module: '**M10** : Cercle et isométries'
+- question: Q21, Q22
+  module: '**M11** : Aires et volumes'
+- question: Q23, Q24
+  module: '**M12** : Statistiques'

@@ -1,8 +1,8 @@
 # Feuille de route — Chantier v2 (suivi structuré)
 **Document de pilotage — fait foi pour l'avancement.** `CLAUDE.md` renvoie ici pour le détail ; ce fichier est la seule source de vérité sur "où en est-on" — ne pas dupliquer le suivi ailleurs.
 
-**Dernière mise à jour :** 2026-08-06 (arbitrage B : 202/209 corrigés produits ; les 3 copies réelles 5e corrigées et diagnostiquées)
-**Où en est-on (résumé en une ligne) :** Modules 0, **1 et 3 ✅ faits** · **Module 2 ⛔ supprimé le 2026-08-05** — trois copies 5e réelles imprimées et scannées l'ont mis en défaut (les trois refusées, dérive jusqu'à 3 cm), et il reconstituait par la géométrie une correspondance que la correction produit déjà ; au passage le risque du tramage est levé, l'imprimante n'imprime pas les bandes de guidage du tout · **Module 4 🟨 le moteur tourne et il est branché** — `manage.py diagnostiquer --correction <id>` reprend une copie déjà corrigée, sans lecture ni appel de modèle supplémentaire, QCM court-circuités, décision enseignant prioritaire · **Module 6 🟨 le plan et le palier tournent** · **interface migrée sur Django**. **Arbitrage B débloqué le 2026-08-06 : 202/209 corrigés produits** (brouillon calculé, relu et validé par l'utilisateur sujet par sujet — pas encore la relecture par un enseignant que `00_Notice` exige avant de figer le référentiel) ; les 7 restants sont les questions `construction`, laissées de côté tant que l'arbitrage F n'est pas tranché. **Les 3 copies réelles 5e ont été corrigées et diagnostiquées** (`manage.py verifier_installation --copie … --eleve …`, le contrôle qui n'avait jamais été passé) — mais la **mesure juste** du module 4 reste à faire : ces 3 copies n'ont pas de tagage manuel, il n'y a donc rien à comparer pour l'instant. Les seuils de palier A/B/C **n'ont toujours pas été rejugés** après la hausse de ~33 % des coûts.
+**Dernière mise à jour :** 2026-08-13 (arbitrage H clos — les 7 `bareme_socle_*.yaml` (6eme à tleD) reconstruits à la main sur la structure à 3 parties, sans attendre la mise à jour du classeur)
+**Où en est-on (résumé en une ligne) :** Modules 0, **1 et 3 ✅ faits** · **Module 2 ⛔ supprimé le 2026-08-05** — trois copies 5e réelles imprimées et scannées l'ont mis en défaut (les trois refusées, dérive jusqu'à 3 cm), et il reconstituait par la géométrie une correspondance que la correction produit déjà ; au passage le risque du tramage est levé, l'imprimante n'imprime pas les bandes de guidage du tout · **Module 4 🟨 le moteur tourne et il est branché** — `manage.py diagnostiquer --correction <id>` reprend une copie déjà corrigée, sans lecture ni appel de modèle supplémentaire, QCM court-circuités, décision enseignant prioritaire · **Module 5 🟨 amorcé le 2026-08-07** — génération du sujet T1 et confirmation automatique (dépôt de copie → correction → confirmé/écarté) branchées de bout en bout, jamais essayées en conditions réelles · **Module 6 🟨 le plan et le palier tournent** · **interface migrée sur Django**. **Arbitrage B fermé le 2026-08-12 : les 7 corrigés sont relus et validés par un enseignant de mathématiques** (`data/Documents/corriges/`) — c'est la relecture que `00_Notice` exigeait avant de figer le référentiel. **Arbitrage H fermé le 2026-08-13 : les 7 `bareme_socle_*.yaml` (6eme à tleD) reconstruits à la main** sur la structure à 3 parties des sujets recomposés — le classeur `Referentiel_Socle_v0.xlsx` reste non modifié, ces 7 fichiers font foi en avance sur lui (détail `docs/harmonisation_donnees.md`). **Les 3 copies réelles 5e ont été corrigées et diagnostiquées** (`manage.py verifier_installation --copie … --eleve …`, le contrôle qui n'avait jamais été passé) — mais la **mesure juste** du module 4 reste à faire : ces 3 copies n'ont pas de tagage manuel, il n'y a donc rien à comparer pour l'instant. Les seuils de palier A/B/C **n'ont toujours pas été rejugés** après la hausse de ~33 % des coûts.
 
 **État vérifié le 2026-08-05 : 275 tests Django + 239 pytest = 514 tests passent.** ⚠ Avant la prochaine mise en ligne : `migrate suivi 0007 --fake` une fois sur Neon (D-CEO-40, `docs/deploiement.md`).
 
@@ -20,9 +20,11 @@ DEBUG=true python manage.py verifier_installation                          # con
 ```
 Note : `DATABASE_URL` suit la convention SQLAlchemy — `sqlite:///:memory:`, **trois** barres.
 
-> ✅ **Le manque qui pesait — détail dans `docs/harmonisation_donnees.md`.** Le référentiel ne contenait **aucune bonne réponse** pour 209 questions non-QCM, ce qui bloquait les modules 3 à 9. **202/209 sont désormais remplies** (2026-08-06) — brouillon calculé sujet par sujet depuis l'objet du barème et les 7 sujets PDF, relu et validé par l'utilisateur avant chaque intégration, dans `data/knowledge/corriges_socle.yaml`. Les 7 restantes sont les questions `construction` (arbitrage F non tranché). ⚠ **Ce n'est pas la validation pédagogique que `00_Notice` exige avant de figer le référentiel** — c'est un brouillon relu une fois, pas une relecture par un enseignant de mathématiques. À faire relire avant tout usage à grande échelle.
+> ✅ **Le manque qui pesait — détail dans `docs/harmonisation_donnees.md`.** Le référentiel ne contenait **aucune bonne réponse** pour 209 questions non-QCM, ce qui bloquait les modules 3 à 9. **Corrigés relus et validés par un enseignant de mathématiques le 2026-08-12** — 7 PDF complets dans `data/Documents/corriges/`, c'est la validation `00_Notice` qui manquait. Arbitrage B ✅ fermé.
 >
-> Arbitrages rendus : **A** (archivage), **D** (barème /20), **G** (source = le classeur), **B** (corrigés — 202/209, détail ci-dessus). En attente : **C** (curriculum RAG), **E** (volumes lycée), **F** (format `construction`).
+> ⚠️ **Mais cette livraison a révélé un nouveau problème (arbitrage H, 2026-08-12) : les 7 sujets recomposés (structure Automatismes/Savoir-faire/Raisonnement) ne correspondent plus à `bareme_socle_*.yaml`** (généré le 2026-08-07, resté sur l'ancienne structure à 2 parties — le classeur `Referentiel_Socle_v0.xlsx` n'a pas changé). 11 à 14 items par niveau reclassés/repondérés, 4 à 6 nouveaux problèmes de synthèse sans `RubricItem`. Tranché avec l'utilisateur : régénérer depuis le classeur mis à jour — **mise à jour du classeur et relance de `scripts/generer_baremes_socle.py` restent à faire.** Détail chiffré : `docs/harmonisation_donnees.md`, arbitrage H.
+>
+> Arbitrages rendus : **A** (archivage), **D** (barème /20), **G** (source = le classeur), **B** (corrigés validés, 2026-08-12), **H** (les 7 niveaux `socle_6eme` à `socle_tleD` reconstruits à la main, 2026-08-12/13 — clos ; le classeur lui-même n'est plus dans le chemin critique, décision utilisateur). En attente : **C** (curriculum RAG), **E** (volumes lycée), **F** (format `construction`).
 
 ---
 
@@ -45,9 +47,9 @@ Note : `DATABASE_URL` suit la convention SQLAlchemy — `sqlite:///:memory:`, **
 | 2 | ~~Lecture des copies par zones~~ | ⛔ **Supprimé (2026-08-05, D-CEO-38)** — remplacé par la reprise de la correction | — |
 | 3 | Corpus de référence | ✅ Fait (2026-07-31) — 5 copies, 66 problèmes | — (PRQ et RED non couverts, voir la fiche) |
 | 4 | Diagnostic contraint | 🟨 En cours (2026-08-05) — moteur fait, **branché sur la correction** | La mesure juste : reste à corriger les 3 copies 5e puis à comparer |
-| 5 | Composition du test de confirmation (T1) | ⬜ À faire | Module 4 |
+| 5 | Composition du test de confirmation (T1) | 🟨 En cours (2026-08-13) — génération du sujet et confirmation automatique branchées, désormais ancrées sur `remediation/` (D-CEO-41, `reference_pedagogique`), toujours jamais essayées en conditions réelles | Module 4 |
 | 6 | Palier et plan de remédiation | 🟨 En cours (2026-07-30) — moteur fait, séances à planifier | Module 4 pour l'alimenter en vrais problèmes |
-| 7 | Génération des fiches | ⬜ À faire | Module 6 |
+| 7 | Génération des fiches | ⬜ À faire — matière première désormais disponible (D-CEO-41 : `RemediationRetriever`, 79 modules, 2 838 exercices corrigés), le générateur lui-même reste à construire | Module 6 |
 | 8 | Interfaces de saisie | 🟨 Amorcé — admin sur les 11 tables + écran de parcours/inscription | Module 1 (peut démarrer en parallèle dès que le socle existe) |
 | 9 | Restitution et indicateurs | ⬜ À faire | Module 1, 6, 7, 8 |
 
@@ -303,6 +305,7 @@ enseignant avant l'écart mesuré.
 ### Module 5 — Composition du test de confirmation (T1)
 **Objectif :** générer automatiquement un T1 qui départage les hypothèses, pas un T0 raccourci.
 
+- [x] **Ancrage pédagogique (D-CEO-41, 2026-08-13)** — `ConfirmationHypothesis`/`VerificationItem` portent désormais `competence_code`, `niveau` et `reference_pedagogique` (méthode, erreurs fréquentes typées, un exemple travaillé, tirés de `remediation/` via `RemediationRetriever.get_by_competence()`), peuplés dans `correction_web/taches.py` (T1) et `suivi/generation.py` (T3/T4/T5). Avant cet ajout, le LLM ne recevait qu'un libellé de compétence et un libellé de type d'erreur — sans niveau ni exemple calibré, cause structurelle des sujets hors programme ou mal calibrés. Dégradé sans erreur si le rapprochement ne couvre pas la compétence (`reference_pedagogique = None`).
 - [ ] Pour chaque problème en état `hypothese`, générer une question qui sépare deux causes possibles du même échec (ex. exécution simple vs lourde pour distinguer `CPT` de `PRC`).
 - [ ] Rejeter toute question qui ne discrimine rien.
 - [ ] Produire le sujet T1 au même format PDF que les tests d'entrée (cadres de réponse ancrés par code), pour que le Module 2 puisse le relire.
@@ -334,6 +337,7 @@ enseignant avant l'écart mesuré.
 ### Module 7 — Génération des fiches
 **Objectif :** une séance prête à l'emploi pour le tuteur, pas de la matière première.
 
+- [x] **Matière première disponible (D-CEO-41, 2026-08-13)** — `RemediationRetriever.get_by_competence(code, niveau)` (`src/knowledge/remediation_retriever.py`) rend, par compétence canonique, une leçon de remédiation complète : méthode, erreurs fréquentes, exemple travaillé, et référence à un module de `remediation/` qui porte lui-même son propre pool d'exercices notés ★/★★/★★★ corrigés (`data/knowledge/remediation_<niveau>.yaml`, jamais consommé directement par le retriever — pas de fuite de réponse dans un prompt). Reste à faire : le générateur de fiches lui-même (unité compétence × type d'erreur, déroulé minuté, critère de réussite), bloqué par le Module 6 comme avant.
 - [ ] Unité de fiche = compétence × type d'erreur (pas le chapitre).
 - [ ] Contenu obligatoire : objectif en termes de compétence, prérequis à vérifier en ouverture, déroulé minuté, exercices gradués, critère de réussite observable.
 - [ ] Génération à la demande, pour les problèmes réellement confirmés.
@@ -451,6 +455,170 @@ Limite structurelle assumée : certaines compétences ont un libellé volontaire
 ---
 
 ## Journal de bord
+
+### 2026-08-13 (suite 4) — `bareme_socle_tleD.yaml` reconstruit — dernier niveau, arbitrage H clos
+
+66 items (20 A + 14 B + 32 sous-items C, 6 problèmes). Ce corrigé est le plus favorable des 7 : sa grille
+de fin donne directement le barème officiel par domaine (N 4 / L 11 / F 30 / S 11 / T 8 / D 4 / G 12 =
+80 pts) **et** la clé de répartition exacte des points de chaque problème de partie C entre domaines
+(« P1 donne 4 pts à S et 1 à D »…) — recoupement **exact** sur les 7 domaines, sans qu'aucune lecture
+visuelle n'ait été nécessaire pour déterminer la clé elle-même (contrairement aux niveaux précédents, où
+seuls les totaux par domaine étaient parfois donnés, jamais la clé par problème).
+
+Deux nouveautés propres à ce niveau :
+- 7 domaines actifs au lieu de 5 au collège/2ndeC/1ereD : `S` (suites et récurrence) et `T` (trigonométrie)
+  apparaissent comme domaines à part entière (déjà présents avant mais absorbés ailleurs).
+- Le corrigé lui-même classe les fonctions rationnelles tantôt domaine `L` (résolution algébrique isolée,
+  ex. `L3`, `L5`) tantôt domaine `F` (étude de variation d'une fonction rationnelle, ex. `F10`, `F11`,
+  partie C de `P5`) — suivi à l'identique, ce n'est pas une incohérence du corrigé mais une distinction
+  volontaire entre calcul et étude de fonction.
+
+Trois sous-items isolés (`P4a`/`P4b`, `P6d`) n'ont pas de code canonique dédié à leur contenu très précis
+(répartition entre calcul de distance et conversion d'échelle ; signalement d'une donnée manquante en
+géométrie dans l'espace) — affectés par approximation raisonnée, sans effet sur les totaux par domaine
+qui restent exacts.
+
+**Tests :** `tests/test_baremes_socle.py` 59/59 (+4 tests devenus vides, `_NIVEAUX_HERITES` est maintenant
+une liste vide — les 7 niveaux sont recomposés), suite pipeline complète 240 passent + 4 vides, `manage.py
+check` propre.
+
+**Arbitrage H clos.** Les 7 niveaux (`6eme` à `tleD`) sont désormais reconstruits à la main sur la structure
+à 3 parties (Automatismes/Savoir-faire/Raisonnement), en avance sur `Referentiel_Socle_v0.xlsx` qui reste
+non modifié — ces 7 fichiers YAML font foi jusqu'à ce que le classeur soit repris (décision actée le
+2026-08-12 : « le classeur n'est pas la priorité, la plateforme si »). Détail : `docs/harmonisation_donnees.md`.
+
+### 2026-08-13 (suite 3) — `bareme_socle_1ereD.yaml` reconstruit — deuxième niveau lycée, recoupement exact
+
+59 items (20 A + 14 B + 25 sous-items C, 6 problèmes). Même méthode que 2ndeC (lecture visuelle du sujet
+et du corrigé PDF rendus en image, échelle 80 pts ÷4). Ce corrigé revient au motif précis de 5e/4e/2ndeC :
+le tableau « profil par domaine » donne les totaux par domaine (N 12,5 / L 16,5 / F 22 / G 22,5 / D 6,5
+= 80 pts) et une clé explicite de répartition des points de chaque problème de partie C entre domaines
+(« P1 donne 3,5 pts à L et 1,5 pt à G »…) — recoupement **exact** sur les 5 domaines, aucune approximation
+sur les totaux.
+
+Seule nuance : deux sous-items isolés (`P5d`, `P6e`) n'ont pas de code canonique qui colle exactement à
+leur contenu précis (comparaison numérique de deux carrés pour `P5d` ; signalement d'une donnée manquante
+pour `P6e`) — rattachés par approximation à `N.RAC` et `N.PROB` respectivement, sans effet sur les totaux
+par domaine puisque ceux-ci restent exacts. Deux nouveaux domaines apparaissent pour la première fois
+dans la progression : `F.CIRC`/`F.VAR`/`F.DEF`/`F.PAR`/`F.REF`/`F.APP` (fonctions, développés depuis la
+4e mais mobilisés en bloc ici) et `L.EQ2`/`L.TRI`/`L.INEQ2`/`L.SYSL`/`N.MAJ` (second degré, système linéaire
+et inéquations produit/quotient, propres au lycée).
+
+**Tests :** `tests/test_baremes_socle.py` 60/60 (`1ereD` déplacé de `_NIVEAUX_HERITES` vers `_NIVEAUX_RECOMPOSES`),
+suite pipeline complète 241/241, `manage.py check` propre.
+
+**Reste à faire :** tleD, dernier niveau.
+
+### 2026-08-13 (suite 2) — `bareme_socle_2ndeC.yaml` reconstruit — premier niveau lycée, échelle ÷4
+
+66 items (20 A + 14 B + 32 sous-items C, 6 problèmes P1-P6). Premier niveau lycée : barème classeur **80 pts**, converti /20 par **division par 4** (collège : 60 pts, ÷3) — `tests/test_baremes_socle.py` distingue maintenant `_NIVEAUX_LYCEE`, avec une nuance : seuls les niveaux lycée **déjà reconstruits** utilisent la nouvelle échelle 80/÷4 dans les tests — `1ereD`/`tleD`, pas encore repris, restent testés sur l'ancienne échelle 60/÷3 jusqu'à leur tour.
+
+Ce corrigé revient au motif précis de 5e/4e (répartition exacte par domaine et par problème, recoupement exact avec le tableau officiel, aucune approximation) — contrairement à 3e. Aucun item hybride calcul/construction (pas de constructions géométriques au programme de ce niveau).
+
+**Tests :** `tests/test_baremes_socle.py` 61/61, suite pipeline complète 242/242, `manage.py check` propre.
+
+**Reste à faire :** 1ereD, tleD.
+
+### 2026-08-13 (suite) — `bareme_socle_3eme.yaml` reconstruit (4e niveau) — la vérification exacte par domaine s'arrête ici
+
+50 items (16 A + 12 B + 22 sous-items C). **Ce corrigé rompt avec le motif des deux précédents :** il ne détaille pas le domaine de chaque terme de barème en partie C, seulement un domaine dominant par problème entier (P1/P2→G, P3→L, P4→F, « les quatre problèmes croisent plusieurs domaines, chacun est rattaché à son domaine dominant »). La décomposition fine en sous-items (une compétence par sous-item) a été maintenue par cohérence avec la logique du module 4, mais **sans le recoupement exact qui validait fortement 5e et 4e** — plusieurs sous-items de partie C sont marqués « confiance basse » directement dans leur `objet`, code disponible le plus proche du référentiel actuel, à confirmer par l'enseignant.
+
+Nouveautés : domaines **G.VEC** (vecteurs, Chasles) et **F** (applications/fonctions, image/antécédent) apparaissent pour la première fois dans la progression. `G7` décomposé en construction + déduction (même motif que G5 en 4e, G7/G9 en 5e).
+
+**Tests :** `tests/test_baremes_socle.py` 62/62, suite pipeline complète 243/243, `manage.py check` propre.
+
+**Reste à faire :** 2ndeC, 1ereD, tleD (lycée — structure à 80 pts/÷4, à vérifier si le motif de vérification par domaine y est aussi coarse ou fin).
+
+### 2026-08-13 — `bareme_socle_4eme.yaml` reconstruit (3e niveau) — la décomposition de la partie C n'est plus fixée à 4
+
+48 items (16 A + 12 B + 20 sous-items C). Ce corrigé donne, en plus du domaine par terme de barème, une phrase récapitulative par problème (« P1 donne 2 points à M et 3 à N… ») — recoupement **exact** avec le tableau « profil par domaine », comme en 5e.
+
+Deux nouveautés propres à ce niveau, qui touchent la méthode elle-même :
+- Apparition d'un nouveau domaine, **L (calcul littéral et équations)**, en plus de N/M/G/D.
+- Certains problèmes de partie C ont **5 ou 6 sous-questions** (pas toujours 4) — le nombre de sous-items suit le nombre exact de termes du barème imprimé, pas un compte fixe. `test_sous_items_partie_c_rattaches_a_un_probleme` généralisé (3 à 6 sous-items acceptés, la somme du barème reste la contrainte forte).
+- Un seul item mixte calcul/construction (`G5` → `G5a`/`G5b`), contre deux en 5e.
+
+Point signalé sans solution : `N6` (PPCM) rattaché à `N.PGCD`, faute de code dédié.
+
+**Tests :** `tests/test_baremes_socle.py` 63/63, suite pipeline complète 244/244, `manage.py check` propre.
+
+**Reste à faire :** 3e, 2ndeC, 1ereD, tleD.
+
+### 2026-08-12 (suite 2) — `bareme_socle_5eme.yaml` reconstruit (2e niveau, même méthode)
+
+45 items (16 A + 13 B + 16 sous-items C). Même méthode que la 6e (lecture visuelle du corrigé PDF, décomposition de la partie C en 4 sous-items par problème), avec deux différences propres à ce niveau :
+
+- Le corrigé 5e indique le domaine de chaque terme de barème directement entre parenthèses (`1 pt (G)`) et la grille finale donne la répartition par domaine pour chaque problème — la vérification contre le tableau officiel « profil par domaine » tombe donc **exactement juste** (G 2 / M 4 / N 10 / D 6 = 22 pts en partie C, zéro écart), contrairement à la 6e où il restait 1 point d'approximation.
+- Deux items de partie B (`G7`, `G9`) mélangent calcul et construction au compas dans un seul item à 2 points. Décomposés en `G7a`/`G7b` et `G9a`/`G9b` (1 pt chacun, l'un `redige`, l'autre `construction`) — la partie B passe de 11 à 13 items, 22 points inchangés. `test_structure_a_3_parties` généralisé en conséquence (somme des points plutôt qu'un compte fixe de 11).
+
+Un point signalé sans solution : `G3`/`G6` (angles supplémentaires) n'ont pas de code canonique dédié dans le référentiel actuel ; `G.ANG2` (angles complémentaires) retenu par approximation.
+
+**Tests :** `tests/test_baremes_socle.py` 64/64, suite pipeline complète 245/245, `manage.py check` propre.
+
+**Reste à faire :** 4e, 3e, 2ndeC, 1ereD, tleD.
+
+### 2026-08-12 (suite) — `bareme_socle_6eme.yaml` reconstruit à la main (pilote arbitrage H), sans attendre le classeur
+
+**Décision de l'utilisateur :** ne pas attendre la mise à jour de `Referentiel_Socle_v0.xlsx` pour corriger le désalignement trouvé dans l'entrée précédente — « la mise à jour du fichier n'est pas importante, mais la plateforme si ». `data/knowledge/bareme_socle_6eme.yaml` a donc été reconstruit directement depuis le sujet et le corrigé PDF recomposés, en pilote sur un seul niveau avant réplication.
+
+**Méthode :** lecture visuelle des 8 pages du corrigé (rendues en image via PyMuPDF — les valeurs numériques du sujet et du corrigé sont vectorielles, invisibles à l'extraction texte, mais les consignes et le texte diagnostique « Si l'élève échoue » sont en texte brut). Chaque problème de partie C (`P1`–`P4`) est décomposé en 4 `RubricItem` (`Pxa`–`Pxd`), un par terme du barème imprimé (`Barème. 1 + 2 + 1 + 1`), chacun avec une seule compétence canonique — pas de nouveau champ de schéma. La compétence de chaque sous-item a été déduite du texte puis recoupée avec le tableau officiel « profil par domaine » du corrigé (N 10 / M 6 / G 1 / D 5 pts) ; l'allocation obtenue tombe à N 11 / M 5, écart d'1 point sur un seul item (`P3b`, deux savoir-faire dans un même terme de barème) — signalé, non bloquant.
+
+**Correction méthodologique en cours de route :** les codes de question (`N1`, `D2`…) ne sont pas des identifiants stables entre l'ancien classeur et le nouveau sujet — simples étiquettes de position. La réconciliation précédente (entrée ci-dessous) comparait par code ; celle-ci compare par contenu, ce qui a permis de corriger deux erreurs : `G5`/`G6` sont des tracés au compas/équerre, retagués `format: construction` (pas `redige`), `reponse_attendue` laissée vide comme pour les autres questions `construction` (arbitrage F).
+
+**Résultat :** 43 items (16 A + 11 B + 16 sous-items de partie C), 60/60 pts classeur, 20,0/20 exact. `tests/test_baremes_socle.py` mis à jour — nouvelles assertions pour les niveaux « recomposés », anciennes conservées pour les 6 niveaux pas encore repris (paramétrage par liste, pas de duplication de fichier). 65/65 passent. Suite pipeline complète : 246/246. `manage.py test` : mêmes échecs préexistants `exige_une_connexion`/`personnel` que d'habitude, aucun nouveau, rien lié au contenu du barème.
+
+**Reste à faire :** répliquer aux 6 autres niveaux (5e, 4e, 3e, 2ndeC, 1ereD, tleD), chaque table de correspondance soumise à l'utilisateur avant régénération, comme pour la 6e.
+
+### 2026-08-12 — Corrigés enseignant validés pour les 7 tests (arbitrage B débloqué), et une nouvelle divergence trouvée (arbitrage H)
+
+**Livraison `data/New-docs/`** (15 fichiers) : 7 sujets PDF recomposés + 7 corrigés enseignant PDF complets, relus et validés par un enseignant de mathématiques — c'est la relecture `00_Notice` qui manquait depuis le 2026-08-06 (arbitrage B, désormais ✅). Un `Referentiel_Urie_v0.xlsx` accompagnait la livraison mais s'est révélé être un doublon binaire exact de `Referentiel_Socle_v0.xlsx` (hash MD5 identique) — aucun changement de classeur.
+
+**Intégré :**
+- Les 7 anciens sujets PDF (structure 2 parties, 20 pts) déplacés vers `data/Documents/archive/` — conservés pour l'historique des copies déjà corrigées avec cette composition.
+- Les 7 nouveaux sujets copiés dans `data/Documents/`, les 7 corrigés dans `data/Documents/corriges/`.
+- `src/knowledge/test_registry.py` : nouveau champ `corrige_pdf` sur `HakiliTest`, résolu pour les 7 tests `socle_*`.
+- `correction_web` : nouvelle vue `corrige()` + route `sujets/<bareme_id>/corrige/`, lien « Corrigé » ajouté à `sujets.html` à côté d'Ouvrir/Télécharger. Réservé aux personnes connectées, même logique que `sujet()`.
+- `manage.py check` propre ; rechargement du registre vérifié en shell — les 7 `corrige_pdf` se résolvent sans avertissement.
+
+**Découverte en réconciliant les corrigés contre `bareme_socle_*.yaml`** (grille de report extraite au texte, PyMuPDF, comparée code par code) : les 7 sujets recomposés ne correspondent plus au barème généré le 2026-08-07. Motif identique sur les 7 niveaux — passage d'une structure à 2 parties (30×1pt + 10×3pt, celle encore dans le YAML) à une structure à 3 parties (Automatismes/Savoir-faire/Raisonnement, avec des problèmes de synthèse croisant plusieurs compétences). Chiffres et détail complet : `docs/harmonisation_donnees.md`, arbitrage H (nouveau). Tranché avec l'utilisateur le jour même : **c'est une recomposition délibérée et finale**, à faire remonter dans `Referentiel_Socle_v0.xlsx` puis régénérer via `scripts/generer_baremes_socle.py` — **pas encore fait**, c'est un travail pédagogique (codes de compétence pour les nouveaux problèmes croisés) qui reste sur la feuille de route.
+
+**Bloque tant que ce n'est pas fait :** un import strict du module 1 pour ces 7 tests, le diagnostic contraint (module 4) sur les problèmes de la nouvelle partie C (aucun `RubricItem`, donc pas notables), et la fiabilité de la notation automatique sur les 11 à 14 items reclassés par niveau entre partie A et B.
+
+**Tests :** aucun test automatisé nouveau (changement de données + une route de téléchargement calquée sur `sujet()` déjà couverte par `TestSujetsImprimables`) ; `manage.py check` rejoué, propre.
+
+### 2026-08-07 (suite) — Volume horaire des hypothèses affiché, et T1 confirme/écarte automatiquement après correction
+
+**Deux changements, décidés avec l'utilisateur.**
+
+**1. Volume estimé dès l'hypothèse.** `Session.cout_total_hypothese` (nouvelle propriété, `suivi/models.py`) somme `cout_estime` des problèmes encore en `hypothese` — jusqu'ici seul `suivi/plan.py::construire()` calculait un total, et seulement pour les problèmes confirmés, donc rien ne s'affichait avant T1. Affiché sur `session_detail.html` (section « Lacunes à confirmer ») et sur `eleve_detail.html` (à côté du nombre de lacunes présumées).
+
+**2. T1 corrige et tranche automatiquement, sans saisie manuelle.** Jusqu'ici, `Correction.type_evaluation` documentait déjà l'intention (« confirme/écarte des hypothèses existantes (T1) ») mais `_ecrire_hypotheses_module4` traitait toute copie T1 comme une copie hors référentiel et ne faisait rien — la confirmation restait entièrement à la main (`confirmer_hypotheses`, toujours en service en filet). Le circuit ajouté :
+- `_generer_sujet_confirmation` (module 5) persiste maintenant le sujet T1 généré (`Evaluation.sujet_confirmation`, nouveau champ JSON) et, pour chaque hypothèse, les numéros d'exercice qui la ciblent (`Probleme.exercices_confirmation`) — appariés par le `topic` que le prompt impose textuellement identique à `"<compétence> × <type d'erreur>"`, jamais par position (une correspondance qui se devinerait après coup, le défaut qui a fait retirer le module 2).
+- Nouvel écran `suivi_web` → `correction_web:soumettre_confirmation` : l'enseignant dépose seulement le scan des réponses (élève et barème déjà connus) ; le barème de correction est construit directement depuis `sujet_confirmation`, sans extraction ni auto-résolution.
+- Le pipeline de correction (transcription, relecture, **tableau de validation des notes** — inchangé, D-CEO-16) tourne à l'identique. À la phase diagnostic, `_ecrire_hypotheses_module4` bascule vers `_confirmer_hypotheses_module4` → `suivi.diagnostic.confirmer_depuis_correction` : règle binaire simple (une question ratée sur celles qui ciblent l'hypothèse → `confirme`, tout réussi → `ecarte`), `ATT` toujours écarté (contrainte déjà posée par `Probleme.clean()`).
+- Bouton « Soumettre la copie pour le test de confirmation (T1) » sur `session_detail.html`, visible seulement si un sujet a été généré — sinon la saisie manuelle reste seule proposée.
+
+**Non fait, à garder en tête :** la nuance conceptuel/procédural que les deux questions par hypothèse sont censées départager (protocole §3) n'entre pas encore dans la décision — c'est une règle binaire pour démarrer, décidée avec l'utilisateur. Jamais essayé sur une vraie copie T1 (pas de client IA disponible en environnement de dev) — le module reste 🟨, pas ✅, tant que ce n'est pas fait une fois à la main comme l'exige la discipline du projet.
+
+**Tests :** `suivi/tests_diagnostic.py::TestConfirmationAutomatique` (7), `correction_web/tests.py::TestSoumissionConfirmationT1` (5) et `TestConfirmationAutomatiqueT1` (2), `suivi_web/tests.py` (2 nouveaux, boutons). Suite complète rejouée : 238 tests sur `suivi`/`suivi_web`/`correction_web`, 13 échecs — tous de la même famille préexistante `exige_une_connexion`/`personnel` (vérifiée à nouveau reproductible sur du code non touché, ex. `TestCloisonnement`/`TestSujetsImprimables` isolés).
+
+### 2026-08-07 — La fiche de l'élève affiche désormais les lacunes présumées, non confirmées
+
+**Suite du constat ci-dessous, implémentée le même jour.** `eleve_detail` (`suivi_web/views.py`) attache maintenant à chaque session de `parcours` la liste de ses `Probleme` en état `hypothese` (`select_related` compétence/type d'erreur) ; le template affiche, sous chaque carte de session, le nombre de lacunes présumées et leur libellé (compétence + pastille type d'erreur), avec la mention « à confirmer par le second test (T1) ». Rien de plus : la confirmation elle-même reste sur `/parcours/<jeton>/` (`confirmer_hypotheses`, déjà en service) — cet écran ne fait qu'annoncer qu'il y a quelque chose à trancher là-bas, il ne duplique pas le formulaire.
+
+**Ce que ça couvre, et ce que ça ne couvre pas :** ça répond au manque n°2 ci-dessous (l'affichage). Le manque n°1 (déclenchement automatique du diagnostic après une correction en ligne) reste ouvert — aujourd'hui il faut toujours `manage.py diagnostiquer --correction <id>` à la main pour que des `hypothese` existent à afficher. Le module 5 (composition automatique du T1) reste également ⬜, sans lien avec ce changement.
+
+**Tests :** `suivi_web/tests.py::TestFicheEleveHypotheses` (2) — la lacune apparaît tant qu'elle est en `hypothese`, disparaît une fois tranchée (`ecarte`). Suite complète rejouée : 323 tests, 22 échecs — **les mêmes 22, préexistants et sans rapport** (vérifié par `git stash` : identiques sur le code non modifié, tous des tests `exige_une_connexion`/`personnel` qui semblent fuir une session Django entre méthodes de test, à investiguer séparément).
+
+### 2026-08-07 — Constat : la fiche de l'élève n'affiche pas les lacunes présumées
+
+**Constat remonté par l'utilisateur** après une correction en ligne (11,25/20, 26 réussies, 14 ratées) : la fiche de l'élève (`suivi_web/templates/suivi_web/eleve_detail.html`) ne montre nulle part les lacunes présumées (`Probleme` en état `hypothese`) que le module 4 a pu écrire, à confirmer par le second test T1. Aucun code n'a été touché — constat consigné pour ne pas le perdre.
+
+**Deux manques distincts derrière ce constat, tous deux déjà connus de cette feuille de route :**
+1. Le **déclenchement automatique** du diagnostic après une correction en ligne n'existe pas (module 4, case toujours ouverte) — aujourd'hui il faut lancer `manage.py diagnostiquer --correction <id>` à la main.
+2. Même une fois des `Probleme` en `hypothese` en base, **rien ne les affiche** sur la fiche élève — `/parcours/<jeton>/` (`session_detail.html`) montre "les hypothèses restantes" mais seulement une fois qu'une `SessionSuivi` existe ; `eleve_detail.html` n'en montre aucune trace en dehors des sessions déjà ouvertes.
+
+**Non fait ici, à trancher/planifier séparément :** où afficher ces hypothèses avant toute session ouverte, comment les relier à la génération du T1 (module 5, toujours ⬜), et à quel moment du flux de correction déclencher le diagnostic (question déjà ouverte au module 4).
 
 ### 2026-08-06 — Arbitrage B débloqué (202/209 corrigés) et les 3 copies réelles 5e corrigées
 

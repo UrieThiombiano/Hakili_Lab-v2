@@ -1121,6 +1121,13 @@ textarea.transcription {
 </head>
 <body>
 
+{% if acces_libre %}
+  <div class="bandeau-dev">
+    <strong>Accès libre activé</strong> — développement uniquement, aucune
+    connexion requise. Ne jamais laisser ce réglage actif hors <code>DEBUG</code>.
+  </div>
+{% endif %}
+
 <div class="app-shell">
   <aside class="sidebar">
     <div class="marque">

@@ -69,6 +69,7 @@ def generer_sujet_verification(session: Session, type_evaluation: str):
     génération : appelé depuis une vue, pas depuis la correction, une panne
     ici ne fait rien perdre — elle empêche seulement la génération.
     """
+    from src.knowledge.remediation_retriever import get_remediation_retriever
     from src.models.domain import VerificationItem, VerificationRequest
     from src.pipeline.orchestrator import validate_verification
 
@@ -80,17 +81,31 @@ def generer_sujet_verification(session: Session, type_evaluation: str):
     if client is None:
         return None
 
+    # `Session` ne porte pas la classe de l'élève (aucun champ niveau — pas de
+    # copie T0 requise pour T3/T4/T5, contrairement au T1 de
+    # `correction_web/taches.py`, qui lit `_niveau_test(correction.bareme_id)`).
+    # `competence.niveau_intro` reste toujours disponible et pointe vers le
+    # livret où la notion est enseignée avec ses exemples complets — reste
+    # une entrée valide pour le retriever, dégradée sans erreur si absente
+    # (ex. `Primaire`, sans livret de remédiation dédié).
+    retriever = get_remediation_retriever()
+
+    def _item(p: Probleme) -> VerificationItem:
+        niveau = p.competence.niveau_intro
+        chunk = retriever.get_by_competence(p.competence.code, niveau)
+        return VerificationItem(
+            competence_label=p.competence.libelle,
+            type_erreur_label=p.type_erreur.libelle,
+            contexte=p.justification,
+            competence_code=p.competence.code,
+            niveau=niveau,
+            reference_pedagogique=chunk.to_context_text() if chunk else None,
+        )
+
     request = VerificationRequest(
         copy_id=f"verif-{session.pk}-{type_evaluation.lower()}",
         type_evaluation=type_evaluation,
-        items=[
-            VerificationItem(
-                competence_label=p.competence.libelle,
-                type_erreur_label=p.type_erreur.libelle,
-                contexte=p.justification,
-            )
-            for p in problemes
-        ],
+        items=[_item(p) for p in problemes],
     )
     reponse = client.generate_verification_subject(request)
     if not reponse.success or reponse.data is None:

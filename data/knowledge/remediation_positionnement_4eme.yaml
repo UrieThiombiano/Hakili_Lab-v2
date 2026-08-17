@@ -1,0 +1,22 @@
+- question: Q1, Q2
+  module: '**M1** Décimaux, priorités, valeurs approchées'
+- question: Q3, Q4
+  module: '**M2** Divisibilité, PGCD, PPCM'
+- question: Q5, Q6
+  module: '**M3** Fractions : quatre opérations'
+- question: Q7, Q8
+  module: '**M4** Relatifs, valeur absolue'
+- question: Q9, Q10
+  module: '**M5** Calcul littéral'
+- question: Q11, Q12
+  module: '**M6** Puissances entières'
+- question: Q13, Q14
+  module: '**M7** Équations et inéquations dans $\mathbb{D}$'
+- question: Q15, Q16
+  module: '**M8** Proportionnalité appliquée'
+- question: Q17, Q18
+  module: '**M9** Angles et triangles'
+- question: Q19, Q20
+  module: '**M10** Symétries et figures'
+- question: Q21, Q22
+  module: '**M11** Aires, volumes, solides'

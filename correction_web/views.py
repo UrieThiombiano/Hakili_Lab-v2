@@ -227,6 +227,115 @@ def _creer_correction(request, eleves: list[dict], tests: dict) -> Correction | 
 
 
 @connexion_requise
+def soumettre_confirmation(request, jeton_session: str):
+    """Dépôt de la copie T1 : le barème est déjà connu (module 5, sujet généré
+    à la suite de T0) — l'enseignant n'a que le scan des réponses à déposer,
+    ni élève ni test à choisir.
+
+    `jeton_session` est le jeton signé de `suivi.Session` (même famille que
+    `suivi_web:session_detail`/`fiche_remediation`), pas celui d'une copie :
+    à ce stade aucune `Correction` n'existe encore.
+    """
+    from src.integrations.google_sheets import get_eleve_by_identifiant
+    from src.services.user_service import can_access_eleve
+    from suivi.models import EtatProbleme, Evaluation, Session, TypeEvaluation
+
+    identifiant = identifiant_depuis_jeton(jeton_session)
+    if identifiant is None:
+        raise Http404("Lien invalide")
+    session = get_object_or_404(Session, pk=identifiant)
+
+    try:
+        eleve = get_eleve_by_identifiant(session.identifiant_hakili)
+    except GoogleSheetsError as exc:
+        raise Http404("Élève momentanément inaccessible") from exc
+    if eleve is None or not can_access_eleve(None, utilisateur_courant(request), eleve):
+        raise PermissionDenied("Cet élève n'est pas dans votre périmètre.")
+
+    evaluation_t0 = (
+        Evaluation.objects.filter(session=session, type=TypeEvaluation.T0)
+        .exclude(sujet_confirmation__isnull=True)
+        .order_by("-date", "-numero")
+        .first()
+    )
+    hypotheses_couvertes = session.problemes.filter(
+        etat=EtatProbleme.HYPOTHESE
+    ).exclude(exercices_confirmation=[])
+    if evaluation_t0 is None or not hypotheses_couvertes.exists():
+        messages.warning(
+            request,
+            "Aucun sujet de confirmation T1 disponible pour ce parcours — "
+            "utilisez la saisie manuelle depuis l'écran de parcours.",
+        )
+        return redirect(
+            "suivi_web:session_detail", jeton=jeton_eleve(str(session.pk))
+        )
+
+    if request.method != "POST":
+        return render(
+            request,
+            "correction_web/soumettre_confirmation.html",
+            {"rubrique": "correction", "eleve": eleve, "jeton_session": jeton_session},
+        )
+
+    fichiers = request.FILES.getlist("copie")
+    if not fichiers:
+        messages.error(request, "Ajoutez la copie scannée de l'élève.")
+        return redirect("correction_web:soumettre_confirmation", jeton_session=jeton_session)
+    for fichier in fichiers:
+        if Path(fichier.name).suffix.lower() not in _EXTENSIONS:
+            messages.error(
+                request,
+                f"« {fichier.name} » n'est pas un format accepté "
+                f"({', '.join(sorted(_EXTENSIONS))}).",
+            )
+            return redirect("correction_web:soumettre_confirmation", jeton_session=jeton_session)
+        if fichier.size > _TAILLE_MAX:
+            messages.error(request, f"« {fichier.name} » dépasse 50 Mo.")
+            return redirect("correction_web:soumettre_confirmation", jeton_session=jeton_session)
+
+    copy_id = f"copie-{uuid.uuid4().hex[:12]}"
+    dossier = _dossier_depot(copy_id)
+
+    def _enregistrer(fichier) -> Path:
+        destination = dossier / Path(fichier.name).name
+        with destination.open("wb") as sortie:
+            for morceau in fichier.chunks():
+                sortie.write(morceau)
+        return destination
+
+    chemins = [_enregistrer(f) for f in fichiers]
+
+    from comptes.backends import cle_personne
+    from src.models.domain import Rubric, RubricItem
+
+    correction = Correction.objects.create(
+        copy_id=copy_id,
+        identifiant_hakili=session.identifiant_hakili,
+        eleve_nom=eleve.get("nom", ""),
+        eleve_prenom=eleve.get("prenom", ""),
+        bareme_id="",
+        type_evaluation=TypeEvaluation.T1,
+        lancee_par=cle_personne(utilisateur_courant(request) or {}),
+    )
+
+    exercices = sorted(evaluation_t0.sujet_confirmation, key=lambda e: e["numero"])
+    rubric = Rubric(
+        subject="mathematics",
+        total_points=float(len(exercices)),
+        items=[
+            RubricItem(id=str(e["numero"]), label=e["topic"], max_score=1.0)
+            for e in exercices
+        ],
+    )
+    subject_text = "\n\n".join(
+        f"Exercice {e['numero']} — {e['question']}" for e in exercices
+    )
+    taches.lancer_transcription(correction, chemins, rubric, None, None, subject_text)
+    return redirect("correction_web:suivre", jeton=jeton_eleve(copy_id))
+
+
+@connexion_requise
 def suivre(request, jeton: str):
     """Page unique du flux : elle affiche l'écran correspondant à l'état courant.
 
@@ -449,8 +558,29 @@ def sujet(request, bareme_id: str):
 
 
 @connexion_requise
+def corrige(request, bareme_id: str):
+    """Sert le corrigé enseignant d'un test.
+
+    Document réservé à l'enseignant qui corrige — jamais remis à l'élève.
+    Même logique d'accès que `sujet()` : réservé aux personnes connectées.
+    """
+    from src.knowledge.test_registry import get_registry
+
+    test = get_registry().get_test(bareme_id)
+    if test is None or test.corrige_pdf is None or not test.corrige_pdf.exists():
+        raise Http404("Corrigé indisponible")
+
+    reponse = HttpResponse(
+        test.corrige_pdf.read_bytes(), content_type="application/pdf"
+    )
+    disposition = "attachment" if request.GET.get("telecharger") else "inline"
+    reponse["Content-Disposition"] = f'{disposition}; filename="{test.corrige_pdf.name}"'
+    return reponse
+
+
+@connexion_requise
 def sujets(request):
-    """Liste des sujets imprimables."""
+    """Liste des sujets imprimables et de leurs corrigés enseignant."""
     from src.knowledge.test_registry import get_registry
 
     return render(
@@ -465,6 +595,7 @@ def sujets(request):
                     "niveaux": t.niveaux,
                     "questions": t.total_questions,
                     "imprimable": t.sujet_pdf is not None,
+                    "corrige_disponible": t.corrige_pdf is not None,
                 }
                 for tid, t in get_registry().available_tests().items()
             ],

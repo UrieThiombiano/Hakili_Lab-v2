@@ -1,0 +1,655 @@
+1ereD:
+  F.APP:
+    lecon_id: 1ereD_M08_L1
+    module: 8
+    score: 0.416
+  F.DEF:
+    lecon_id: 1ereD_M08_L1
+    module: 8
+    score: 0.518
+  F.PAR:
+    lecon_id: 1ereD_M08_L3
+    module: 8
+    score: 0.469
+  F.REF:
+    lecon_id: 1ereD_M08_L3
+    module: 8
+    score: 0.602
+  F.REL:
+    lecon_id: 1ereD_M01_L1
+    module: 1
+    score: 0.552
+  G.ANG1:
+    lecon_id: 1ereD_M11_L4
+    module: 11
+    score: 0.42
+  G.ANG2:
+    lecon_id: 1ereD_M11_L4
+    module: 11
+    score: 0.407
+  G.COL:
+    lecon_id: 1ereD_M09_L1
+    module: 9
+    score: 0.407
+  G.TRIP:
+    lecon_id: 1ereD_M01_L4
+    module: 1
+    score: 0.438
+  L.EGA:
+    lecon_id: 1ereD_M01_L1
+    module: 1
+    score: 0.425
+  L.EQ1:
+    lecon_id: 1ereD_M07_L3
+    module: 7
+    score: 0.462
+  L.EQ2:
+    lecon_id: 1ereD_M07_L3
+    module: 7
+    score: 0.578
+  L.EQD:
+    lecon_id: 1ereD_M11_L4
+    module: 11
+    score: 0.437
+  L.FAC2:
+    lecon_id: 1ereD_M01_L4
+    module: 1
+    score: 0.483
+  L.IDR:
+    lecon_id: 1ereD_M01_L4
+    module: 1
+    score: 0.763
+  L.INEQ1:
+    lecon_id: 1ereD_M07_L3
+    module: 7
+    score: 0.505
+  L.INEQ2:
+    lecon_id: 1ereD_M07_L2
+    module: 7
+    score: 0.546
+  L.SYS:
+    lecon_id: 1ereD_M07_L3
+    module: 7
+    score: 0.438
+  N.ADD:
+    lecon_id: 1ereD_M01_L1
+    module: 1
+    score: 0.423
+  N.FRA2:
+    lecon_id: 1ereD_M01_L1
+    module: 1
+    score: 0.511
+  N.INT:
+    lecon_id: 1ereD_M04_L1
+    module: 4
+    score: 0.569
+  N.MAJ:
+    lecon_id: 1ereD_M06_L1
+    module: 6
+    score: 0.496
+  N.PUI:
+    lecon_id: 1ereD_M01_L2
+    module: 1
+    score: 0.425
+  N.RAC:
+    lecon_id: 1ereD_M01_L3
+    module: 1
+    score: 0.591
+  N.RAT:
+    lecon_id: 1ereD_M01_L1
+    module: 1
+    score: 0.472
+  N.SCI:
+    lecon_id: 1ereD_M01_L2
+    module: 1
+    score: 0.653
+  N.VAB:
+    lecon_id: 1ereD_M04_L1
+    module: 4
+    score: 0.425
+  T.TRIR:
+    lecon_id: 1ereD_M11_L1
+    module: 11
+    score: 0.408
+2ndeC:
+  D.TAB:
+    lecon_id: 2ndeC_M05_L4
+    module: 5
+    score: 0.41
+  F.APP:
+    lecon_id: 2ndeC_M05_L1
+    module: 5
+    score: 0.561
+  F.GRA:
+    lecon_id: 2ndeC_M05_L4
+    module: 5
+    score: 0.506
+  F.LIN:
+    lecon_id: 2ndeC_M05_L2
+    module: 5
+    score: 0.51
+  G.ABS:
+    lecon_id: 2ndeC_M06_L1
+    module: 6
+    score: 0.418
+  G.COL:
+    lecon_id: 2ndeC_M07_L4
+    module: 7
+    score: 0.511
+  G.PARAL:
+    lecon_id: 2ndeC_M07_L2
+    module: 7
+    score: 0.429
+  G.SOL1:
+    lecon_id: 2ndeC_M11_L2
+    module: 11
+    score: 0.426
+  G.TRIP:
+    lecon_id: 2ndeC_M09_L4
+    module: 9
+    score: 0.431
+  G.VEC:
+    lecon_id: 2ndeC_M07_L1
+    module: 7
+    score: 0.455
+  L.EQ1:
+    lecon_id: 2ndeC_M04_L1
+    module: 4
+    score: 0.553
+  L.EQD:
+    lecon_id: 2ndeC_M01_L1
+    module: 1
+    score: 0.411
+  L.FAC1:
+    lecon_id: 2ndeC_M03_L3
+    module: 3
+    score: 0.418
+  L.FAC2:
+    lecon_id: 2ndeC_M03_L2
+    module: 3
+    score: 0.466
+  L.IDR:
+    lecon_id: 2ndeC_M03_L2
+    module: 3
+    score: 0.411
+  L.INEQ1:
+    lecon_id: 2ndeC_M04_L1
+    module: 4
+    score: 0.571
+  L.INEQ2:
+    lecon_id: 2ndeC_M04_L3
+    module: 4
+    score: 0.4
+  L.MISE:
+    lecon_id: 2ndeC_M04_L1
+    module: 4
+    score: 0.47
+  L.SYS:
+    lecon_id: 2ndeC_M04_L4
+    module: 4
+    score: 0.457
+  L.SYSL:
+    lecon_id: 2ndeC_M04_L4
+    module: 4
+    score: 0.451
+  M.CONV:
+    lecon_id: 2ndeC_M11_L2
+    module: 11
+    score: 0.435
+  M.VOL:
+    lecon_id: 2ndeC_M11_L2
+    module: 11
+    score: 0.429
+  N.INT:
+    lecon_id: 2ndeC_M04_L3
+    module: 4
+    score: 0.44
+  N.MULD:
+    lecon_id: 2ndeC_M05_L3
+    module: 5
+    score: 0.4
+  N.PUI:
+    lecon_id: 2ndeC_M01_L3
+    module: 1
+    score: 0.483
+  N.SCI:
+    lecon_id: 2ndeC_M01_L4
+    module: 1
+    score: 0.664
+  N.VAB:
+    lecon_id: 2ndeC_M04_L2
+    module: 4
+    score: 0.418
+  T.TRIR:
+    lecon_id: 2ndeC_M09_L2
+    module: 9
+    score: 0.453
+3eme:
+  D.POUR:
+    lecon_id: 3eme_M07_L2
+    module: 7
+    score: 0.609
+  D.PROP:
+    lecon_id: 3eme_M07_L1
+    module: 7
+    score: 0.409
+  G.ABS:
+    lecon_id: 3eme_M12_L1
+    module: 12
+    score: 0.575
+  G.ANG3:
+    lecon_id: 3eme_M08_L3
+    module: 8
+    score: 0.551
+  G.PARA:
+    lecon_id: 3eme_M08_L1
+    module: 8
+    score: 0.566
+  G.PARAL:
+    lecon_id: 3eme_M09_L1
+    module: 9
+    score: 0.6
+  G.REP:
+    lecon_id: 3eme_M12_L1
+    module: 12
+    score: 0.523
+  G.SOL1:
+    lecon_id: 3eme_M11_L3
+    module: 11
+    score: 0.601
+  G.SYMO:
+    lecon_id: 3eme_M10_L3
+    module: 10
+    score: 0.414
+  G.TRANS:
+    lecon_id: 3eme_M12_L2
+    module: 12
+    score: 0.479
+  G.TRIP:
+    lecon_id: 3eme_M08_L3
+    module: 8
+    score: 0.633
+  G.VOC:
+    lecon_id: 3eme_M09_L3
+    module: 9
+    score: 0.433
+  L.DEV1:
+    lecon_id: 3eme_M05_L1
+    module: 5
+    score: 0.439
+  L.EQ1:
+    lecon_id: 3eme_M06_L1
+    module: 6
+    score: 0.528
+  L.EQD:
+    lecon_id: 3eme_M06_L2
+    module: 6
+    score: 0.419
+  L.FAC1:
+    lecon_id: 3eme_M05_L3
+    module: 5
+    score: 0.587
+  L.IDR:
+    lecon_id: 3eme_M05_L4
+    module: 5
+    score: 0.427
+  L.INEQ1:
+    lecon_id: 3eme_M06_L1
+    module: 6
+    score: 0.556
+  L.MISE:
+    lecon_id: 3eme_M06_L2
+    module: 6
+    score: 0.619
+  M.CONV:
+    lecon_id: 3eme_M11_L2
+    module: 11
+    score: 0.675
+  M.PER:
+    lecon_id: 3eme_M11_L1
+    module: 11
+    score: 0.501
+  N.ADD:
+    lecon_id: 3eme_M02_L2
+    module: 2
+    score: 0.469
+  N.DIVIS:
+    lecon_id: 3eme_M02_L3
+    module: 2
+    score: 0.476
+  N.ENS:
+    lecon_id: 3eme_M03_L4
+    module: 3
+    score: 0.432
+  N.FRA1:
+    lecon_id: 3eme_M01_L1
+    module: 1
+    score: 0.414
+  N.FRA2:
+    lecon_id: 3eme_M05_L3
+    module: 5
+    score: 0.486
+  N.NUM:
+    lecon_id: 3eme_M01_L1
+    module: 1
+    score: 0.46
+  N.PRIO:
+    lecon_id: 3eme_M01_L2
+    module: 1
+    score: 0.638
+  N.PUI:
+    lecon_id: 3eme_M04_L1
+    module: 4
+    score: 0.48
+  N.RAT:
+    lecon_id: 3eme_M03_L4
+    module: 3
+    score: 0.495
+  N.RELOP:
+    lecon_id: 3eme_M02_L2
+    module: 2
+    score: 0.42
+  N.SCI:
+    lecon_id: 3eme_M04_L3
+    module: 4
+    score: 0.662
+4eme:
+  F.REL:
+    lecon_id: 4eme_M03_L1
+    module: 3
+    score: 0.414
+  G.ANG1:
+    lecon_id: 4eme_M09_L1
+    module: 9
+    score: 0.429
+  G.ANG3:
+    lecon_id: 4eme_M09_L1
+    module: 9
+    score: 0.436
+  G.PARAL:
+    lecon_id: 4eme_M10_L4
+    module: 10
+    score: 0.417
+  G.SYMC:
+    lecon_id: 4eme_M10_L4
+    module: 10
+    score: 0.469
+  G.SYMO:
+    lecon_id: 4eme_M10_L1
+    module: 10
+    score: 0.51
+  G.TRI:
+    lecon_id: 4eme_M09_L3
+    module: 9
+    score: 0.41
+  L.DEV1:
+    lecon_id: 4eme_M05_L1
+    module: 5
+    score: 0.461
+  L.EGA:
+    lecon_id: 4eme_M07_L1
+    module: 7
+    score: 0.419
+  L.EQD:
+    lecon_id: 4eme_M07_L3
+    module: 7
+    score: 0.459
+  L.MISE:
+    lecon_id: 4eme_M07_L3
+    module: 7
+    score: 0.629
+  M.MVD:
+    lecon_id: 4eme_M08_L4
+    module: 8
+    score: 0.569
+  N.CMP:
+    lecon_id: 4eme_M01_L1
+    module: 1
+    score: 0.409
+  N.DIVIS:
+    lecon_id: 4eme_M02_L1
+    module: 2
+    score: 0.618
+  N.FRA1:
+    lecon_id: 4eme_M03_L1
+    module: 3
+    score: 0.503
+  N.PUI:
+    lecon_id: 4eme_M06_L3
+    module: 6
+    score: 0.456
+  N.SCI:
+    lecon_id: 4eme_M06_L3
+    module: 6
+    score: 0.421
+  N.VAB:
+    lecon_id: 4eme_M04_L2
+    module: 4
+    score: 0.467
+5eme:
+  F.REL:
+    lecon_id: 5eme_M06_L4
+    module: 6
+    score: 0.508
+  G.ANG1:
+    lecon_id: 5eme_M07_L4
+    module: 7
+    score: 0.479
+  G.ANG2:
+    lecon_id: 5eme_M07_L4
+    module: 7
+    score: 0.401
+  G.CERC:
+    lecon_id: 5eme_M08_L4
+    module: 8
+    score: 0.724
+  G.MED:
+    lecon_id: 5eme_M07_L3
+    module: 7
+    score: 0.423
+  G.REP:
+    lecon_id: 5eme_M10_L3
+    module: 10
+    score: 0.415
+  N.ADD:
+    lecon_id: 5eme_M04_L2
+    module: 4
+    score: 0.524
+  N.CMP:
+    lecon_id: 5eme_M05_L2
+    module: 5
+    score: 0.446
+  N.DIVE:
+    lecon_id: 5eme_M02_L2
+    module: 2
+    score: 0.427
+  N.FRA1:
+    lecon_id: 5eme_M03_L2
+    module: 3
+    score: 0.485
+  N.FRA2:
+    lecon_id: 5eme_M02_L1
+    module: 2
+    score: 0.432
+  N.PRIO:
+    lecon_id: 5eme_M02_L3
+    module: 2
+    score: 0.422
+  N.PROB:
+    lecon_id: 5eme_M03_L3
+    module: 3
+    score: 0.414
+  N.REL:
+    lecon_id: 5eme_M05_L3
+    module: 5
+    score: 0.413
+  N.RELOP:
+    lecon_id: 5eme_M05_L3
+    module: 5
+    score: 0.408
+6eme:
+  D.POUR:
+    lecon_id: 6eme_M06_L3
+    module: 6
+    score: 0.615
+  D.PROP:
+    lecon_id: 6eme_M06_L1
+    module: 6
+    score: 0.405
+  G.ANG1:
+    lecon_id: 6eme_M05_L3
+    module: 5
+    score: 0.417
+  G.CERC:
+    lecon_id: 6eme_M08_L3
+    module: 8
+    score: 0.572
+  G.FIG:
+    lecon_id: 6eme_M10_L3
+    module: 10
+    score: 0.457
+  M.PER:
+    lecon_id: 6eme_M05_L4
+    module: 5
+    score: 0.581
+  N.ADD:
+    lecon_id: 6eme_M02_L2
+    module: 2
+    score: 0.439
+  N.CMP:
+    lecon_id: 6eme_M01_L3
+    module: 1
+    score: 0.45
+  N.FRA1:
+    lecon_id: 6eme_M04_L3
+    module: 4
+    score: 0.51
+  N.PROB:
+    lecon_id: 6eme_M02_L1
+    module: 2
+    score: 0.425
+tleD:
+  F.APP:
+    lecon_id: TleD_M08_L1
+    module: 8
+    score: 0.418
+  F.DEF:
+    lecon_id: TleD_M08_L1
+    module: 8
+    score: 0.522
+  F.LIM:
+    lecon_id: TleD_M08_L3
+    module: 8
+    score: 0.436
+  F.PAR:
+    lecon_id: TleD_M08_L3
+    module: 8
+    score: 0.466
+  F.REF:
+    lecon_id: TleD_M08_L3
+    module: 8
+    score: 0.599
+  F.REL:
+    lecon_id: TleD_M01_L1
+    module: 1
+    score: 0.552
+  F.VAR:
+    lecon_id: TleD_M08_L2
+    module: 8
+    score: 0.43
+  G.COL:
+    lecon_id: TleD_M09_L1
+    module: 9
+    score: 0.402
+  G.TRIP:
+    lecon_id: TleD_M10_L2
+    module: 10
+    score: 0.424
+  G.VOC:
+    lecon_id: TleD_M12_L1
+    module: 12
+    score: 0.423
+  L.EGA:
+    lecon_id: TleD_M03_L2
+    module: 3
+    score: 0.448
+  L.EQ1:
+    lecon_id: TleD_M07_L3
+    module: 7
+    score: 0.474
+  L.EQ2:
+    lecon_id: TleD_M07_L3
+    module: 7
+    score: 0.588
+  L.EQD:
+    lecon_id: TleD_M07_L3
+    module: 7
+    score: 0.445
+  L.FAC2:
+    lecon_id: TleD_M01_L4
+    module: 1
+    score: 0.517
+  L.IDR:
+    lecon_id: TleD_M01_L4
+    module: 1
+    score: 0.694
+  L.INEQ1:
+    lecon_id: TleD_M07_L3
+    module: 7
+    score: 0.514
+  L.INEQ2:
+    lecon_id: TleD_M07_L2
+    module: 7
+    score: 0.552
+  L.SYS:
+    lecon_id: TleD_M07_L3
+    module: 7
+    score: 0.446
+  N.ADD:
+    lecon_id: TleD_M01_L1
+    module: 1
+    score: 0.435
+  N.FRA2:
+    lecon_id: TleD_M01_L1
+    module: 1
+    score: 0.525
+  N.INT:
+    lecon_id: TleD_M04_L1
+    module: 4
+    score: 0.605
+  N.MAJ:
+    lecon_id: TleD_M06_L1
+    module: 6
+    score: 0.496
+  N.PRIO:
+    lecon_id: TleD_M03_L2
+    module: 3
+    score: 0.433
+  N.PROB:
+    lecon_id: TleD_M03_L2
+    module: 3
+    score: 0.467
+  N.PUI:
+    lecon_id: TleD_M01_L2
+    module: 1
+    score: 0.425
+  N.RAC:
+    lecon_id: TleD_M01_L3
+    module: 1
+    score: 0.601
+  N.RAT:
+    lecon_id: TleD_M01_L1
+    module: 1
+    score: 0.469
+  N.SCI:
+    lecon_id: TleD_M01_L2
+    module: 1
+    score: 0.653
+  N.VAB:
+    lecon_id: TleD_M04_L4
+    module: 4
+    score: 0.515
+  T.TRIR:
+    lecon_id: TleD_M11_L1
+    module: 11
+    score: 0.41

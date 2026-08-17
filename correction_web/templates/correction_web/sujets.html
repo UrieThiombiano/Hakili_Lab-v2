@@ -25,6 +25,10 @@
               {% else %}
                 <span class="aide">sujet non disponible</span>
               {% endif %}
+              {% if t.corrige_disponible %}
+                <a class="bouton discret petit"
+                   href="{% url 'correction_web:corrige' t.id %}" target="_blank" rel="noopener">Corrigé</a>
+              {% endif %}
             </td>
           </tr>
         {% endfor %}

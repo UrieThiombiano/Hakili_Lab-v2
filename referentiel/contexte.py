@@ -28,13 +28,14 @@ Ce dernier point rend le contexte meilleur que l'ancien : les signatures sont
 propres à la question posée, là où un chunk de curriculum décrivait une leçon
 entière. Le modèle n'a plus à deviner, il reconnaît.
 
-Quand l'arbitrage C sera validé, le contenu rédigé du curriculum (savoir-faire,
-erreurs fréquentes) pourra enrichir ce contexte — il s'ajoutera, il ne remplacera
-pas.
+Arbitrage C tranché (D-CEO-41, docs/harmonisation_donnees.md §7) : `remediation/`
+enrichit désormais ce contexte, comme annoncé ci-dessus — il s'ajoute, il ne
+remplace rien. Voir `src/knowledge/remediation_retriever.py`.
 """
 from __future__ import annotations
 
 from referentiel.models import Competence, Question
+from src.knowledge.remediation_retriever import get_remediation_retriever
 
 #: Au-delà, la remontée des prérequis noie le contexte plus qu'elle ne l'éclaire.
 PROFONDEUR_PREREQUIS = 2
@@ -116,6 +117,12 @@ def contexte_diagnostic(niveau_test: str, codes_questions: list[str]) -> str:
                     f"  - [{signature.type_erreur_id}] si l'élève écrit "
                     f"« {signature.production_eleve} » → {signature.interpretation}"
                 )
+
+        chunk_remediation = get_remediation_retriever().get_by_competence(
+            competence.code, niveau_test
+        )
+        if chunk_remediation:
+            lignes.append(chunk_remediation.to_context_text())
 
         blocs.append("\n".join(lignes))
 

@@ -737,3 +737,180 @@ class TestNouvellePreselectionEleve(BaseCorrection):
             ).count(),
             1,
         )
+
+
+class TestSoumissionConfirmationT1(BaseCorrection):
+    """`soumettre_confirmation` : dépôt du scan T1 quand le sujet (module 5) a
+    déjà été généré — le barème est construit depuis ce sujet persisté, rien
+    n'est extrait ni deviné du fichier déposé."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        from decimal import Decimal
+
+        from referentiel.models import Competence, TypeErreur
+        from suivi.models import EtatProbleme, Evaluation, Probleme, Session, TypeEvaluation
+
+        cpt = TypeErreur.objects.create(
+            code="CPT", libelle="Erreur conceptuelle", definition="…",
+            signature="…", coefficient=Decimal("0.35"), remediable=True,
+        )
+        idr = Competence.objects.create(
+            code="L.IDR", domaine="Calcul litteral et algebre",
+            libelle="Identites remarquables", niveau_intro="4eme",
+            volume_horaire=Decimal("2"),
+        )
+        self.session = Session.objects.create(identifiant_hakili="HAK-2026-0001")
+        self.probleme = Probleme.objects.create(
+            session=self.session, competence=idr, type_erreur=cpt,
+            etat=EtatProbleme.HYPOTHESE, cout_estime=Decimal("0.5"),
+            exercices_confirmation=[1, 2],
+        )
+        self.evaluation_t0 = Evaluation.objects.create(
+            session=self.session, type=TypeEvaluation.T0,
+            sujet_confirmation=[
+                {"numero": 1, "topic": "Identites remarquables × Erreur conceptuelle",
+                 "question": "Développer (x+5)^2.", "hint": None},
+                {"numero": 2, "topic": "Identites remarquables × Erreur conceptuelle",
+                 "question": "Développer (3a-4b)^2.", "hint": None},
+            ],
+        )
+        self.jeton_session = jeton_eleve(str(self.session.pk))
+
+    def _url(self):
+        return reverse("correction_web:soumettre_confirmation", args=[self.jeton_session])
+
+    def _fichier(self, nom="copie.pdf"):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        return SimpleUploadedFile(nom, b"%PDF-1.4 copie")
+
+    def test_redirige_si_aucun_sujet_disponible(self) -> None:
+        self.evaluation_t0.sujet_confirmation = None
+        self.evaluation_t0.save(update_fields=["sujet_confirmation"])
+
+        self.connecter()
+        reponse = self.client.get(self._url(), follow=True)
+        self.assertRedirects(
+            reponse,
+            reverse("suivi_web:session_detail", args=[self.jeton_session]),
+        )
+        self.assertContains(reponse, "Aucun sujet de confirmation T1 disponible")
+
+    def test_formulaire_affiche_quand_le_sujet_existe(self) -> None:
+        self.connecter()
+        reponse = self.client.get(self._url())
+        self.assertContains(reponse, "Lancer la correction")
+
+    def test_depot_construit_le_bareme_depuis_le_sujet_persiste(self) -> None:
+        from suivi.models import TypeEvaluation
+
+        self.connecter()
+        with patch("correction_web.taches.lancer_transcription") as lancer:
+            self.client.post(self._url(), {"copie": self._fichier()})
+
+        lancer.assert_called_once()
+        correction, chemins, rubric, test, sujet, subject_text = lancer.call_args[0]
+        self.assertEqual(correction.type_evaluation, TypeEvaluation.T1)
+        self.assertEqual(correction.bareme_id, "")
+        self.assertEqual(correction.identifiant_hakili, "HAK-2026-0001")
+        self.assertIsNone(test)
+        self.assertIsNone(sujet)
+        self.assertEqual({item.id for item in rubric.items}, {"1", "2"})
+        self.assertIn("Développer (x+5)^2.", subject_text)
+
+    def test_sans_fichier_refuse(self) -> None:
+        self.connecter()
+        with patch("correction_web.taches.lancer_transcription") as lancer:
+            reponse = self.client.post(self._url(), {}, follow=True)
+        lancer.assert_not_called()
+        self.assertContains(reponse, "Ajoutez la copie scannée")
+
+    def test_exige_une_connexion(self) -> None:
+        reponse = self.client.get(self._url())
+        self.assertEqual(reponse.status_code, 302)
+        self.assertIn("/connexion/", reponse["Location"])
+
+
+class TestConfirmationAutomatiqueT1(BaseCorrection):
+    """`_ecrire_hypotheses_module4` doit trancher automatiquement les
+    hypothèses pour une copie T1, pas en écrire de nouvelles — c'est le trou
+    que `Correction.type_evaluation` documentait sans que le code le comble."""
+
+    def _hypothese(self, identifiant="HAK-2026-0001", exercices=(1, 2)):
+        from decimal import Decimal
+
+        from referentiel.models import Competence, TypeErreur
+        from suivi.models import EtatProbleme, Probleme, Session
+
+        cpt, _ = TypeErreur.objects.get_or_create(
+            code="CPT", defaults=dict(
+                libelle="Erreur conceptuelle", definition="…", signature="…",
+                coefficient=Decimal("0.35"), remediable=True,
+            ),
+        )
+        idr, _ = Competence.objects.get_or_create(
+            code="L.IDR", defaults=dict(
+                domaine="Calcul litteral et algebre", libelle="Identites remarquables",
+                niveau_intro="4eme", volume_horaire=Decimal("2"),
+            ),
+        )
+        session = Session.objects.create(identifiant_hakili=identifiant)
+        return Probleme.objects.create(
+            session=session, competence=idr, type_erreur=cpt,
+            etat=EtatProbleme.HYPOTHESE, cout_estime=Decimal("0.5"),
+            exercices_confirmation=list(exercices),
+        )
+
+    def _resultat_t1(self, copy_id, notes):
+        from src.models.domain import CopyGrade, QuestionGrade
+        from src.pipeline.pipeline import PipelineResult
+
+        grade = CopyGrade(
+            copy_id=copy_id, total_score=sum(s for _, s in notes),
+            total_possible=float(len(notes)),
+            questions=[
+                QuestionGrade(
+                    rubric_item_id=str(n), score=s, confidence=0.9, comment="",
+                    observed_answer="…", requires_review=False,
+                )
+                for n, s in notes
+            ],
+        )
+        return PipelineResult(
+            copy_id=copy_id, student_name="Charles KABRE", ingestion=None, grade=grade,
+        )
+
+    def test_copie_t1_confirme_au_lieu_decrire_une_hypothese(self) -> None:
+        from correction_web.taches import _ecrire_hypotheses_module4
+        from suivi.models import EtatProbleme, TypeEvaluation
+
+        probleme = self._hypothese(exercices=(1, 2))
+        correction = Correction.objects.create(
+            copy_id="copie-t1-01", identifiant_hakili="HAK-2026-0001",
+            eleve_nom="KABRE", eleve_prenom="Charles",
+            bareme_id="", type_evaluation=TypeEvaluation.T1,
+        )
+        resultat = self._resultat_t1("copie-t1-01", [(1, 1.0), (2, 0.0)])
+
+        _ecrire_hypotheses_module4(correction, resultat)
+
+        probleme.refresh_from_db()
+        self.assertEqual(probleme.etat, EtatProbleme.CONFIRME)
+
+    def test_copie_t1_ecarte_si_tout_reussi(self) -> None:
+        from correction_web.taches import _ecrire_hypotheses_module4
+        from suivi.models import EtatProbleme, TypeEvaluation
+
+        probleme = self._hypothese(exercices=(1, 2))
+        correction = Correction.objects.create(
+            copy_id="copie-t1-02", identifiant_hakili="HAK-2026-0001",
+            eleve_nom="KABRE", eleve_prenom="Charles",
+            bareme_id="", type_evaluation=TypeEvaluation.T1,
+        )
+        resultat = self._resultat_t1("copie-t1-02", [(1, 1.0), (2, 1.0)])
+
+        _ecrire_hypotheses_module4(correction, resultat)
+
+        probleme.refresh_from_db()
+        self.assertEqual(probleme.etat, EtatProbleme.ECARTE)
