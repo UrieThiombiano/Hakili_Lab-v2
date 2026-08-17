@@ -8,7 +8,7 @@ __pycache__/
 *.egg-info/
 dist/
 build/
-
+.*
 # Configuration sensible
 .env
 .streamlit/secrets.toml
