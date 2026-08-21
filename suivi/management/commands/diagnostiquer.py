@@ -174,7 +174,7 @@ class Command(BaseCommand):
         référentiel, ou une correction qui n'est pas allée jusqu'au bout.
         """
         from correction_web.models import Correction
-        from correction_web.serialisation import deserialiser
+        from src.pipeline.serialisation import deserialiser
 
         try:
             correction = Correction.objects.get(pk=identifiant)

@@ -14,6 +14,14 @@ Ce document a deux parties : l'état réel de l'infrastructure aujourd'hui, puis
 
 `docs/decision_register.md` (D001 à D-CEO-25) est la **source de vérité datée** pour toute décision d'architecture. Lis-le avant de toucher à l'auth, à la persistance, ou aux Sheets — ce qui suit n'en est qu'un résumé, il peut avoir été complété depuis.
 
+### Chantier en cours : bascule vers FastAPI + React (D-CEO-42)
+
+**D-CEO-39 et D-CEO-40 (ci-dessous) sont en cours d'inversion**, à la demande explicite de l'utilisateur : le rendu serveur Django est remplacé par une API **FastAPI** (`backend/`, SQLAlchemy 2.0 + Alembic) et une interface **React + Vite + Tailwind** (`frontend/`), pour un rendu visuel plus professionnel. Détail complet de la décision : `docs/decision_register.md` D-CEO-42. Plan d'exécution suivi phase par phase : `C:\Users\Urie\.claude\plans\majestic-nibbling-anchor.md`.
+
+État à ce jour : les 17 écrans hors admin sont portés et testés (95 tests `pytest backend/tests/`, 40 tests Vitest côté `frontend/`), `src/` reste intact et réutilisé tel quel par les deux stacks. `backend/`/`frontend/` se construisent **à côté** de Django, contre une base de développement séparée — Django continue de servir en production sans interruption, et **`/api/admin/*` reste explicitement hors scope** (l'admin Django fait toujours foi pour le CRUD référentiel/suivi). La bascule en production (adoption du schéma Neon, déploiement Hetzner, retrait de Django) n'a **pas** eu lieu — elle est documentée (`backend/docs/bascule_neon.md`) mais pas exécutée, elle demande les accès de production et une fenêtre de maintenance choisie par l'utilisateur.
+
+Tant que cette bascule n'est pas faite, **la partie 1 ci-dessous (Django) reste exacte et à jour** — elle décrit ce qui tourne réellement en production.
+
 ### Django porte toute l'interface (D-CEO-28, achevé par D-CEO-39)
 
 **Streamlit est retiré** depuis le 2026-08-05. Django porte les 11 tables, l'authentification nom+PIN adossée au Sheet (`comptes/`), le suivi des élèves (`suivi_web/`), et la correction — copie unique, classe entière, mode libre (`correction_web/`).

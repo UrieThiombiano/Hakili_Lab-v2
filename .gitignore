@@ -39,7 +39,6 @@ logs/
 
 # Google Sheets — clé de compte de service (secret, jamais versionné)
 credentials/
-*.json
 
 # IDE
 .vscode/

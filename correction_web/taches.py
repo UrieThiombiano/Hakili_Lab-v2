@@ -29,8 +29,9 @@ from pathlib import Path
 from django.db import close_old_connections
 from django.utils import timezone
 
+from src.pipeline.serialisation import deserialiser, serialiser
+
 from correction_web.models import ETATS_EN_COURS, Correction, EtatCorrection
-from correction_web.serialisation import deserialiser, serialiser
 
 logger = logging.getLogger(__name__)
 

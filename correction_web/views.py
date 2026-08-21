@@ -18,11 +18,11 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from src.integrations.google_sheets import GoogleSheetsError
+from src.pipeline.serialisation import deserialiser
 
 from comptes.session import connexion_requise, utilisateur_courant
 from correction_web import taches
 from correction_web.models import Correction, EtatCorrection
-from correction_web.serialisation import deserialiser
 from suivi_web.jetons import identifiant_depuis_jeton, jeton_eleve
 
 logger = logging.getLogger(__name__)
@@ -377,7 +377,7 @@ def _lignes_relecture(resultat) -> list[dict]:
     voir `src/api/*_client.py`) — `page_number - 1` retrouve donc directement
     l'image. `a_image` est vérifié ici plutôt que laissé au template : sans
     volume persistant, `runs/` peut avoir disparu entre la transcription et la
-    relecture (voir `correction_web/serialisation.py`), et l'écran doit rester
+    relecture (voir `src/pipeline/serialisation.py`), et l'écran doit rester
     utilisable sans image plutôt que d'afficher une image cassée.
     """
     images = resultat.ingestion.pages if resultat.ingestion else []
@@ -444,7 +444,7 @@ def valider_transcription(request, jeton: str):
         if corrige is not None and corrige != page.content:
             page.content = corrige
 
-    from correction_web.serialisation import serialiser
+    from src.pipeline.serialisation import serialiser
 
     correction.resultat = serialiser(resultat)
     correction.save(update_fields=["resultat", "maj_le"])
@@ -511,7 +511,7 @@ def valider_notes(request, jeton: str):
 
     resultat.grade.compute_final_score()
 
-    from correction_web.serialisation import serialiser
+    from src.pipeline.serialisation import serialiser
 
     correction.resultat = serialiser(resultat)
     correction.save(update_fields=["resultat", "maj_le"])

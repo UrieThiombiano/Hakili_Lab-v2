@@ -17,9 +17,10 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from src.pipeline.serialisation import deserialiser, serialiser
+
 from comptes.tests import _ELEVES, _PERSONNEL, _cle
 from correction_web.models import Correction, EtatCorrection
-from correction_web.serialisation import deserialiser, serialiser
 from suivi_web.jetons import jeton_eleve
 
 
@@ -193,7 +194,7 @@ class TestRelectureTranscription(BaseCorrection):
 
     def test_page_sans_image_sur_disque_reste_relisible(self) -> None:
         """`runs/` peut avoir disparu (pas de volume persistant, voir
-        `correction_web/serialisation.py`) : la relecture doit rester utilisable
+        `src/pipeline/serialisation.py`) : la relecture doit rester utilisable
         sans image plutôt que de casser l'écran."""
         resultat = _resultat_apres_correction()  # ingestion.pages pointe vers un fichier inexistant
         correction = Correction.objects.create(

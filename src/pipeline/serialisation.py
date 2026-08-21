@@ -18,6 +18,10 @@ local. Sur Railway ou Render, sans volume persistant, il disparaît au redéploi
 Les documents durables (scan, rapport, remédiation) sont, eux, déjà écrits en base
 par le pipeline, donc rien d'irremplaçable n'est perdu — seule une correction en
 cours au moment du redéploiement serait à relancer.
+
+Framework-indépendant (D-CEO-40/D-CEO-42) : vivait dans `correction_web/`
+(app Django) alors que Django et FastAPI en dépendent tous les deux — déplacé
+ici pour que FastAPI cesse d'importer un module rangé sous une app Django.
 """
 from __future__ import annotations
 

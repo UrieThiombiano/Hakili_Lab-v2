@@ -14,7 +14,7 @@ processus servent les requêtes, et rien ne garantit que la requête suivante
 tombera sur celui qui détient l'objet. Une table est la seule réponse correcte.
 
 Le résultat du pipeline est stocké en JSON, pas en pickle : voir
-`correction_web/serialisation.py` pour le motif.
+`src/pipeline/serialisation.py` pour le motif.
 """
 from __future__ import annotations
 

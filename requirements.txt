@@ -18,10 +18,19 @@ jinja2==3.1.4
 markupsafe>=3.0.0     # utilisé directement dans pdf_report_html.py (pas seulement transitif via jinja2)
 xhtml2pdf>=0.2.14
 
-# --- Interface web Django (cible — voir docs/architecture_cible.md) ---
+# --- Interface web Django (historique — voir docs/architecture_cible.md) ---
 django>=5.1,<6.0
 gunicorn>=22.0.0      # serveur WSGI de production (Railway / Render)
 whitenoise>=6.7.0     # sert les fichiers statiques sans serveur web séparé
+
+# --- Interface web FastAPI (cible — migration React+Vite, voir
+# C:\Users\Urie\.claude\plans\majestic-nibbling-anchor.md) ---
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+sqlalchemy>=2.0.0
+alembic>=1.13.0
+itsdangerous>=2.2.0    # jetons d'URL signés — remplace django.core.signing
+python-multipart>=0.0.9  # upload de fichiers (dépôt de copie, lot)
 
 # --- Interface Streamlit (sortante — retirée à la fin de la migration) ---
 openpyxl>=3.1.0        # Lecture .xlsx (import élèves en masse)
