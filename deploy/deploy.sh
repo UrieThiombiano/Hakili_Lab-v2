@@ -1,33 +1,50 @@
 #!/bin/bash
-# Mise à jour du déploiement — équivalent du release:+redémarrage web: d'un
-# PaaS géré. À exécuter en root sur le VPS (fait les étapes privilégiées :
-# redémarrage du service, pas de sudo requis pour le reste).
+# Déploiement/mise à jour sur le VPS Hetzner PARTAGÉ (167.233.234.219,
+# plusieurs apps déjà en service — Docker + Caddy déjà en place pour toutes,
+# voir docs/deploiement_vps_hetzner.md). Pas de provisionnement ici : rien
+# à installer sur le serveur, une seule app de plus dans le Docker déjà là.
 #
-# Usage : bash deploy.sh [branche]     (défaut : main)
+# Usage, depuis ~/hakili-lab (ou le dossier choisi au premier clonage) :
+#   bash deploy/deploy.sh [branche]     (défaut : fastapi-react)
+#
+# Première exécution : le dossier doit déjà être un clone du dépôt, avec un
+# `.env` rempli (copié depuis .env.example, SECRET_KEY générée) et
+# `credentials/` déposé (scp depuis votre poste, jamais versionné). Voir
+# docs/deploiement_vps_hetzner.md Étape 2.
 set -euo pipefail
 
-BRANCHE="${1:-main}"
-REPO=/opt/hakili/Hakili_Lab
+BRANCHE="${1:-fastapi-react}"
+PORT="${HAKILI_PORT:-8011}"
+CONTENEUR="hakili"
 
 echo "== Code (branche $BRANCHE) =="
-su - hakili -c "cd $REPO && git fetch origin && git checkout $BRANCHE && git pull origin $BRANCHE"
+git fetch origin
+git checkout "$BRANCHE"
+git pull origin "$BRANCHE"
 
-echo "== Dépendances backend =="
-su - hakili -c "cd $REPO && .venv/bin/pip install --upgrade pip && .venv/bin/pip install -r requirements.txt"
+echo "== Build frontend (npm, hors Docker — voir en-tête de backend/Dockerfile) =="
+(cd frontend && npm ci && npm run build)
 
-echo "== Migrations (Alembic — sans effet si déjà à jour) =="
-su - hakili -c "cd $REPO && .venv/bin/alembic -c backend/alembic.ini upgrade head"
+echo "== Build image Docker =="
+docker build -f backend/Dockerfile -t hakili:latest .
 
-echo "== Build frontend =="
-su - hakili -c "cd $REPO/frontend && npm ci && npm run build"
+echo "== Redémarrage du conteneur =="
+docker stop "$CONTENEUR" 2>/dev/null || true
+docker rm "$CONTENEUR" 2>/dev/null || true
+docker run -d \
+    --name "$CONTENEUR" \
+    --env-file .env \
+    -p "127.0.0.1:${PORT}:8011" \
+    -v "$(pwd)/credentials:/app/credentials:ro" \
+    -v "$(pwd)/runs:/app/runs" \
+    --restart unless-stopped \
+    hakili:latest
 
-echo "== Redémarrage du service =="
-systemctl restart hakili
-systemctl status hakili --no-pager
-
-echo "== Vérification nginx =="
-# nginx sert frontend/dist directement depuis le disque, aucun reload requis
-# pour un nouveau build — seulement si deploy/nginx_hakili.conf a changé.
-nginx -t
+echo "== Vérification =="
+sleep 5
+docker logs "$CONTENEUR" --tail 20
+curl -sf "http://127.0.0.1:${PORT}/api/sante" && echo " -- OK" || echo "ÉCHEC : voir 'docker logs $CONTENEUR'"
 
 echo "== Fait =="
+echo "Premier déploiement seulement : ajouter le bloc Caddy (deploy/caddy_snippet.txt)"
+echo "au Caddyfile partagé si ce n'est pas déjà fait, puis 'sudo systemctl reload caddy'."

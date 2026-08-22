@@ -1,0 +1,49 @@
+# Secrets — jamais dans l'image (montés en volume au runtime)
+.env
+.env.*
+!.env.example
+credentials/
+
+# Bases locales
+db.sqlite3
+dev.db
+*.sqlite3
+*.db
+
+# Données de production / élèves — jamais dans l'image (voir .gitignore)
+runs/
+logs/
+data/copies/
+data/outputs/
+
+# Fichiers statiques régénérés au build (collectstatic)
+staticfiles/
+
+# Frontend : dist/ DOIT exister avant `docker build` (buildé sur l'hôte,
+# voir l'en-tête de backend/Dockerfile) et n'est pas exclu ici — seul
+# node_modules/ est exclu, volumineux et jamais utilisé dans l'image.
+frontend/node_modules/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Git / éditeurs / OS
+.git/
+.gitignore
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docs (non nécessaires à l'exécution, réduisent le contexte de build)
+docs/
+*.md
+!README.md

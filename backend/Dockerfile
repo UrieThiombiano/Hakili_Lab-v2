@@ -1,22 +1,30 @@
-# Hakili Lab — image Docker du backend FastAPI (D-CEO-42/43, seule interface
+# Hakili Lab — image Docker de l'app complète (D-CEO-42/43, seule interface
 # depuis le retrait de Django — voir docs/decision_register.md et
 # backend/docs/bascule_neon.md).
 #
-# ⚠️ Livrable de préparation, pas encore déployé : ce fichier n'a jamais été
-# construit ni poussé contre un registre ni exécuté en production. Chemin de
-# déploiement retenu pour le VPS Hetzner : systemd + nginx natifs, sans
-# conteneur — voir docs/deploiement_vps_hetzner.md et deploy/. Cette image
-# reste une alternative disponible (registre, autre hébergeur), pas le
-# chemin documenté pas à pas.
+# Cible réelle : le VPS Hetzner PARTAGÉ (167.233.234.219, plusieurs apps déjà
+# en service — voir docs/deploiement_vps_hetzner.md). Docker + Caddy y sont
+# déjà en place pour toutes les apps ; chaque app est UN conteneur sur UN
+# port interne, un bloc Caddy par app fait le reverse proxy + HTTPS. D'où le
+# choix ci-dessous : un seul conteneur sert l'API **et** le frontend buildé
+# (`fastapi.staticfiles`, voir `backend/app/main.py`) plutôt que deux
+# conteneurs + nginx — un seul port à demander à l'administrateur du
+# serveur, un seul bloc Caddy à ajouter au Caddyfile partagé.
 #
-# ⚠️ Contexte de build = LA RACINE DU DÉPÔT, pas `backend/` : `backend/app`
-# importe `src/` par chemin relatif au dépôt (bootstrap dans
-# `backend/app/__init__.py`). Construire avec :
-#   docker build -f backend/Dockerfile -t hakili-backend .
+# Contexte de build = LA RACINE DU DÉPÔT, pas `backend/`. `frontend/dist/`
+# doit exister AVANT ce build (`deploy/deploy.sh` le fait) — pas de stage
+# Node ici : `npm run build` tourne sur l'hôte, Docker ne fait que copier le
+# résultat. Choix délibéré, pas une simplification de confort : un stage
+# Node dans ce Dockerfile s'est montré peu fiable en local (npm plante en
+# root sous certaines configurations Docker Desktop/WSL2, indépendamment du
+# Dockerfile) — construire hors conteneur évite la dépendance à ce
+# comportement, aussi bien en local que sur le VPS.
+#   cd frontend && npm ci && npm run build && cd ..
+#   docker build -f backend/Dockerfile -t hakili .
 #
 # Principes : utilisateur non-root, secrets montés en volume jamais copiés
-# dans l'image, port interne (8011) derrière un reverse proxy — jamais
-# exposé directement.
+# dans l'image, port interne (8011, libre sur ce serveur au 2026-08-22)
+# derrière Caddy — jamais exposé directement à Internet.
 
 FROM python:3.12-slim
 
@@ -37,6 +45,11 @@ COPY --chown=hakili prompts/ /app/prompts/
 COPY --chown=hakili data/ /app/data/
 COPY --chown=hakili backend/ /app/backend/
 RUN chmod +x backend/entrypoint.sh
+
+# Frontend buildé sur l'hôte avant ce `docker build` (voir en-tête) — servi
+# par `app/main.py` (StaticFiles, fallback SPA sur index.html) à la racine,
+# à côté des routes `/api/*`.
+COPY --chown=hakili frontend/dist /app/frontend/dist
 
 # runs/ (fiches PDF générées) et credentials/ (compte de service Google,
 # monté en volume au démarrage, jamais copié dans l'image — voir

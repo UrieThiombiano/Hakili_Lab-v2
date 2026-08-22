@@ -81,19 +81,24 @@ future migration créée après la bascule s'appliquera normalement.
   identifiants de production.
 - Créer la branche Neon de vérification (étape 1) — nécessite votre accès
   au projet Neon.
-- Provisionner le VPS et déployer réellement — nécessite un accès SSH que
-  cet agent n'a pas. `docs/deploiement_vps_hetzner.md` et `deploy/`
-  (`provision_serveur.sh`, `hakili.service`, `nginx_hakili.conf`,
-  `deploy.sh`) sont prêts et documentés (2026-08-22), jamais exécutés
-  contre un vrai serveur.
+- Déployer réellement sur le VPS partagé (`167.233.234.219`) — nécessite un
+  accès SSH que cet agent n'a pas. `docs/deploiement_vps_hetzner.md` et
+  `deploy/` (`deploy.sh`, `caddy_snippet.txt`) sont prêts et documentés
+  (2026-08-22, réécrits une deuxième fois le même jour une fois découvert
+  qu'il s'agit d'un serveur Docker + Caddy partagé, pas d'un VPS dédié à
+  provisionner), jamais exécutés contre le vrai serveur.
 
 ## Frontend : build et service statique
 
-**Tranché (2026-08-22, voir `docs/deploiement_vps_hetzner.md`) : nginx.**
-`frontend/dist/` (produit par `npm run build`) est servi en statique par
-nginx, qui proxy `/api/*` vers le backend FastAPI (`127.0.0.1:8000`) — un
-seul point de terminaison TLS, aucun CORS à gérer puisque le frontend
-appelle l'API en relatif. L'option alternative (`StaticFiles` de FastAPI,
-un seul processus) n'a pas été retenue pour garder le rôle "API" et
-"serveur de fichiers statiques" séparés, comme le faisait déjà nginx côté
+**Tranché (2026-08-22, voir `docs/deploiement_vps_hetzner.md`) : un seul
+conteneur.** Le serveur cible héberge plusieurs apps derrière Caddy, une
+app = un conteneur = un port = un bloc Caddy — deux conteneurs (API +
+statique) doubleraient inutilement ce qu'il faut demander à
+l'administrateur du serveur. `frontend/dist/` (produit par `npm run build`,
+hors conteneur — voir en-tête de `backend/Dockerfile`) est donc servi par
+FastAPI lui-même (`fastapi.staticfiles`, `backend/app/main.py`) : un seul
+port, un seul bloc Caddy, aucun CORS à gérer puisque le frontend appelle
+l'API en relatif. Nginx n'intervient nulle part sur ce serveur — Caddy fait
+tout le reverse proxy et gère seul le HTTPS (Let's Encrypt automatique) pour
+toutes les apps qui y tournent.
 Django.
