@@ -317,6 +317,10 @@ def _ecrire_hypotheses_module4(db: SQLASession, correction: Correction, resultat
         _confirmer_hypotheses_module4(db, correction, resultat)
         return
 
+    if correction.type_evaluation in ("T3", "T4", "T5"):
+        _trancher_verification_module5(db, correction, resultat)
+        return
+
     if not correction.bareme_id.startswith("socle_"):
         return
     if resultat.grade is None or resultat.rubric is None:
@@ -363,6 +367,39 @@ def _confirmer_hypotheses_module4(db: SQLASession, correction: Correction, resul
     logger.info(
         "[%s] Module 5 — %d confirmé(s), %d écarté(s) sur la session %s.",
         correction.copy_id, len(ecriture.confirmes), len(ecriture.ecartes), evaluation.session_id,
+    )
+
+
+def _trancher_verification_module5(db: SQLASession, correction: Correction, resultat) -> None:
+    """Point d'injection module 5 (T3/T4/T5) : tranche automatiquement les
+    problèmes ciblés par le sujet de vérification déposé — résolu/non résolu
+    (T3), régressé/silencieux (T4), clos/régressé (T5). Miroir de
+    `_confirmer_hypotheses_module4`, avec deux différences : l'évaluation
+    n'existe pas encore (elle est créée ici, au retour de la copie — jamais à
+    la génération, pour que le rang ne soit consommé que par un dépôt réel),
+    et le sujet en attente porté par la session est effacé une fois consommé."""
+    if resultat.grade is None:
+        return
+
+    try:
+        evaluation = diag_suivi.preparer_evaluation(
+            db, identifiant_hakili=correction.identifiant_hakili, type_evaluation=correction.type_evaluation, copy_id=correction.copy_id
+        )
+        evaluation.sujet_confirmation = evaluation.session.sujet_verification_exercices
+        ecriture = diag_suivi.trancher_verification_depuis_correction(db, evaluation, resultat.grade, correction.type_evaluation)
+        evaluation.session.sujet_verification_type = None
+        evaluation.session.sujet_verification_exercices = None
+        db.add(evaluation.session)
+        db.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.rollback()
+        logger.warning("[%s] Module 5 : vérification %s automatique impossible (%s)", correction.copy_id, correction.type_evaluation, exc)
+        return
+
+    logger.info(
+        "[%s] Module 5 — %s : %d résolu(s), %d non résolu(s), %d régressé(s), %d clos.",
+        correction.copy_id, correction.type_evaluation,
+        len(ecriture.resolus), len(ecriture.non_resolus), len(ecriture.regresses), len(ecriture.clos),
     )
 
 

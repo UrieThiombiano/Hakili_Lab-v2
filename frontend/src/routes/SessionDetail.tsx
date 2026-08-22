@@ -4,12 +4,12 @@ import { Link, useParams } from "react-router-dom"
 import { AppShell } from "@/components/layout/AppShell"
 import { Card, CardTitre } from "@/components/ui/Card"
 import { Spinner, EtatVide } from "@/components/ui/Etat"
-import { EtatSessionBadge, PalierBadge, TypeErreurBadge } from "@/components/ui/Badge"
+import { EtatSessionBadge, PalierBadge, TypeErreurBadge, DiagnosticLisible } from "@/components/ui/Badge"
 import { Button } from "@/components/ui/Button"
 import { sessionsApi } from "@/lib/api"
 import { formatDate, formatHeures } from "@/lib/format"
 import { useToast } from "@/hooks/useToast"
-import { Download, FileText, ListChecks, Clock, ArrowUpRight } from "lucide-react"
+import { Download, FileText, ListChecks, Clock, ArrowUpRight, UploadCloud } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { LucideIcon } from "lucide-react"
 import type { ProblemeSchema } from "@/types/api"
@@ -46,10 +46,19 @@ function LigneProbleme({ numero, probleme, actions }: { numero?: number; problem
             <span className="text-menu font-semibold text-marine">{probleme.competence_id}</span>
             <TypeErreurBadge code={probleme.type_erreur_id} />
           </div>
+          <p className="text-petit text-texte-doux mt-0.5">{probleme.competence_libelle}</p>
+          <p className="text-petit text-texte mt-1">
+            <DiagnosticLisible typeErreurId={probleme.type_erreur_id} interpretation={probleme.interpretation} />
+          </p>
           {probleme.justification && (
-            <p className="text-petit text-texte-doux font-mono mt-1.5 bg-surface-creuse rounded px-2 py-1 break-words">
-              {probleme.justification}
-            </p>
+            <details className="mt-1.5 group">
+              <summary className="text-micro text-bleu hover:text-bleu-sombre cursor-pointer list-none inline-flex items-center gap-1">
+                Voir la preuve sur la copie
+              </summary>
+              <p className="text-petit text-texte-doux font-mono mt-1.5 bg-surface-creuse rounded px-2 py-1 break-words">
+                {probleme.justification}
+              </p>
+            </details>
           )}
         </div>
       </div>
@@ -148,8 +157,8 @@ export default function SessionDetail() {
             <div className="flex items-center justify-between mb-4">
               <CardTitre className="mb-0">Plan de remédiation</CardTitre>
               {data.plan.etapes.length > 0 && (
-                <a href={sessionsApi.ficheUrl(jeton, true)} className="inline-flex items-center gap-1.5 text-petit text-bleu hover:text-bleu-sombre">
-                  <Download className="size-3.5" /> Fiche PDF
+                <a href={sessionsApi.planUrl(jeton, true)} className="inline-flex items-center gap-1.5 text-petit text-bleu hover:text-bleu-sombre">
+                  <Download className="size-3.5" /> Plan PDF
                 </a>
               )}
             </div>
@@ -168,14 +177,47 @@ export default function SessionDetail() {
                   {data.plan.etapes.map((etape) => (
                     <div
                       key={`${etape.competence_id}-${etape.type_erreur_id}`}
-                      className="py-3 px-2 -mx-2 rounded flex items-center justify-between gap-3 transition-colors duration-150 hover:bg-surface-creuse"
+                      className="py-3 px-2 -mx-2 rounded transition-colors duration-150 hover:bg-surface-creuse"
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="size-6 rounded-rond bg-bleu-pale text-bleu-sombre text-micro font-bold flex items-center justify-center shrink-0">{etape.rang}</span>
-                        <span className="text-menu font-medium">{etape.competence_id}</span>
-                        <TypeErreurBadge code={etape.type_erreur_id} />
+                      <div className="flex items-start gap-2.5">
+                        <span className="mt-0.5 size-6 rounded-rond bg-bleu-pale text-bleu-sombre text-micro font-bold flex items-center justify-center shrink-0">
+                          {etape.rang}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-3 flex-wrap">
+                            <div className="flex items-center gap-2 flex-wrap min-w-0">
+                              <span className="text-menu font-medium">{etape.competence_id}</span>
+                              <TypeErreurBadge code={etape.type_erreur_id} />
+                            </div>
+                            <span className="text-petit text-texte-doux font-medium shrink-0">{formatHeures(etape.cout)}</span>
+                          </div>
+                          <p className="text-petit text-texte mt-0.5">{etape.competence_libelle}</p>
+                          <p className="text-petit text-texte mt-1">
+                            <DiagnosticLisible typeErreurId={etape.type_erreur_id} interpretation={etape.signatures[0]?.interpretation ?? ""} />
+                          </p>
+                          {etape.signatures[0] && (
+                            <details className="mt-1.5 group">
+                              <summary className="text-micro text-bleu hover:text-bleu-sombre cursor-pointer list-none inline-flex items-center gap-1">
+                                Voir un exemple sur une copie
+                              </summary>
+                              <p className="text-petit text-texte-doux font-mono mt-1.5 bg-surface-creuse rounded px-2 py-1 break-words">
+                                « {etape.signatures[0].production_eleve} »
+                              </p>
+                            </details>
+                          )}
+                          {etape.prerequis_bloquants.length > 0 && (
+                            <p className="text-micro text-texte-doux mt-1.5">
+                              À traiter d'abord : {etape.prerequis_bloquants.map((p) => p.libelle).join(", ")}
+                            </p>
+                          )}
+                          <a
+                            href={sessionsApi.ficheTravailUrl(jeton, etape.probleme_id, true)}
+                            className="inline-flex items-center gap-1 text-micro text-bleu hover:text-bleu-sombre mt-1.5"
+                          >
+                            <FileText className="size-3" /> Fiche de travail (séance)
+                          </a>
+                        </div>
                       </div>
-                      <span className="text-petit text-texte-doux font-medium shrink-0">{formatHeures(etape.cout)}</span>
                     </div>
                   ))}
                 </div>
@@ -239,11 +281,19 @@ export default function SessionDetail() {
             <Card>
               <div className="flex items-center justify-between mb-2">
                 <CardTitre className="mb-0">En remédiation — vérification (T3)</CardTitre>
-                <a href={sessionsApi.sujetUrl(jeton, "T3", true)} className="inline-flex items-center gap-1.5 text-petit text-bleu hover:text-bleu-sombre">
-                  <FileText className="size-3.5" /> Sujet T3
-                </a>
+                <div className="flex items-center gap-3">
+                  <a href={sessionsApi.sujetUrl(jeton, "T3", true)} className="inline-flex items-center gap-1.5 text-petit text-bleu hover:text-bleu-sombre">
+                    <FileText className="size-3.5" /> Sujet T3
+                  </a>
+                  <Link to={`/corrections/verification/${jeton}/T3`} className="inline-flex items-center gap-1.5 text-petit text-bleu hover:text-bleu-sombre">
+                    <UploadCloud className="size-3.5" /> Déposer la copie corrigée
+                  </Link>
+                </div>
               </div>
-              <p className="text-petit text-texte-doux mb-2">Générez le sujet une fois le volume horaire prévu écoulé, puis reportez ici le résultat après correction.</p>
+              <p className="text-petit text-texte-doux mb-2">
+                Générez le sujet une fois le volume horaire prévu écoulé. Déposez la copie corrigée pour un
+                diagnostic automatique, ou reportez le résultat vous-même ci-dessous.
+              </p>
               <div className="flex flex-col divide-y divide-bord">
                 {data.en_remediation.map((p) => (
                   <LigneProbleme
@@ -282,9 +332,14 @@ export default function SessionDetail() {
                 <CardTitre className="mb-0">Résolus — contrôle de rétention</CardTitre>
                 <div className="flex gap-3">
                   {["T4", "T5"].map((t) => (
-                    <a key={t} href={sessionsApi.sujetUrl(jeton, t, true)} className="inline-flex items-center gap-1 text-petit text-bleu hover:text-bleu-sombre">
-                      <FileText className="size-3.5" /> Sujet {t}
-                    </a>
+                    <span key={t} className="flex items-center gap-3">
+                      <a href={sessionsApi.sujetUrl(jeton, t, true)} className="inline-flex items-center gap-1 text-petit text-bleu hover:text-bleu-sombre">
+                        <FileText className="size-3.5" /> Sujet {t}
+                      </a>
+                      <Link to={`/corrections/verification/${jeton}/${t}`} className="inline-flex items-center gap-1 text-petit text-bleu hover:text-bleu-sombre">
+                        <UploadCloud className="size-3.5" /> Déposer
+                      </Link>
+                    </span>
                   ))}
                 </div>
               </div>

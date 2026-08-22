@@ -8,6 +8,7 @@ pipeline de correction.
 from __future__ import annotations
 
 import logging
+from collections import defaultdict
 
 from sqlalchemy.orm import Session as SQLASession
 
@@ -91,3 +92,38 @@ def generer_sujet_verification(db: SQLASession, session: Session, type_evaluatio
 
     logger.info("[session %s] Sujet %s généré — %d problème(s) ciblé(s).", session.id, type_evaluation, len(problemes))
     return validation.data
+
+
+def persister_sujet_verification(db: SQLASession, session: Session, type_evaluation: str, sujet) -> None:
+    """Enregistre le sujet T3/T4/T5 comme « en attente de dépôt » et relie
+    chaque problème ciblé à ses numéros d'exercice, par correspondance de
+    `topic` — même mécanisme que `_persister_sujet_confirmation` (module 5,
+    T1), jamais par position dans la liste, plus fragile.
+
+    Contrairement à T1, il n'y a pas d'`Evaluation` existante sur laquelle
+    poser le sujet à cet instant : il est porté par `Session` et écrasé à
+    chaque régénération (un seul sujet en attente à la fois). L'`Evaluation`
+    réelle n'est créée qu'au dépôt de la copie corrigée
+    (`app/services/taches.py::_trancher_verification_module5`), pour que le
+    rang (`numero`) ne soit jamais consommé par une génération jamais
+    déposée."""
+    problemes = problemes_a_verifier(db, session, type_evaluation)
+
+    numeros_par_topic: dict[str, list[int]] = defaultdict(list)
+    for exercice in sujet.exercises:
+        numeros_par_topic[exercice.topic].append(exercice.number)
+
+    for probleme in problemes:
+        topic = f"{probleme.competence.libelle} × {probleme.type_erreur.libelle}"
+        numeros = numeros_par_topic.get(topic)
+        if not numeros:
+            continue
+        probleme.exercices_verification = numeros
+        db.add(probleme)
+
+    session.sujet_verification_type = type_evaluation
+    session.sujet_verification_exercices = [
+        {"numero": e.number, "topic": e.topic, "question": e.question, "hint": e.hint} for e in sujet.exercises
+    ]
+    db.add(session)
+    db.commit()

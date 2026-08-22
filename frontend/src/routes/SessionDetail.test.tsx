@@ -18,7 +18,8 @@ const { sessionsApiMock } = vi.hoisted(() => ({
     trancher: vi.fn(),
     relancer: vi.fn(),
     inscrire: vi.fn(),
-    ficheUrl: () => "#",
+    planUrl: () => "#",
+    ficheTravailUrl: () => "#",
     sujetUrl: () => "#",
   },
 }))
@@ -74,7 +75,7 @@ describe("SessionDetail", () => {
   it("confirme une hypothèse via l'API avec la bonne décision", async () => {
     sessionsApiMock.detail.mockResolvedValue(
       reponseBase({
-        hypotheses: [{ id: 42, competence_id: "L.IDR", type_erreur_id: "CPT", etat: "hypothese", cout_estime: "2.00", justification: "" }],
+        hypotheses: [{ id: 42, competence_id: "L.IDR", competence_libelle: "Identifier", type_erreur_id: "CPT", etat: "hypothese", cout_estime: "2.00", justification: "", interpretation: "" }],
       }),
     )
     sessionsApiMock.trancher.mockResolvedValue({ compte: { confirme: 1 }, erreurs: [] })
@@ -91,7 +92,7 @@ describe("SessionDetail", () => {
   it("une hypothèse ATT ne propose que \"Écarter\", jamais \"Confirmer\"", async () => {
     sessionsApiMock.detail.mockResolvedValue(
       reponseBase({
-        hypotheses: [{ id: 7, competence_id: "N.CALC", type_erreur_id: "ATT", etat: "hypothese", cout_estime: "0.00", justification: "" }],
+        hypotheses: [{ id: 7, competence_id: "N.CALC", competence_libelle: "Calculer", type_erreur_id: "ATT", etat: "hypothese", cout_estime: "0.00", justification: "", interpretation: "" }],
       }),
     )
 
@@ -104,7 +105,7 @@ describe("SessionDetail", () => {
   it("relance un problème non résolu en remédiation", async () => {
     sessionsApiMock.detail.mockResolvedValue(
       reponseBase({
-        non_resolus: [{ id: 9, competence_id: "G.PARA", type_erreur_id: "PRC", etat: "non_resolu", cout_estime: "1.00", justification: "" }],
+        non_resolus: [{ id: 9, competence_id: "G.PARA", competence_libelle: "Paramétrer", type_erreur_id: "PRC", etat: "non_resolu", cout_estime: "1.00", justification: "", interpretation: "" }],
       }),
     )
     sessionsApiMock.relancer.mockResolvedValue({ ok: true })

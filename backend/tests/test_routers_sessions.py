@@ -209,18 +209,18 @@ def test_inscrire_avec_probleme_confirme():
     app.dependency_overrides.clear()
 
 
-def test_fiche_remediation_sans_probleme_confirme_refuse():
+def test_plan_remediation_sans_probleme_confirme_refuse():
     client, SessionLocal = _client_avec_base()
     db, session = _seed(SessionLocal)
 
     from app.auth.tokens import jeton
 
-    r = client.get(f"/api/sessions/{jeton(str(session.id))}/fiche")
+    r = client.get(f"/api/sessions/{jeton(str(session.id))}/plan")
     assert r.status_code == 400
     app.dependency_overrides.clear()
 
 
-def test_fiche_remediation_genere_un_pdf(tmp_path):
+def test_plan_remediation_genere_un_pdf(tmp_path):
     client, SessionLocal = _client_avec_base()
     db, session = _seed(SessionLocal)
     db.add(Probleme(session_id=session.id, competence_id="A", type_erreur_id="CPT", etat="confirme", cout_estime="4"))
@@ -232,10 +232,91 @@ def test_fiche_remediation_genere_un_pdf(tmp_path):
 
     from app.auth.tokens import jeton
 
-    r = client.get(f"/api/sessions/{jeton(str(session.id))}/fiche")
+    r = client.get(f"/api/sessions/{jeton(str(session.id))}/plan")
     assert r.status_code == 200, r.text
     assert r.headers["content-type"] == "application/pdf"
     assert r.content[:4] == b"%PDF"
+    app.dependency_overrides.clear()
+
+
+def test_fiche_travail_sans_matiere_disponible_404(monkeypatch):
+    client, SessionLocal = _client_avec_base()
+    db, session = _seed(SessionLocal)
+    p = Probleme(session_id=session.id, competence_id="A", type_erreur_id="CPT", etat="confirme", cout_estime="4")
+    db.add(p)
+    db.commit()
+    db.refresh(p)
+
+    import app.services.fiche_remediation as fiche_service
+
+    monkeypatch.setattr(
+        "src.knowledge.remediation_retriever.get_remediation_retriever",
+        lambda: type("R", (), {"get_by_competence": staticmethod(lambda code, niveau: None)})(),
+    )
+
+    from app.auth.tokens import jeton
+
+    r = client.get(f"/api/sessions/{jeton(str(session.id))}/problemes/{p.id}/fiche")
+    assert r.status_code == 404
+    app.dependency_overrides.clear()
+
+
+def test_fiche_travail_genere_puis_corrigee(tmp_path, monkeypatch):
+    client, SessionLocal = _client_avec_base()
+    db, session = _seed(SessionLocal)
+    p = Probleme(session_id=session.id, competence_id="A", type_erreur_id="CPT", etat="confirme", cout_estime="4")
+    db.add(p)
+    db.commit()
+    db.refresh(p)
+
+    class _Chunk:
+        methode = {"titre": "Méthode", "etapes": ["Étape 1"]}
+        retenir = ["Retenir 1"]
+        exemple_resolu = "Exemple"
+        erreurs_frequentes = [{"erreur": "Erreur X", "correction": "Correction X"}]
+        declic = "Déclic"
+
+        def exercices_gradues(self, repartition):
+            return [{"numero": 1, "etoiles": 1, "enonce": "2+2=?", "correction": "4"}]
+
+    monkeypatch.setattr(
+        "src.knowledge.remediation_retriever.get_remediation_retriever",
+        lambda: type("R", (), {"get_by_competence": staticmethod(lambda code, niveau: _Chunk())})(),
+    )
+
+    from src.core.config import settings
+
+    settings.runs_dir = str(tmp_path)
+
+    from app.auth.tokens import jeton
+
+    r = client.get(f"/api/sessions/{jeton(str(session.id))}/problemes/{p.id}/fiche")
+    assert r.status_code == 200, r.text
+    assert r.content[:4] == b"%PDF"
+
+    r2 = client.patch(
+        f"/api/sessions/{jeton(str(session.id))}/problemes/{p.id}/fiche",
+        json={
+            "objectif": "Objectif corrigé",
+            "prerequis_a_verifier": [],
+            "methode": {"titre": "M", "etapes": ["e1"]},
+            "retenir": [],
+            "exemple_resolu": None,
+            "erreurs_frequentes": [],
+            "declic": None,
+            "deroule_minutes": {},
+            "exercices": [],
+            "critere_reussite": "Critère corrigé",
+        },
+    )
+    assert r2.status_code == 200, r2.text
+    assert r2.json()["version"] == "corrigee"
+
+    from app.models import FicheRemediation
+
+    fiche = db.query(FicheRemediation).filter(FicheRemediation.competence_id == "A").first()
+    assert fiche.version == "corrigee"
+    assert fiche.contenu["objectif"] == "Objectif corrigé"
     app.dependency_overrides.clear()
 
 

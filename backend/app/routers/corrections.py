@@ -297,6 +297,78 @@ def soumettre_confirmation(
     return CorrectionCreeReponse(jeton=jeton(copy_id))
 
 
+# ── Dépôt de la copie T3/T4/T5 (vérification) ─────────────────────────────────
+
+_TYPES_VERIFICATION = {"T3", "T4", "T5"}
+
+
+@router.post("/verification/{jeton_session}/{type_evaluation}", response_model=CorrectionCreeReponse)
+def soumettre_verification(
+    jeton_session: str,
+    type_evaluation: str,
+    copie: list[UploadFile] = File(...),
+    db: SQLASession = Depends(get_session),
+    utilisateur: dict = Depends(utilisateur_requis),
+) -> CorrectionCreeReponse:
+    """Dépôt de la copie T3 (vérification après remédiation) ou T4/T5
+    (rétention) : le barème est déjà connu — le sujet a été généré et persisté
+    par `GET /sessions/{jeton_session}/sujets/{type_evaluation}`
+    (`app/services/generation.py::persister_sujet_verification`). L'enseignant
+    ne dépose que le scan, comme pour T1 (`soumettre_confirmation` ci-dessus)."""
+    from app.models import Session
+
+    if type_evaluation not in _TYPES_VERIFICATION:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Type d'évaluation invalide")
+
+    from app.services.eleves import eleve_autorise
+
+    identifiant = valeur_depuis_jeton(jeton_session)
+    if identifiant is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lien invalide")
+    session = db.get(Session, int(identifiant))
+    if session is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session inconnue")
+    eleve = eleve_autorise(utilisateur, session.identifiant_hakili)
+
+    if session.sujet_verification_type != type_evaluation or not session.sujet_verification_exercices:
+        attente = f" (un sujet {session.sujet_verification_type} est en attente — régénérez le bon avant de déposer)" if session.sujet_verification_type else ""
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Aucun sujet {type_evaluation} en attente pour ce parcours — générez-le d'abord depuis l'écran de parcours.{attente}",
+        )
+
+    if not copie:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ajoutez la copie scannée de l'élève.")
+    for fichier in copie:
+        valider_fichier(fichier)
+
+    copy_id = f"copie-{uuid.uuid4().hex[:12]}"
+    dossier = dossier_depot(copy_id)
+    chemins = [enregistrer_fichier(dossier, f) for f in copie]
+
+    correction = Correction(
+        copy_id=copy_id,
+        identifiant_hakili=session.identifiant_hakili,
+        eleve_nom=eleve.get("nom", ""),
+        eleve_prenom=eleve.get("prenom", ""),
+        bareme_id="",
+        type_evaluation=type_evaluation,
+        lancee_par=cle_personne(utilisateur),
+    )
+    db.add(correction)
+    db.commit()
+
+    exercices = sorted(session.sujet_verification_exercices, key=lambda e: e["numero"])
+    rubric = Rubric(
+        subject="mathematics",
+        total_points=float(len(exercices)),
+        items=[RubricItem(id=str(e["numero"]), label=e["topic"], max_score=1.0) for e in exercices],
+    )
+    subject_text = "\n\n".join(f"Exercice {e['numero']} — {e['question']}" for e in exercices)
+    taches.lancer_transcription(db, correction, chemins, rubric, None, None, subject_text)
+    return CorrectionCreeReponse(jeton=jeton(copy_id))
+
+
 # ── Suivi / relecture / validation / résultats — une seule route ─────────────
 
 

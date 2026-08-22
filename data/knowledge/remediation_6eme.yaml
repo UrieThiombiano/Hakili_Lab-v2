@@ -630,22 +630,7 @@
 
       | Les deux dépenses se réunissent : addition. | $1\,200 + 600 = 1\,800$ FCFA |
 
-      | **Vérification :** 10 articles à environ 200 FCFA feraient 2 000 FCFA. ✓ | |
-
-
-      > #### DÉCLIC : Tu sais calculer, mais tu ne sais pas quoi calculer ?
-
-      >
-
-      > Si tu restes bloqué sans savoir par quelle opération commencer, le blocage n''est pas technique
-      :
-
-      > reprends la leçon 2.1 et refais les exercices où l''on demande seulement de **nommer** l''opération.
-
-      > Si au contraire c''est ton calcul qui dérape alors que le choix était bon, ce sont les leçons
-      2.2
-
-      > et 2.3 qu''il faut reprendre.'
+      | **Vérification :** 10 articles à environ 200 FCFA feraient 2 000 FCFA. ✓ | |'
     erreurs_frequentes:
     - erreur: utiliser toutes les données parce qu'elles sont là.
       correction: certaines données sont parasites.
@@ -654,10 +639,7 @@
     declic: 'Tu sais calculer, mais tu ne sais pas quoi calculer ? — Si tu restes bloqué sans savoir par
       quelle opération commencer, le blocage n''est pas technique : reprends la leçon 2.1 et refais les
       exercices où l''on demande seulement de **nommer** l''opération. Si au contraire c''est ton calcul
-      qui dérape alors que le choix était bon, ce sont les leçons 2.2 et 2.3 qu''il faut reprendre. ####
-      ⚠ ATTENTION ! - **Erreur fréquente :** utiliser toutes les données parce qu''elles sont là. **Correction
-      :** certaines données sont parasites. - **Erreur fréquente :** enchaîner deux calculs sans nommer
-      le résultat intermédiaire. **Correction :** écris « masse totale : 350 kg » avant de continuer.'
+      qui dérape alors que le choix était bon, ce sont les leçons 2.2 et 2.3 qu''il faut reprendre.'
     figures: []
   exercices:
   - numero: 1
@@ -1076,27 +1058,15 @@
 
       | On calcule le nombre rond en premier. | $A = 17 \times 100 = 1\,700$ |
 
-      | **Vérification :** $4 \times 17 = 68$ et $68 \times 25 = 1\,700$ ✓ | |
-
-
-      > #### DÉCLIC : Le calcul astucieux ne répare pas une table qui manque
-
-      >
-
-      > Si $7 \times 8$ te demande encore de compter, le blocage est dans les tables. Récite chaque jour
-      une seule table, en désordre, pendant une semaine, avant de continuer.'
+      | **Vérification :** $4 \times 17 = 68$ et $68 \times 25 = 1\,700$ ✓ | |'
     erreurs_frequentes:
     - erreur: casser un couple rond, en calculant $4 \times 17 \times 25$ dans l'ordre écrit.
       correction: $4 \times 25 = 100$ d'abord, puis $17 \times 100 = 1\,700$.
     - erreur: 'distribuer à moitié : $5 \times \left(3 + 2\right) = 5 \times 3 + 2$.'
       correction: 'le facteur se distribue sur **chacun** des termes : $5 \times 3 + 5 \times 2$.'
-    declic: 'Le calcul astucieux ne répare pas une table qui manque — Si $7 \times 8$ te demande encore
+    declic: Le calcul astucieux ne répare pas une table qui manque — Si $7 \times 8$ te demande encore
       de compter, le blocage est dans les tables. Récite chaque jour une seule table, en désordre, pendant
-      une semaine, avant de continuer. #### ⚠ ATTENTION ! - **Erreur fréquente :** casser un couple rond,
-      en calculant $4 \times 17 \times 25$ dans l''ordre écrit. **Correction :** $4 \times 25 = 100$ d''abord,
-      puis $17 \times 100 = 1\,700$. - **Erreur fréquente :** distribuer à moitié : $5 \times \left(3
-      + 2\right) = 5 \times 3 + 2$. **Correction :** le facteur se distribue sur **chacun** des termes
-      : $5 \times 3 + 5 \times 2$.'
+      une semaine, avant de continuer.
     figures: []
   - id: 6eme_M03_L2
     numero: '3.2'
@@ -1626,45 +1596,7 @@
       [SVG: figures/m04_f5.svg]
 
       *Figure 4.5 : L''unité partagée en cinquièmes : $\frac{3}{5}$ est à trois parts de $0$, et $\frac{6}{5}$
-      dépasse $1$.*
-
-
-      > #### 📖 CE QU''IL FAUT RETENIR
-
-      >
-
-      > **Fractions décimales**
-
-      >
-
-      > Une fraction de dénominateur $10$, $100$, $1\,000$ s''écrit tout de suite avec une virgule.
-
-      >
-
-      > $$\frac{7}{10} = 0{,}7 \qquad \frac{45}{100} = 0{,}45 \qquad \frac{9}{100} = 0{,}09$$
-
-      >
-
-      > - Dénominateur $10$ : un chiffre après la virgule ; $100$ : deux chiffres.
-
-      > - Pour une autre fraction, cherche $10$ ou $100$ au dénominateur :
-
-      >   $\frac{2}{5} = \frac{4}{10} = 0{,}4$ et $\frac{3}{4} = \frac{75}{100} = 0{,}75$.
-
-      > - $\frac{1}{3}$ n''a **pas** d''écriture décimale exacte.
-
-
-      > #### DÉCLIC : quand la comparaison résiste
-
-      >
-
-      > Devant $\frac{1}{5}$ et $\frac{1}{3}$, redessine deux bandes identiques, l''une coupée en $3$,
-
-      > l''autre en $5$ : la plus petite part vient du plus grand dénominateur. Et si
-
-      > $\frac{4}{10} = 0{,}4$ te semble mystérieux, la lacune est en amont, dans la valeur de position
-
-      > après la virgule : reprends le module 1.'
+      dépasse $1$.*'
     erreurs_frequentes:
     - erreur: « $\frac{1}{5} > \frac{1}{3}$ parce que $5 > 3$. »
       correction: 'plus les parts sont nombreuses, plus elles sont petites : $\frac{1}{5} < \frac{1}{3}$.'
@@ -1675,11 +1607,7 @@
     declic: 'quand la comparaison résiste — Devant $\frac{1}{5}$ et $\frac{1}{3}$, redessine deux bandes
       identiques, l''une coupée en $3$, l''autre en $5$ : la plus petite part vient du plus grand dénominateur.
       Et si $\frac{4}{10} = 0{,}4$ te semble mystérieux, la lacune est en amont, dans la valeur de position
-      après la virgule : reprends le module 1. #### ⚠ ATTENTION ! - **Erreur fréquente :** « $\frac{1}{5}
-      > \frac{1}{3}$ parce que $5 > 3$. » **Correction :** plus les parts sont nombreuses, plus elles
-      sont petites : $\frac{1}{5} < \frac{1}{3}$. - **Erreur fréquente :** écrire $\frac{1}{3} = 0{,}3$.
-      **Correction :** $0{,}3 = \frac{3}{10}$, un peu moins qu''un tiers. De même $\frac{1}{4} = 0{,}25$,
-      et non $0{,}4$.'
+      après la virgule : reprends le module 1.'
     figures:
     - figures/m04_f5.svg
   exercices:
@@ -2535,18 +2463,7 @@
 
       | Contrôle par le produit en croix. | $\left(7 \times 4\,500\right) \div 3 = 10\,500$ |
 
-      | **Vérification :** même résultat, et 7 poulets coûtent plus que 3. ✓ | |
-
-
-      > #### DÉCLIC : la division te bloque plus que la proportionnalité
-
-      >
-
-      > Tu sais dire « je divise le prix par le nombre de sacs » mais le calcul ne tombe pas juste : reprends
-      le module 2 (division euclidienne, division par $10$, $100$, $1\,000$).
-
-      > Tu poses bien la division mais tu ne sais jamais quel nombre diviser par quel autre : reste ici,
-      garde la figure 6.2 en tête, on descend toujours d''abord à 1.'
+      | **Vérification :** même résultat, et 7 poulets coûtent plus que 3. ✓ | |'
     erreurs_frequentes:
     - erreur: ajouter la différence, « 4 cahiers de plus, donc $600 + 4$ ».
       correction: on multiplie ; $4 \times 75 = 300$ FCFA de plus, soit $900$ FCFA.
@@ -2556,10 +2473,7 @@
       le nombre de sacs » mais le calcul ne tombe pas juste : reprends le module 2 (division euclidienne,
       division par $10$, $100$, $1\,000$). Tu poses bien la division mais tu ne sais jamais quel nombre
       diviser par quel autre : reste ici, garde la figure 6.2 en tête, on descend toujours d''abord à
-      1. #### ⚠ ATTENTION ! - **Erreur fréquente :** ajouter la différence, « 4 cahiers de plus, donc
-      $600 + 4$ ». **Correction :** on multiplie ; $4 \times 75 = 300$ FCFA de plus, soit $900$ FCFA.
-      - **Erreur fréquente :** « 4 cm sur la carte, donc 4 km ». **Correction :** à l''échelle « 1 cm
-      pour 50 km », 4 cm valent $4 \times 50 = 200$ km.'
+      1.'
     figures:
     - figures/m06_f3.svg
   - id: 6eme_M06_L3
@@ -3430,16 +3344,7 @@
 
       | Le diamètre vaut deux fois le rayon. | $d = 2 \times 4 = 8$ cm |
 
-      | **Vérification :** P et Q sont dans le disque, R non. ✓ | |
-
-
-      > #### DÉCLIC : Reporter une longueur au compas
-
-      >
-
-      > Si tes arcs ne se coupent jamais là où il faut, le blocage n''est pas dans le cercle : il est
-      dans le maniement du compas. Ouvrir à la règle, pointer sans glisser, tracer un arc large. Reprends
-      le module 7, partie report de longueur, puis reviens ici.'
+      | **Vérification :** P et Q sont dans le disque, R non. ✓ | |'
     erreurs_frequentes:
     - erreur: « le centre appartient au cercle ».
       correction: $OO = 0$, et $0$ n'est pas le rayon. Le centre appartient au **disque**, jamais au cercle.
@@ -3447,11 +3352,7 @@
       correction: une corde n'est un diamètre que si elle **passe par le centre**.
     declic: 'Reporter une longueur au compas — Si tes arcs ne se coupent jamais là où il faut, le blocage
       n''est pas dans le cercle : il est dans le maniement du compas. Ouvrir à la règle, pointer sans
-      glisser, tracer un arc large. Reprends le module 7, partie report de longueur, puis reviens ici.
-      #### ⚠ ATTENTION ! - **Erreur fréquente :** « le centre appartient au cercle ». **Correction :**
-      $OO = 0$, et $0$ n''est pas le rayon. Le centre appartient au **disque**, jamais au cercle. - **Erreur
-      fréquente :** appeler « diamètre » toute corde un peu longue. **Correction :** une corde n''est
-      un diamètre que si elle **passe par le centre**.'
+      glisser, tracer un arc large. Reprends le module 7, partie report de longueur, puis reviens ici.'
     figures:
     - figures/m08_f4.svg
   - id: 6eme_M08_L4
@@ -4302,16 +4203,7 @@
 
       [SVG: figures/m10_f3.svg]
 
-      *Figure 10.2. Le symétrique d''un point : même perpendiculaire, même distance, autre côté.*
-
-
-      > #### DÉCLIC : l''axe est une médiatrice
-
-      >
-
-      > Si tu places $A''$ « à vue », en face de A, le déclic tient dans le mot **médiatrice** : l''axe
-      doit être perpendiculaire à $\left[AA''\right]$ **et** passer par son milieu. Tant que l''angle
-      droit n''est pas tracé, reporter la distance ne veut rien dire.'
+      *Figure 10.2. Le symétrique d''un point : même perpendiculaire, même distance, autre côté.*'
     erreurs_frequentes:
     - erreur: placer $A'$ du même côté que A.
       correction: $A'$ est de l'**autre** côté, à la même distance de l'axe.
@@ -4319,11 +4211,7 @@
       correction: la distance à reporter est $HA$, du point à l'axe ; $AA'$ en est le double.
     declic: 'l''axe est une médiatrice — Si tu places $A''$ « à vue », en face de A, le déclic tient dans
       le mot **médiatrice** : l''axe doit être perpendiculaire à $\left[AA''\right]$ **et** passer par
-      son milieu. Tant que l''angle droit n''est pas tracé, reporter la distance ne veut rien dire. ####
-      ⚠ ATTENTION ! - **Erreur fréquente :** placer $A''$ du même côté que A. **Correction :** $A''$ est
-      de l''**autre** côté, à la même distance de l''axe. - **Erreur fréquente :** reporter $AA''$ à partir
-      de l''axe. **Correction :** la distance à reporter est $HA$, du point à l''axe ; $AA''$ en est le
-      double.'
+      son milieu. Tant que l''angle droit n''est pas tracé, reporter la distance ne veut rien dire.'
     figures:
     - figures/m10_f3.svg
   - id: 6eme_M10_L3

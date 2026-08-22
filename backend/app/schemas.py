@@ -11,7 +11,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 
 class EleveLigne(BaseModel):
@@ -73,22 +73,29 @@ class EleveDetailReponse(BaseModel):
 
 
 class ProblemeSchema(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     id: int
     competence_id: str
+    competence_libelle: str
     type_erreur_id: str
     etat: str
     cout_estime: Decimal
     justification: str
+    interpretation: str
+
+
+class PrerequisBloquant(BaseModel):
+    code: str
+    libelle: str
 
 
 class EtapePlanSchema(BaseModel):
     rang: int
+    probleme_id: int
     cout: Decimal
     competence_id: str
+    competence_libelle: str
     type_erreur_id: str
-    prerequis_bloquants: list[str]
+    prerequis_bloquants: list[PrerequisBloquant]
     signatures: list[dict]
 
 
@@ -98,6 +105,30 @@ class PlanSchema(BaseModel):
     palier: str
     nb_problemes: int
     repose_sur_estimation: bool
+
+
+class ExerciceGradueSchema(BaseModel):
+    numero: int
+    etoiles: int
+    enonce: str
+    correction: str
+
+
+class FicheRemediationCorrection(BaseModel):
+    """Corps du PATCH de correction d'une fiche de travail (module 7) — les
+    seuls champs qu'un tuteur édite ; `competence`/`type_erreur`/`niveau`
+    restent ceux du couple déjà catalogué, jamais réécrits par ce chemin."""
+
+    objectif: str
+    prerequis_a_verifier: list[dict] = []
+    methode: dict | None = None
+    retenir: list[str] = []
+    exemple_resolu: str | None = None
+    erreurs_frequentes: list[dict] = []
+    declic: str | None = None
+    deroule_minutes: dict[str, int] = {}
+    exercices: list[ExerciceGradueSchema] = []
+    critere_reussite: str
 
 
 class SessionDetailReponse(BaseModel):

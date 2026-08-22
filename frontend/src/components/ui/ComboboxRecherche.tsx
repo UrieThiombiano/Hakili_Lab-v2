@@ -1,5 +1,14 @@
 import { useMemo, useState } from "react"
 
+/** Minuscule, sans accents — pour comparer sans se soucier de la casse ni
+ * des accents (miroir de `fold_texte` côté backend, src/services/identite_service.py). */
+function plier(texte: string): string {
+  return texte
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+}
+
 interface ComboboxRechercheProps<T> {
   label?: string
   items: T[]
@@ -27,8 +36,8 @@ export function ComboboxRecherche<T>({
 
   const filtres = useMemo(() => {
     if (!recherche.trim()) return items
-    const mots = recherche.toLowerCase().split(/\s+/)
-    return items.filter((i) => mots.every((m) => getLibelle(i).toLowerCase().includes(m)))
+    const mots = plier(recherche).split(/\s+/)
+    return items.filter((i) => mots.every((m) => plier(getLibelle(i)).includes(m)))
   }, [items, recherche, getLibelle])
 
   return (

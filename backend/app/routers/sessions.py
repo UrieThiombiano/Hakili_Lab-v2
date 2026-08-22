@@ -1,7 +1,12 @@
 """Port de `suivi_web/views.py` (session_detail, confirmer_hypotheses,
-trancher_evaluation, relancer, inscrire, fiche_remediation, generer_sujet) —
+trancher_evaluation, relancer, inscrire, plan_remediation, generer_sujet) —
 le parcours de remédiation d'un élève.
-"""
+
+Les endpoints `problemes/{probleme_id}/fiche` (module 7 — la fiche de
+travail d'UN problème) s'ajoutent à ceux déjà là ; ne pas les confondre avec
+`{jeton_session}/plan` (module 6 — le plan chiffré de toute la session), qui
+s'appelait `/fiche` jusqu'à D-CEO-43 et créait la même confusion de nommage
+dans l'API que dans le code."""
 from __future__ import annotations
 
 import uuid
@@ -13,9 +18,10 @@ from sqlalchemy.orm import Session as SQLASession
 from app.auth.deps import utilisateur_requis
 from app.auth.tokens import jeton, valeur_depuis_jeton
 from app.db import get_session
-from app.models import Evaluation, Probleme, Session
+from app.models import Evaluation, FicheRemediation, Probleme, Session, SignatureErreur
 from app.schemas import (
     EtapePlanSchema,
+    FicheRemediationCorrection,
     InscrireRequete,
     PlanSchema,
     ProblemeSchema,
@@ -24,7 +30,7 @@ from app.schemas import (
     TrancherReponse,
     TrancherRequete,
 )
-from app.services import etats, generation, plan as plan_service, session_service as svc
+from app.services import etats, fiche_remediation as fiche_service, generation, plan as plan_service, session_service as svc
 from app.services.eleves import eleve_autorise
 from app.services.evaluations import creer_evaluation
 from src.core.config import settings
@@ -47,16 +53,43 @@ def _problemes(db: SQLASession, session_id: int, etat: str) -> list[Probleme]:
     return db.query(Probleme).filter(Probleme.session_id == session_id, Probleme.etat == etat).all()
 
 
+def _interpretation_generale(db: SQLASession, competence_id: str, type_erreur_id: str) -> str:
+    """La lacune que révèle ce couple compétence × type d'erreur, indépendamment
+    de la question qui l'a signalée — même logique que `plan.py::_signatures`,
+    une seule signature suffit ici (pas de fiche de séance à préparer)."""
+    signature = (
+        db.query(SignatureErreur)
+        .filter(SignatureErreur.competence_id == competence_id, SignatureErreur.type_erreur_id == type_erreur_id)
+        .first()
+    )
+    return signature.interpretation if signature else ""
+
+
+def _probleme_schema(db: SQLASession, p: Probleme) -> ProblemeSchema:
+    return ProblemeSchema(
+        id=p.id,
+        competence_id=p.competence_id,
+        competence_libelle=p.competence.libelle,
+        type_erreur_id=p.type_erreur_id,
+        etat=p.etat,
+        cout_estime=p.cout_estime,
+        justification=p.justification,
+        interpretation=_interpretation_generale(db, p.competence_id, p.type_erreur_id),
+    )
+
+
 def _plan_schema(db: SQLASession, session: Session) -> PlanSchema:
     plan = plan_service.construire(db, session)
     return PlanSchema(
         etapes=[
             EtapePlanSchema(
                 rang=e.rang,
+                probleme_id=e.probleme.id,
                 cout=e.cout,
                 competence_id=e.probleme.competence_id,
+                competence_libelle=e.competence.libelle,
                 type_erreur_id=e.probleme.type_erreur_id,
-                prerequis_bloquants=[c.code for c in e.prerequis_aussi_en_difficulte],
+                prerequis_bloquants=[{"code": c.code, "libelle": c.libelle} for c in e.prerequis_aussi_en_difficulte],
                 signatures=[{"production_eleve": s.production_eleve, "interpretation": s.interpretation} for s in e.signatures],
             )
             for e in plan["etapes"]
@@ -99,24 +132,28 @@ def session_detail(
         sujet_t1_disponible=sujet_t1_disponible,
         peut_inscrire=session.etat in ("attente_inscription", "hors_dispositif"),
         palier_c=session.palier == "C",
-        hypotheses=[ProblemeSchema.model_validate(p) for p in hypotheses],
-        ecartes=[ProblemeSchema.model_validate(p) for p in _problemes(db, session.id, "ecarte")],
-        en_remediation=[ProblemeSchema.model_validate(p) for p in _problemes(db, session.id, "en_remediation")],
-        resolus=[ProblemeSchema.model_validate(p) for p in _problemes(db, session.id, "resolu")],
-        non_resolus=[ProblemeSchema.model_validate(p) for p in _problemes(db, session.id, "non_resolu")],
-        regresses=[ProblemeSchema.model_validate(p) for p in _problemes(db, session.id, "regresse")],
+        hypotheses=[_probleme_schema(db, p) for p in hypotheses],
+        ecartes=[_probleme_schema(db, p) for p in _problemes(db, session.id, "ecarte")],
+        en_remediation=[_probleme_schema(db, p) for p in _problemes(db, session.id, "en_remediation")],
+        resolus=[_probleme_schema(db, p) for p in _problemes(db, session.id, "resolu")],
+        non_resolus=[_probleme_schema(db, p) for p in _problemes(db, session.id, "non_resolu")],
+        regresses=[_probleme_schema(db, p) for p in _problemes(db, session.id, "regresse")],
     )
 
 
 #: Règles de verdict par type d'évaluation — cohérentes avec
 #: `etats.TRANSITIONS_PERMISES` : T3 ne fait avancer qu'un problème
 #: `en_remediation` (résolu/non résolu) ; T4/T5 un problème `resolu`
-#: (T4 ne connaît pas `clos`, réservé au dernier contrôle T5).
+#: (T4 ne connaît pas `clos`, réservé au dernier contrôle T5). `etat_source`
+#: pour T3/T4/T5 vient de `generation.ETAT_CIBLE` — même valeur que celle qui
+#: filtre les problèmes lors de la génération du sujet, pour ne pas faire
+#: diverger les deux (une seule source de vérité sur « quel état ce type
+#: d'évaluation vérifie »).
 _REGLES_VERDICT = {
     "T1": {"etat_source": "hypothese", "options": {"confirme", "ecarte"}},
-    "T3": {"etat_source": "en_remediation", "options": {"resolu", "non_resolu"}},
-    "T4": {"etat_source": "resolu", "options": {"regresse"}},
-    "T5": {"etat_source": "resolu", "options": {"regresse", "clos"}},
+    "T3": {"etat_source": generation.ETAT_CIBLE["T3"], "options": {"resolu", "non_resolu"}},
+    "T4": {"etat_source": generation.ETAT_CIBLE["T4"], "options": {"regresse"}},
+    "T5": {"etat_source": generation.ETAT_CIBLE["T5"], "options": {"regresse", "clos"}},
 }
 
 
@@ -215,16 +252,21 @@ def inscrire(
     return {"nb_problemes_en_remediation": nb_en_remediation, "cout_total_confirme": str(total)}
 
 
-@router.get("/{jeton_session}/fiche")
-def fiche_remediation(
+@router.get("/{jeton_session}/plan")
+def plan_remediation(
     jeton_session: str,
     telecharger: bool = Query(default=False),
     db: SQLASession = Depends(get_session),
     utilisateur: dict = Depends(utilisateur_requis),
 ) -> Response:
-    """Télécharge la fiche de remédiation (module 7) : le plan chiffré en
-    PDF. Générée à la demande, jamais stockée — le plan bouge tant que des
-    problèmes passent de confirmé à résolu, un PDF figé irait vite périmé."""
+    """Télécharge le plan de remédiation (module 6) en PDF : quoi travailler,
+    dans quel ordre, combien d'heures. Générée à la demande, jamais stockée —
+    le plan bouge tant que des problèmes passent de confirmé à résolu, un PDF
+    figé irait vite périmé.
+
+    Anciennement `/fiche` : renommé pour ne plus se confondre avec la vraie
+    fiche de travail du module 7 (`/problemes/{probleme_id}/fiche`
+    ci-dessous), qui décrit comment travailler UN problème — voir D-CEO-43."""
     from src.pipeline.pdf_plan_html import generate_plan_pdf
 
     session = _session_autorisee(db, utilisateur, jeton_session)
@@ -235,14 +277,106 @@ def fiche_remediation(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Aucun problème confirmé — il n'y a pas encore de plan à exporter.")
 
     student_name = f"{eleve.get('nom', '')} {eleve.get('prenom', '')}".strip()
-    pdf_path = Path(settings.runs_dir) / "fiches_remediation" / f"{uuid.uuid4().hex}.pdf"
+    pdf_path = Path(settings.runs_dir) / "plans_remediation" / f"{uuid.uuid4().hex}.pdf"
     generate_plan_pdf(pdf_path, student_name, session, plan)
     donnees = pdf_path.read_bytes()
     pdf_path.unlink(missing_ok=True)
 
     disposition = "attachment" if telecharger else "inline"
-    nom = f"fiche_remediation_{eleve.get('nom', 'eleve')}".replace(" ", "_")
+    nom = f"plan_remediation_{eleve.get('nom', 'eleve')}".replace(" ", "_")
     return Response(content=donnees, media_type="application/pdf", headers={"Content-Disposition": f'{disposition}; filename="{nom}.pdf"'})
+
+
+def _probleme_confirme(db: SQLASession, session: Session, probleme_id: int) -> Probleme:
+    probleme = db.get(Probleme, probleme_id)
+    if probleme is None or probleme.session_id != session.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Problème inconnu")
+    if probleme.etat not in ("confirme", "en_remediation"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La fiche de travail n'est disponible que pour un problème confirmé.",
+        )
+    return probleme
+
+
+@router.get("/{jeton_session}/problemes/{probleme_id}/fiche")
+def fiche_travail(
+    jeton_session: str,
+    probleme_id: int,
+    telecharger: bool = Query(default=False),
+    db: SQLASession = Depends(get_session),
+    utilisateur: dict = Depends(utilisateur_requis),
+) -> Response:
+    """Télécharge la fiche de travail (module 7) d'UN problème confirmé : une
+    séance prête à l'emploi pour le tuteur — méthode, exemple résolu,
+    exercices gradués corrigés, critère de réussite. Cataloguée par couple
+    compétence × type d'erreur × niveau (`app/services/fiche_remediation.py`)
+    : deux élèves avec le même problème téléchargent le même document."""
+    from src.pipeline.pdf_fiche_travail_html import generate_fiche_travail_pdf
+
+    session = _session_autorisee(db, utilisateur, jeton_session)
+    eleve_autorise(utilisateur, session.identifiant_hakili)
+    probleme = _probleme_confirme(db, session, probleme_id)
+
+    try:
+        fiche = fiche_service.obtenir_ou_generer(db, probleme)
+    except fiche_service.ErreurFicheIndisponible as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+
+    pdf_path = Path(settings.runs_dir) / "fiches_travail" / f"{uuid.uuid4().hex}.pdf"
+    generate_fiche_travail_pdf(pdf_path, fiche)
+    donnees = pdf_path.read_bytes()
+    pdf_path.unlink(missing_ok=True)
+
+    disposition = "attachment" if telecharger else "inline"
+    nom = f"fiche_travail_{probleme.competence_id}_{probleme.type_erreur_id}".replace(" ", "_")
+    return Response(content=donnees, media_type="application/pdf", headers={"Content-Disposition": f'{disposition}; filename="{nom}.pdf"'})
+
+
+@router.patch("/{jeton_session}/problemes/{probleme_id}/fiche")
+def corriger_fiche_travail(
+    jeton_session: str,
+    probleme_id: int,
+    corps: FicheRemediationCorrection,
+    db: SQLASession = Depends(get_session),
+    utilisateur: dict = Depends(utilisateur_requis),
+) -> dict:
+    """Enregistre la correction d'un tuteur — cette version remplace la
+    version générée dans le catalogue (guide-v2.md, module 7 :
+    « versionnement »). La fiche doit déjà exister (avoir été générée au
+    moins une fois via le GET ci-dessus) ; ce endpoint ne crée pas de fiche
+    pour un couple que `remediation/` ne couvre pas encore."""
+    session = _session_autorisee(db, utilisateur, jeton_session)
+    eleve_autorise(utilisateur, session.identifiant_hakili)
+    probleme = _probleme_confirme(db, session, probleme_id)
+
+    fiche = (
+        db.query(FicheRemediation)
+        .filter(
+            FicheRemediation.competence_id == probleme.competence_id,
+            FicheRemediation.type_erreur_id == probleme.type_erreur_id,
+            FicheRemediation.niveau == probleme.competence.niveau_intro,
+        )
+        .first()
+    )
+    if fiche is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Aucune fiche générée pour ce problème — télécharger la fiche au moins une fois avant de la corriger.",
+        )
+
+    contenu = corps.model_dump()
+    contenu.update({
+        "competence_code": fiche.competence_id,
+        "competence_libelle": probleme.competence.libelle,
+        "type_erreur_code": fiche.type_erreur_id,
+        "type_erreur_libelle": probleme.type_erreur.libelle,
+        "niveau": fiche.niveau,
+        "matiere_disponible": True,
+    })
+    tuteur = f"{utilisateur.get('nom', '')} {utilisateur.get('prenom', '')}".strip() or "tuteur"
+    fiche_service.corriger(db, fiche, contenu, tuteur)
+    return {"ok": True, "version": fiche.version, "corrigee_par": fiche.corrigee_par}
 
 
 @router.get("/{jeton_session}/sujets/{type_evaluation}")
@@ -271,6 +405,12 @@ def generer_sujet(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Rien à générer pour {type_evaluation} — aucun problème dans l'état requis, ou génération momentanément indisponible.",
         )
+
+    # Ce téléchargement est l'acte officiel « ce sujet est celui donné à
+    # l'élève » — il est donc persisté comme sujet en attente de dépôt, pour
+    # que la copie corrigée puisse être diagnostiquée automatiquement
+    # (module 5, suite). Régénérer avant dépôt remplace simplement l'ancien.
+    generation.persister_sujet_verification(db, session, type_evaluation, sujet)
 
     student_name = f"{eleve.get('nom', '')} {eleve.get('prenom', '')}".strip()
     pdf_path = Path(settings.runs_dir) / "sujets_verification" / f"{uuid.uuid4().hex}.pdf"

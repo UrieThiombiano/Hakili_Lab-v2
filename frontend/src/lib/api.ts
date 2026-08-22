@@ -111,7 +111,9 @@ export const sessionsApi = {
     postJson<{ ok: boolean }>(`/sessions/${jetonSession}/problemes/${problemeId}/relancer`, { motif }),
   inscrire: (jetonSession: string, forcer: boolean, motif: string) =>
     postJson<{ nb_problemes_en_remediation: number; cout_total_confirme: string }>(`/sessions/${jetonSession}/inscrire`, { forcer, motif }),
-  ficheUrl: (jetonSession: string, telecharger = false) => `${BASE}/sessions/${jetonSession}/fiche${telecharger ? "?telecharger=true" : ""}`,
+  planUrl: (jetonSession: string, telecharger = false) => `${BASE}/sessions/${jetonSession}/plan${telecharger ? "?telecharger=true" : ""}`,
+  ficheTravailUrl: (jetonSession: string, problemeId: number, telecharger = false) =>
+    `${BASE}/sessions/${jetonSession}/problemes/${problemeId}/fiche${telecharger ? "?telecharger=true" : ""}`,
   sujetUrl: (jetonSession: string, typeEvaluation: string, telecharger = false) =>
     `${BASE}/sessions/${jetonSession}/sujets/${typeEvaluation}${telecharger ? "?telecharger=true" : ""}`,
 }
@@ -126,6 +128,8 @@ export const correctionsApi = {
   liste: () => get<CorrectionResume[]>("/corrections"),
   nouvelle: (corps: FormData) => postForm<CorrectionCreeReponse>("/corrections", corps),
   confirmation: (jetonSession: string, corps: FormData) => postForm<CorrectionCreeReponse>(`/corrections/confirmation/${jetonSession}`, corps),
+  verification: (jetonSession: string, typeEvaluation: string, corps: FormData) =>
+    postForm<CorrectionCreeReponse>(`/corrections/verification/${jetonSession}/${typeEvaluation}`, corps),
   lot: (corps: FormData) => postForm<LotReponse>("/corrections/lot", corps),
   statut: (jetonCopie: string) => get<CorrectionStatut>(`/corrections/${jetonCopie}`),
   validerTranscription: (jetonCopie: string, pages: Record<number, string>) =>

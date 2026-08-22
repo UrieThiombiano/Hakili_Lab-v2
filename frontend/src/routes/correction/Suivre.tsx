@@ -10,7 +10,13 @@ import { correctionsApi, elevesApi } from "@/lib/api"
 import { useToast } from "@/hooks/useToast"
 import { useConfirm } from "@/hooks/useConfirm"
 import { cn } from "@/lib/utils"
-import { Download, Trash2, TriangleAlert } from "lucide-react"
+import { CheckCheck, CircleCheck, Download, Pencil, SquareCheck, Trash2, TriangleAlert } from "lucide-react"
+
+/** Formatage FR compact — les barèmes portent des fractions (1/3 pt…), on ne
+ * veut jamais afficher `0.333333` à l'écran. */
+function formatNombre(n: number): string {
+  return (Math.round(n * 100) / 100).toLocaleString("fr-FR", { maximumFractionDigits: 2 })
+}
 
 export default function Suivre() {
   const { jeton = "" } = useParams()
@@ -169,6 +175,30 @@ function Relecture({ jeton, resultat, onValide }: { jeton: string; resultat: Non
   )
 }
 
+function ScorePill({ score, max }: { score: number; max: number }) {
+  const plein = max > 0 && score >= max
+  const nul = score <= 0
+  return (
+    <span
+      className={cn(
+        "shrink-0 rounded-rond px-2.5 py-1 text-petit font-semibold tabular-nums",
+        plein ? "bg-vert-pale text-vert" : nul ? "bg-rouge-pale text-rouge" : "bg-orange-pale text-orange",
+      )}
+    >
+      {formatNombre(score)} / {formatNombre(max)}
+    </span>
+  )
+}
+
+function scoreCourant(q: { rubric_item_id: string; score: number }, decisions: Record<string, { decision: string; note?: string | null }>): number {
+  const d = decisions[q.rubric_item_id]
+  if (d?.decision === "refused") {
+    const n = parseFloat(d.note ?? "")
+    return Number.isFinite(n) ? n : 0
+  }
+  return q.score
+}
+
 function Validation({ jeton, resultat, onValide }: { jeton: string; resultat: NonNullable<import("@/types/api").CorrectionStatut["resultat"]>; onValide: () => void }) {
   const { notifier } = useToast()
   const [decisions, setDecisions] = useState<Record<string, { decision: string; note?: string | null }>>({})
@@ -182,55 +212,141 @@ function Validation({ jeton, resultat, onValide }: { jeton: string; resultat: No
   })
 
   const bareme = Object.fromEntries((resultat.rubric?.items ?? []).map((i) => [i.id, i]))
+  const questions = resultat.grade?.questions ?? []
+  const totalPossible = resultat.rubric?.total_points ?? Object.values(bareme).reduce((s, i) => s + i.max_score, 0)
+  const noteActuelle = questions.reduce((s, q) => s + scoreCourant(q, decisions), 0)
+  const totalARevoir = questions.filter((q) => q.requires_review).length
+  const aRevoirRestant = questions.filter((q) => q.requires_review && !decisions[q.rubric_item_id]).length
 
   return (
-    <Card>
-      <CardTitre>Validation des notes</CardTitre>
-      <p className="text-petit text-texte-doux mb-4">L'IA propose une note par question — acceptez ou corrigez chacune.</p>
-      <div className="flex flex-col divide-y divide-bord">
-        {(resultat.grade?.questions ?? []).map((q) => {
+    <div className="flex flex-col gap-4">
+      <Card>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <CardTitre className="mb-1">Validation des notes</CardTitre>
+            <p className="text-petit text-texte-doux">L'IA propose une note par question — acceptez ou corrigez chacune avant de lancer le diagnostic.</p>
+          </div>
+          <Button variant="discret" taille="petit" onClick={() => setDecisions({})} title="Revenir aux propositions de l'IA pour toutes les questions">
+            <CheckCheck className="size-4" /> Tout accepter
+          </Button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-4 pt-4 border-t border-bord text-petit">
+          <span className="text-texte-doux">
+            <span className="font-semibold text-texte">{questions.length}</span> question{questions.length > 1 ? "s" : ""}
+          </span>
+          {totalARevoir > 0 && (
+            <span className={cn("inline-flex items-center gap-1.5 font-medium", aRevoirRestant > 0 ? "text-orange" : "text-vert")}>
+              {aRevoirRestant > 0 ? <TriangleAlert className="size-3.5" /> : <CircleCheck className="size-3.5" />}
+              {aRevoirRestant > 0 ? `${aRevoirRestant} signalée${aRevoirRestant > 1 ? "s" : ""} à confirmer` : "Toutes les questions signalées ont été revues"}
+            </span>
+          )}
+          <span className="ml-auto text-marine font-semibold tabular-nums">
+            Note actuelle : {formatNombre(noteActuelle)} <span className="text-texte-doux font-normal">/ {formatNombre(totalPossible)} pts</span>
+          </span>
+        </div>
+      </Card>
+
+      <div className="flex flex-col gap-3 pb-20">
+        {questions.map((q, i) => {
           const item = bareme[q.rubric_item_id]
+          const max = item?.max_score ?? 1
           const decision = decisions[q.rubric_item_id]?.decision ?? "accepted"
           return (
-            <div key={q.rubric_item_id} className={`py-3 ${q.requires_review ? "bg-orange-pale -mx-5 px-5" : ""}`}>
-              <div className="flex items-center justify-between gap-3 mb-1">
-                <span className="text-menu font-medium">
-                  {item?.label ?? q.rubric_item_id}
-                  {q.requires_review && <span className="ml-2 text-petit text-orange font-normal">à revoir</span>}
-                </span>
-                <span className="text-petit text-texte-doux">IA : {q.score}/{item?.max_score ?? 1}</span>
+            <div
+              key={q.rubric_item_id}
+              className={cn(
+                "rounded-lg border p-4 transition-colors",
+                q.requires_review ? "border-orange/40 bg-orange-pale/40" : "border-bord bg-surface",
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-2.5">
+                  <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-rond bg-surface-creuse text-micro font-semibold text-texte-doux">
+                    {i + 1}
+                  </span>
+                  <div>
+                    <p className="text-menu font-medium text-texte">{item?.label ?? q.rubric_item_id}</p>
+                    {q.requires_review && (
+                      <span className="mt-1 inline-flex items-center gap-1 text-micro font-medium text-orange">
+                        <TriangleAlert className="size-3" /> À revoir — l'IA n'est pas sûre
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <ScorePill score={q.score} max={max} />
               </div>
-              {q.correct_answer && <p className="text-petit text-texte-doux">Attendu : {q.correct_answer}</p>}
-              <p className="text-petit text-texte-doux mb-2">Réponse de l'élève : {q.observed_answer || "—"}</p>
-              <div className="flex items-center gap-3">
-                <label className="flex items-center gap-1.5 text-petit">
-                  <input type="radio" name={`d-${q.rubric_item_id}`} checked={decision === "accepted"} onChange={() => setDecisions((d) => ({ ...d, [q.rubric_item_id]: { decision: "accepted" } }))} />
-                  Accepter
-                </label>
-                <label className="flex items-center gap-1.5 text-petit">
-                  <input type="radio" name={`d-${q.rubric_item_id}`} checked={decision === "refused"} onChange={() => setDecisions((d) => ({ ...d, [q.rubric_item_id]: { decision: "refused", note: d[q.rubric_item_id]?.note ?? String(q.score) } }))} />
-                  Corriger
-                </label>
+
+              <div className="mt-3 grid sm:grid-cols-2 gap-3">
+                <div className="rounded-md bg-surface-creuse px-3 py-2">
+                  <p className="text-micro font-semibold uppercase tracking-wide text-texte-faible mb-0.5">Réponse attendue</p>
+                  <p className="text-petit text-texte">{q.correct_answer || "—"}</p>
+                </div>
+                <div className="rounded-md bg-surface-creuse px-3 py-2">
+                  <p className="text-micro font-semibold uppercase tracking-wide text-texte-faible mb-0.5">Réponse de l'élève</p>
+                  <p className="text-petit text-texte">{q.observed_answer || "—"}</p>
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <div className="inline-flex rounded-lg border border-bord-fort overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setDecisions((d) => ({ ...d, [q.rubric_item_id]: { decision: "accepted" } }))}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 h-8 px-3 text-petit font-medium transition-colors",
+                      decision === "accepted" ? "bg-vert text-white" : "bg-surface text-texte-doux hover:bg-surface-creuse",
+                    )}
+                  >
+                    <SquareCheck className="size-3.5" /> Accepter
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDecisions((d) => ({
+                        ...d,
+                        [q.rubric_item_id]: { decision: "refused", note: d[q.rubric_item_id]?.note ?? String(Math.round(q.score * 100) / 100) },
+                      }))
+                    }
+                    className={cn(
+                      "inline-flex items-center gap-1.5 h-8 px-3 text-petit font-medium border-l border-bord-fort transition-colors",
+                      decision === "refused" ? "bg-bleu text-white" : "bg-surface text-texte-doux hover:bg-surface-creuse",
+                    )}
+                  >
+                    <Pencil className="size-3.5" /> Corriger
+                  </button>
+                </div>
                 {decision === "refused" && (
-                  <input
-                    type="number"
-                    step="0.25"
-                    min={0}
-                    max={item?.max_score ?? 1}
-                    value={decisions[q.rubric_item_id]?.note ?? ""}
-                    onChange={(e) => setDecisions((d) => ({ ...d, [q.rubric_item_id]: { decision: "refused", note: e.target.value } }))}
-                    className="w-20 h-8 rounded border border-bord-fort px-2 text-petit"
-                  />
+                  <label className="inline-flex items-center gap-1.5 text-petit text-texte-doux">
+                    Note
+                    <input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      max={max}
+                      autoFocus
+                      value={decisions[q.rubric_item_id]?.note ?? ""}
+                      onChange={(e) => setDecisions((d) => ({ ...d, [q.rubric_item_id]: { decision: "refused", note: e.target.value } }))}
+                      className="w-20 h-8 rounded border border-bord-fort px-2 text-petit focus:border-bleu focus:outline-none"
+                    />
+                    / {formatNombre(max)}
+                  </label>
                 )}
               </div>
             </div>
           )
         })}
       </div>
-      <Button className="mt-4" chargement={valider.isPending} onClick={() => valider.mutate()}>
-        Valider les notes
-      </Button>
-    </Card>
+
+      <div className="sticky bottom-4 z-10 flex items-center justify-end gap-4 rounded-lg border border-bord bg-surface/95 backdrop-blur px-4 py-3 shadow-haute">
+        <span className="text-menu font-semibold text-marine tabular-nums mr-auto sm:mr-0">
+          {formatNombre(noteActuelle)} <span className="text-texte-doux font-normal">/ {formatNombre(totalPossible)} pts</span>
+        </span>
+        <Button chargement={valider.isPending} onClick={() => valider.mutate()}>
+          Valider les notes
+        </Button>
+      </div>
+    </div>
   )
 }
 

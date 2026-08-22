@@ -19,6 +19,7 @@ from .suivi import (
     Copie,
     Document,
     Evaluation,
+    FicheRemediation,
     Probleme,
     Reponse,
     Seance,
@@ -50,6 +51,7 @@ __all__ = [
     "Probleme",
     "Transition",
     "Seance",
+    "FicheRemediation",
     "seance_problemes_travailles",
     "ETATS_SESSION_TERMINES",
 ]

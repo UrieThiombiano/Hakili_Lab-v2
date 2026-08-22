@@ -329,6 +329,117 @@ def test_soumettre_confirmation_t1_lance_la_transcription(tmp_path, monkeypatch)
     app.dependency_overrides.clear()
 
 
+def test_soumettre_verification_t3_sans_sujet_en_attente_refuse(tmp_path):
+    """Sans `Session.sujet_verification_*` posé par
+    `generation.persister_sujet_verification` (déclenché au téléchargement du
+    sujet, `GET /sessions/{jeton}/sujets/T3`), le dépôt ciblé est refusé."""
+    client, SessionLocal = _client_avec_base(tmp_path)
+    db = SessionLocal()
+
+    from app.models import Session
+
+    session = Session(identifiant_hakili="eleve-1")
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+
+    from app.auth.tokens import jeton
+
+    fichier = ("copie.pdf", b"%PDF-1.4", "application/pdf")
+    r = client.post(f"/api/corrections/verification/{jeton(str(session.id))}/T3", files=[("copie", fichier)])
+    assert r.status_code == 400
+    app.dependency_overrides.clear()
+
+
+def test_soumettre_verification_t3_type_different_de_celui_en_attente_refuse(tmp_path):
+    """Un sujet T4 en attente ne peut pas être déposé comme T3 — protège
+    contre un dépôt tardif après qu'un autre sujet a été régénéré entre
+    temps."""
+    client, SessionLocal = _client_avec_base(tmp_path)
+    db = SessionLocal()
+
+    from app.models import Session
+
+    session = Session(
+        identifiant_hakili="eleve-1",
+        sujet_verification_type="T4",
+        sujet_verification_exercices=[{"numero": 1, "topic": "Compétence A × CPT", "question": "...", "hint": ""}],
+    )
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+
+    from app.auth.tokens import jeton
+
+    fichier = ("copie.pdf", b"%PDF-1.4", "application/pdf")
+    r = client.post(f"/api/corrections/verification/{jeton(str(session.id))}/T3", files=[("copie", fichier)])
+    assert r.status_code == 400
+    assert "T4" in r.json()["detail"]
+    app.dependency_overrides.clear()
+
+
+def test_soumettre_verification_t3_lance_la_transcription(tmp_path, monkeypatch):
+    """Avec un sujet T3 en attente, le dépôt crée une `Correction` T3 dont le
+    barème reprend les exercices posés par `persister_sujet_verification`."""
+    client, SessionLocal = _client_avec_base(tmp_path)
+    db = SessionLocal()
+
+    from app.models import Probleme, Session
+
+    session = Session(
+        identifiant_hakili="eleve-1",
+        sujet_verification_type="T3",
+        sujet_verification_exercices=[
+            {"numero": 1, "topic": "Compétence A × CPT", "question": "Développer...", "hint": ""},
+            {"numero": 2, "topic": "Compétence A × CPT", "question": "Réduire...", "hint": ""},
+        ],
+    )
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+    db.add(Probleme(session_id=session.id, competence_id="A", type_erreur_id="CPT", etat="en_remediation", exercices_verification=[1, 2]))
+    db.commit()
+
+    import src.pipeline.pipeline as pipeline_mod
+
+    monkeypatch.setattr(pipeline_mod, "run_transcription", lambda **kw: _pipeline_result(copy_id=kw["copy_id"], avec_transcription=True))
+
+    from app.auth.tokens import jeton
+
+    fichier = ("copie.pdf", b"%PDF-1.4", "application/pdf")
+    r = client.post(f"/api/corrections/verification/{jeton(str(session.id))}/T3", files=[("copie", fichier)])
+    assert r.status_code == 200, r.text
+    jeton_copie = r.json()["jeton"]
+
+    r2 = client.get(f"/api/corrections/{jeton_copie}")
+    assert r2.json()["etat"] == "relecture"
+
+    from app.models import Correction
+
+    correction = db.query(Correction).filter_by(copy_id=r2.json()["resultat"]["copy_id"]).first()
+    assert correction.type_evaluation == "T3"
+    app.dependency_overrides.clear()
+
+
+def test_soumettre_verification_type_invalide_404(tmp_path):
+    client, SessionLocal = _client_avec_base(tmp_path)
+    db = SessionLocal()
+
+    from app.models import Session
+
+    session = Session(identifiant_hakili="eleve-1")
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+
+    from app.auth.tokens import jeton
+
+    fichier = ("copie.pdf", b"%PDF-1.4", "application/pdf")
+    r = client.post(f"/api/corrections/verification/{jeton(str(session.id))}/T1", files=[("copie", fichier)])
+    assert r.status_code == 404
+    app.dependency_overrides.clear()
+
+
 def test_liste_corrections(tmp_path, monkeypatch):
     client, SessionLocal = _client_avec_base(tmp_path)
     import src.pipeline.pipeline as pipeline_mod

@@ -2,6 +2,8 @@
 **Document de pilotage — fait foi pour l'avancement.** `CLAUDE.md` renvoie ici pour le détail ; ce fichier est la seule source de vérité sur "où en est-on" — ne pas dupliquer le suivi ailleurs.
 
 **Dernière mise à jour :** 2026-08-13 (arbitrage H clos — les 7 `bareme_socle_*.yaml` (6eme à tleD) reconstruits à la main sur la structure à 3 parties, sans attendre la mise à jour du classeur)
+
+⚠ **Ce document n'a pas suivi D-CEO-42/D-CEO-43** (2026-08-20/22) : Django est **retiré** depuis le 2026-08-21 (FastAPI + React seule interface, commit "retire Django"), et le module 7 (ci-dessous) est construit. Tout ce qui suit qui mentionne `manage.py`, Django ou "interface migrée sur Django" décrit un état antérieur — se fier à `git log` et à D-CEO-42/43 (`docs/decision_register.md`) pour l'état réel, pas à cette ligne de résumé, non retouchée pour rester un historique daté.
 **Où en est-on (résumé en une ligne) :** Modules 0, **1 et 3 ✅ faits** · **Module 2 ⛔ supprimé le 2026-08-05** — trois copies 5e réelles imprimées et scannées l'ont mis en défaut (les trois refusées, dérive jusqu'à 3 cm), et il reconstituait par la géométrie une correspondance que la correction produit déjà ; au passage le risque du tramage est levé, l'imprimante n'imprime pas les bandes de guidage du tout · **Module 4 🟨 le moteur tourne et il est branché** — `manage.py diagnostiquer --correction <id>` reprend une copie déjà corrigée, sans lecture ni appel de modèle supplémentaire, QCM court-circuités, décision enseignant prioritaire · **Module 5 🟨 amorcé le 2026-08-07** — génération du sujet T1 et confirmation automatique (dépôt de copie → correction → confirmé/écarté) branchées de bout en bout, jamais essayées en conditions réelles · **Module 6 🟨 le plan et le palier tournent** · **interface migrée sur Django**. **Arbitrage B fermé le 2026-08-12 : les 7 corrigés sont relus et validés par un enseignant de mathématiques** (`data/Documents/corriges/`) — c'est la relecture que `00_Notice` exigeait avant de figer le référentiel. **Arbitrage H fermé le 2026-08-13 : les 7 `bareme_socle_*.yaml` (6eme à tleD) reconstruits à la main** sur la structure à 3 parties des sujets recomposés — le classeur `Referentiel_Socle_v0.xlsx` reste non modifié, ces 7 fichiers font foi en avance sur lui (détail `docs/harmonisation_donnees.md`). **Les 3 copies réelles 5e ont été corrigées et diagnostiquées** (`manage.py verifier_installation --copie … --eleve …`, le contrôle qui n'avait jamais été passé) — mais la **mesure juste** du module 4 reste à faire : ces 3 copies n'ont pas de tagage manuel, il n'y a donc rien à comparer pour l'instant. Les seuils de palier A/B/C **n'ont toujours pas été rejugés** après la hausse de ~33 % des coûts.
 
 **État vérifié le 2026-08-05 : 275 tests Django + 239 pytest = 514 tests passent.** ⚠ Avant la prochaine mise en ligne : `migrate suivi 0007 --fake` une fois sur Neon (D-CEO-40, `docs/deploiement.md`).
@@ -334,17 +336,20 @@ enseignant avant l'écart mesuré.
 
 ---
 
-### Module 7 — Génération des fiches
+### Module 7 — Génération des fiches ✅ **CONSTRUIT (D-CEO-43, 2026-08-22)**
 **Objectif :** une séance prête à l'emploi pour le tuteur, pas de la matière première.
 
-- [x] **Matière première disponible (D-CEO-41, 2026-08-13)** — `RemediationRetriever.get_by_competence(code, niveau)` (`src/knowledge/remediation_retriever.py`) rend, par compétence canonique, une leçon de remédiation complète : méthode, erreurs fréquentes, exemple travaillé, et référence à un module de `remediation/` qui porte lui-même son propre pool d'exercices notés ★/★★/★★★ corrigés (`data/knowledge/remediation_<niveau>.yaml`, jamais consommé directement par le retriever — pas de fuite de réponse dans un prompt). Reste à faire : le générateur de fiches lui-même (unité compétence × type d'erreur, déroulé minuté, critère de réussite), bloqué par le Module 6 comme avant.
-- [ ] Unité de fiche = compétence × type d'erreur (pas le chapitre).
-- [ ] Contenu obligatoire : objectif en termes de compétence, prérequis à vérifier en ouverture, déroulé minuté, exercices gradués, critère de réussite observable.
-- [ ] Génération à la demande, pour les problèmes réellement confirmés.
-- [ ] Versionnement : la version corrigée par le tuteur remplace la version générée dans le catalogue.
+- [x] **Matière première disponible (D-CEO-41, 2026-08-13)** — `RemediationRetriever.get_by_competence(code, niveau)` (`src/knowledge/remediation_retriever.py`) rend, par compétence canonique, une leçon de remédiation complète : méthode, erreurs fréquentes, exemple travaillé, et référence à un module de `remediation/` qui porte lui-même son propre pool d'exercices notés ★/★★/★★★ corrigés (`data/knowledge/remediation_<niveau>.yaml`).
+- [x] Unité de fiche = compétence × type d'erreur (pas le chapitre) — `app/services/fiche_remediation.py::construire_contenu()`, cataloguée par couple compétence × type d'erreur × **niveau** (`FicheRemediation`, `suivi_fiche_remediation`), pas par élève : le même problème chez deux élèves rend la même fiche.
+- [x] Contenu obligatoire : objectif, prérequis à vérifier (`referentiel_prerequis`, tous les prérequis directs — pas seulement ceux aussi en difficulté), méthode + exemple résolu, erreurs fréquentes, déroulé minuté (5 étapes fixes), exercices gradués (répartition 2 faciles/2 moyens/1 difficile via le nouvel accesseur `RemediationChunk.exercices_gradues()`, corrigés en clair — document lu par un tuteur), critère de réussite déterministe.
+- [x] Génération à la demande, pour les problèmes `confirme`/`en_remediation` — `GET /api/sessions/{jeton}/problemes/{probleme_id}/fiche`, lien par étape dans `SessionDetail.tsx`. Refuse avec un message explicite (pas de fiche creuse) si le rapprochement ne couvre pas le couple compétence × niveau.
+- [x] Versionnement : `PATCH` sur le même endpoint enregistre une correction tuteur (`version: generee → corrigee`) ; jamais régénérée automatiquement une fois cataloguée. Aucun écran dédié (hors périmètre des deux écrans du Module 8) — API seulement pour l'instant.
 
-**Critère de fin :** une fiche générée est utilisable en séance sans retouche par un tuteur qui découvre le dossier.
-**Fichiers concernés :** nouveau générateur + stockage versionné (table à ajouter au Module 1 si pas déjà prévu, ou réutilisation de `document` avec un nouveau `type`).
+**Au passage (D-CEO-43) :** confusion de nommage corrigée — le PDF du plan (module 6) s'appelait « fiche de remédiation » (`pdf_plan_html.py`, endpoint `/fiche`), renommé « plan de remédiation » (`pdf_plan_html.py` inchangé de nom de fichier mais docstring/gabarit/endpoint `/plan` corrigés) pour ne plus se confondre avec la vraie fiche du module 7. Deux bugs de rendu/parsing réels trouvés et corrigés en testant sur données réelles : substitution LaTeX naïve dans `math_format.py` (`\le` mangeait `\left`) et chevauchement DÉCLIC/ATTENTION dans `remediation_parser.py` (YAML régénérés, mêmes totaux : 79 modules, 2838 exercices).
+
+**Critère de fin :** une fiche générée est utilisable en séance sans retouche par un tuteur qui découvre le dossier — **atteint pour les couples couverts par le rapprochement** (encore partiel, voir D-CEO-41 : ~162/707 paires niveau × compétence).
+**Fichiers concernés :** `app/services/fiche_remediation.py`, `src/pipeline/pdf_fiche_travail_html.py`, `templates/fiche_travail.html.j2`, `backend/app/models/suivi.py::FicheRemediation`, migration `a1b2c3d4e5f6`.
+**Tests :** `backend/tests/test_fiche_remediation.py` (service), `backend/tests/test_routers_sessions.py` (endpoints).
 
 ---
 

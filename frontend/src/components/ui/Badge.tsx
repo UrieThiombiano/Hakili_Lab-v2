@@ -68,6 +68,36 @@ export function TypeErreurBadge({ code }: { code: string }) {
   )
 }
 
+/** Amorce de phrase selon le mécanisme du type d'erreur (protocole-v2.md §3,
+ * définitions de `01_Types_erreur`) — pour dire *pourquoi* l'élève échoue, pas
+ * seulement *sur quoi*. Combinée à `SignatureErreur.interpretation` par
+ * `DiagnosticLisible` ci-dessous. */
+const AMORCE_TYPE_ERREUR: Record<string, string> = {
+  PRQ: "Bloqué par un prérequis non acquis",
+  CPT: "Confond une notion",
+  MOD: "Sait calculer, mais ne traduit pas correctement l'énoncé",
+  PRC: "Connaît la méthode, mais l'exécute mal",
+  CNS: "Ne dispose pas encore de cette connaissance",
+  RED: "Ne justifie pas suffisamment sa démarche",
+  ATT: "Inattention isolée, pas un manque de maîtrise",
+}
+
+/** Phrase de diagnostic lisible pour un enseignant ou un parent — jamais de
+ * texte libre généré : uniquement l'amorce fixe du type d'erreur (ci-dessus,
+ * mise en évidence en orange) et l'interprétation déjà écrite dans le
+ * référentiel (`SignatureErreur`). Sans interprétation disponible, on
+ * retombe sur l'amorce seule plutôt que de citer ce que l'élève a écrit sur
+ * sa copie. */
+export function DiagnosticLisible({ typeErreurId, interpretation }: { typeErreurId: string; interpretation: string }) {
+  const amorce = AMORCE_TYPE_ERREUR[typeErreurId] ?? "Lacune identifiée"
+  return (
+    <>
+      <span className="text-orange font-medium">{amorce}</span>
+      {interpretation && <> : {interpretation}</>}
+    </>
+  )
+}
+
 const LIBELLES_ETAT_PROBLEME: Record<EtatProbleme, string> = {
   hypothese: "Hypothèse",
   confirme: "Confirmé",

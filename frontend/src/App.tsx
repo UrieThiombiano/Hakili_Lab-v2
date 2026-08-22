@@ -13,6 +13,7 @@ const APropos = lazy(() => import("@/routes/APropos"))
 const NouvelleCorrection = lazy(() => import("@/routes/correction/Nouvelle"))
 const Lot = lazy(() => import("@/routes/correction/Lot"))
 const SoumettreConfirmation = lazy(() => import("@/routes/correction/SoumettreConfirmation"))
+const SoumettreVerification = lazy(() => import("@/routes/correction/SoumettreVerification"))
 const Suivre = lazy(() => import("@/routes/correction/Suivre"))
 
 function ChargementPage() {
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/corrections/nouvelle" element={<RouteProtegee><NouvelleCorrection /></RouteProtegee>} />
         <Route path="/corrections/lot" element={<RouteProtegee><Lot /></RouteProtegee>} />
         <Route path="/corrections/confirmation/:jeton" element={<RouteProtegee><SoumettreConfirmation /></RouteProtegee>} />
+        <Route path="/corrections/verification/:jeton/:type" element={<RouteProtegee><SoumettreVerification /></RouteProtegee>} />
         <Route path="/corrections/:jeton" element={<RouteProtegee><Suivre /></RouteProtegee>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

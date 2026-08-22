@@ -127,18 +127,27 @@ export interface EleveDetailReponse {
 export interface ProblemeSchema {
   id: number
   competence_id: string
+  competence_libelle: string
   type_erreur_id: string
   etat: EtatProbleme
   cout_estime: string
   justification: string
+  interpretation: string
+}
+
+export interface PrerequisBloquant {
+  code: string
+  libelle: string
 }
 
 export interface EtapePlanSchema {
   rang: number
+  probleme_id: number
   cout: string
   competence_id: string
+  competence_libelle: string
   type_erreur_id: string
-  prerequis_bloquants: string[]
+  prerequis_bloquants: PrerequisBloquant[]
   signatures: { production_eleve: string; interpretation: string }[]
 }
 

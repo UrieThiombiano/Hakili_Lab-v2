@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from sqlalchemy.orm import Session as SQLASession
 
 from app.models import ETATS_SESSION_TERMINES, Evaluation, Probleme, Session
-from app.services import etats
+from app.services import etats, generation
 from app.services.couts import cout_precalcule
 from app.services.evaluations import creer_evaluation
 from src.models.domain import CopyGrade, DiagnosticContraint, ProblemeDetecte, SourceProbleme, TeacherDecision
@@ -126,6 +126,25 @@ class ResultatConfirmation:
     ecartes: list[Probleme] = field(default_factory=list)
 
 
+def _reussite_par_numero(grade: CopyGrade) -> dict[int, bool]:
+    """Réussite par numéro d'exercice (`rubric_item_id`), décision enseignant
+    prioritaire sur le score automatique — partagé entre `confirmer_depuis_correction`
+    (T1) et `trancher_verification_depuis_correction` (T3/T4/T5), pour que les
+    deux lisent le score de la même façon."""
+    reussite: dict[int, bool] = {}
+    for question in grade.questions:
+        try:
+            numero = int(question.rubric_item_id)
+        except (TypeError, ValueError):
+            continue
+        if question.teacher_decision == TeacherDecision.refused and question.teacher_score is not None:
+            score = question.teacher_score
+        else:
+            score = question.score
+        reussite[numero] = score >= 1.0
+    return reussite
+
+
 def confirmer_depuis_correction(db: SQLASession, evaluation: Evaluation, grade: CopyGrade) -> ResultatConfirmation:
     """Tranche automatiquement chaque hypothèse ouverte à partir d'une copie
     T1 déjà corrigée et validée. Règle binaire : l'élève rate au moins une
@@ -136,17 +155,7 @@ def confirmer_depuis_correction(db: SQLASession, evaluation: Evaluation, grade: 
     if evaluation.session.corpus_reference:
         return resultat
 
-    reussite_par_numero: dict[int, bool] = {}
-    for question in grade.questions:
-        try:
-            numero = int(question.rubric_item_id)
-        except (TypeError, ValueError):
-            continue
-        if question.teacher_decision == TeacherDecision.refused and question.teacher_score is not None:
-            score = question.teacher_score
-        else:
-            score = question.score
-        reussite_par_numero[numero] = score >= 1.0
+    reussite_par_numero = _reussite_par_numero(grade)
 
     hypotheses = [
         p
@@ -172,5 +181,68 @@ def confirmer_depuis_correction(db: SQLASession, evaluation: Evaluation, grade: 
     logger.info(
         "[%s] Module 5 — %d confirmé(s), %d écarté(s) automatiquement.",
         evaluation.copy_id or evaluation.id, len(resultat.confirmes), len(resultat.ecartes),
+    )
+    return resultat
+
+
+@dataclass
+class ResultatVerification:
+    resolus: list[Probleme] = field(default_factory=list)
+    non_resolus: list[Probleme] = field(default_factory=list)
+    regresses: list[Probleme] = field(default_factory=list)
+    clos: list[Probleme] = field(default_factory=list)
+
+
+#: Verdict par type d'évaluation : `si_reussi=None` signifie qu'un succès à
+#: T4 ne déclenche aucune transition (le problème reste `resolu` en silence —
+#: cf. `docs/cycle_de_suivi.md` §3, seul un problème qui régresse à T4 produit
+#: un mouvement). `etat_source` vient de `generation.ETAT_CIBLE`, seule source
+#: de vérité sur l'état ciblé par chaque type (partagée avec la génération du
+#: sujet et l'endpoint manuel `trancher`, `app/routers/sessions.py`).
+_REGLES_AUTO = {
+    "T3": {"si_reussi": "resolu", "si_echec": "non_resolu"},
+    "T4": {"si_reussi": None, "si_echec": "regresse"},
+    "T5": {"si_reussi": "clos", "si_echec": "regresse"},
+}
+
+
+def trancher_verification_depuis_correction(
+    db: SQLASession, evaluation: Evaluation, grade: CopyGrade, type_evaluation: str
+) -> ResultatVerification:
+    """Tranche automatiquement chaque problème ciblé par le sujet T3/T4/T5
+    déposé. Règle binaire, symétrique à `confirmer_depuis_correction` :
+    l'élève réussit tous les exercices de `probleme.exercices_verification` →
+    verdict de réussite (résolu / silencieux / clos selon le type) ; il en
+    rate au moins un → verdict d'échec (non résolu / régressé / régressé)."""
+    resultat = ResultatVerification()
+
+    if evaluation.session.corpus_reference:
+        return resultat
+
+    regles = _REGLES_AUTO[type_evaluation]
+    etat_source = generation.ETAT_CIBLE[type_evaluation]
+    reussite_par_numero = _reussite_par_numero(grade)
+
+    problemes = [
+        p
+        for p in db.query(Probleme).filter(Probleme.session_id == evaluation.session_id, Probleme.etat == etat_source).all()
+        if p.exercices_verification
+    ]
+
+    listes = {"resolu": resultat.resolus, "non_resolu": resultat.non_resolus, "regresse": resultat.regresses, "clos": resultat.clos}
+
+    for probleme in problemes:
+        numeros = probleme.exercices_verification
+        reussi = all(reussite_par_numero.get(n, False) for n in numeros)
+        cible = regles["si_reussi"] if reussi else regles["si_echec"]
+        if cible is None:
+            continue
+        etats.changer_etat(db, probleme, cible, evaluation=evaluation)
+        listes[cible].append(probleme)
+
+    logger.info(
+        "[%s] Module 5 — %s : %d résolu(s), %d non résolu(s), %d régressé(s), %d clos automatiquement.",
+        evaluation.copy_id or evaluation.id, type_evaluation,
+        len(resultat.resolus), len(resultat.non_resolus), len(resultat.regresses), len(resultat.clos),
     )
     return resultat

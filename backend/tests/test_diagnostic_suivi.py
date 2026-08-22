@@ -152,3 +152,98 @@ def test_confirmer_depuis_correction_ignore_hypotheses_sans_exercices(db, refere
     assert resultat.ecartes == []
     db.refresh(probleme)
     assert probleme.etat == "hypothese"
+
+
+# ── T3/T4/T5 — vérification automatique (module 5, suite) ────────────────────
+
+
+def test_trancher_verification_t3_resolu_si_tout_reussi(db, referentiel_minimal):
+    evaluation = diag_suivi.preparer_evaluation(db, identifiant_hakili="eleve-x", type_evaluation="T3", copy_id="c1")
+    probleme = Probleme(session_id=evaluation.session_id, competence_id="B", type_erreur_id="CPT", etat="en_remediation", exercices_verification=[1, 2])
+    db.add(probleme)
+    db.commit()
+
+    resultat = diag_suivi.trancher_verification_depuis_correction(db, evaluation, _grade(reussi_1=True, reussi_2=True), "T3")
+    assert len(resultat.resolus) == 1
+    db.refresh(probleme)
+    assert probleme.etat == "resolu"
+
+
+def test_trancher_verification_t3_non_resolu_si_une_question_ratee(db, referentiel_minimal):
+    evaluation = diag_suivi.preparer_evaluation(db, identifiant_hakili="eleve-x", type_evaluation="T3", copy_id="c1")
+    probleme = Probleme(session_id=evaluation.session_id, competence_id="B", type_erreur_id="CPT", etat="en_remediation", exercices_verification=[1, 2])
+    db.add(probleme)
+    db.commit()
+
+    resultat = diag_suivi.trancher_verification_depuis_correction(db, evaluation, _grade(reussi_1=True, reussi_2=False), "T3")
+    assert len(resultat.non_resolus) == 1
+    db.refresh(probleme)
+    assert probleme.etat == "non_resolu"
+
+
+def test_trancher_verification_t4_succes_est_silencieux(db, referentiel_minimal):
+    """Un succès à T4 ne produit aucune transition — le problème reste
+    `resolu` (cycle_de_suivi.md §3) : seule une régression bouge quelque chose."""
+    evaluation = diag_suivi.preparer_evaluation(db, identifiant_hakili="eleve-x", type_evaluation="T4", copy_id="c1")
+    probleme = Probleme(session_id=evaluation.session_id, competence_id="B", type_erreur_id="CPT", etat="resolu", exercices_verification=[1, 2])
+    db.add(probleme)
+    db.commit()
+
+    resultat = diag_suivi.trancher_verification_depuis_correction(db, evaluation, _grade(reussi_1=True, reussi_2=True), "T4")
+    assert resultat.resolus == resultat.non_resolus == resultat.regresses == resultat.clos == []
+    db.refresh(probleme)
+    assert probleme.etat == "resolu"
+
+
+def test_trancher_verification_t4_regresse_si_echec(db, referentiel_minimal):
+    evaluation = diag_suivi.preparer_evaluation(db, identifiant_hakili="eleve-x", type_evaluation="T4", copy_id="c1")
+    probleme = Probleme(session_id=evaluation.session_id, competence_id="B", type_erreur_id="CPT", etat="resolu", exercices_verification=[1, 2])
+    db.add(probleme)
+    db.commit()
+
+    resultat = diag_suivi.trancher_verification_depuis_correction(db, evaluation, _grade(reussi_1=True, reussi_2=False), "T4")
+    assert len(resultat.regresses) == 1
+    db.refresh(probleme)
+    assert probleme.etat == "regresse"
+
+
+def test_trancher_verification_t5_clos_si_tout_reussi(db, referentiel_minimal):
+    evaluation = diag_suivi.preparer_evaluation(db, identifiant_hakili="eleve-x", type_evaluation="T5", copy_id="c1")
+    probleme = Probleme(session_id=evaluation.session_id, competence_id="B", type_erreur_id="CPT", etat="resolu", exercices_verification=[1, 2])
+    db.add(probleme)
+    db.commit()
+
+    resultat = diag_suivi.trancher_verification_depuis_correction(db, evaluation, _grade(reussi_1=True, reussi_2=True), "T5")
+    assert len(resultat.clos) == 1
+    db.refresh(probleme)
+    assert probleme.etat == "clos"
+
+
+def test_trancher_verification_ignore_problemes_sans_exercices(db, referentiel_minimal):
+    evaluation = diag_suivi.preparer_evaluation(db, identifiant_hakili="eleve-x", type_evaluation="T3", copy_id="c1")
+    probleme = Probleme(session_id=evaluation.session_id, competence_id="B", type_erreur_id="CPT", etat="en_remediation", exercices_verification=[])
+    db.add(probleme)
+    db.commit()
+
+    resultat = diag_suivi.trancher_verification_depuis_correction(db, evaluation, _grade(reussi_1=False, reussi_2=False), "T3")
+    assert resultat.resolus == resultat.non_resolus == []
+    db.refresh(probleme)
+    assert probleme.etat == "en_remediation"
+
+
+def test_trancher_verification_respecte_le_garde_fou_corpus(db, referentiel_minimal):
+    from app.models import Evaluation
+
+    session = Session(identifiant_hakili="eleve-x", corpus_reference=True)
+    db.add(session)
+    db.commit()
+    evaluation = Evaluation(session_id=session.id, type="T3", corpus_reference=True, tague_par="x", date_tagage=date(2026, 1, 1))
+    db.add(evaluation)
+    probleme = Probleme(session_id=session.id, competence_id="B", type_erreur_id="CPT", etat="en_remediation", exercices_verification=[1, 2])
+    db.add(probleme)
+    db.commit()
+
+    resultat = diag_suivi.trancher_verification_depuis_correction(db, evaluation, _grade(reussi_1=True, reussi_2=True), "T3")
+    assert resultat.resolus == resultat.non_resolus == []
+    db.refresh(probleme)
+    assert probleme.etat == "en_remediation"
