@@ -1,10 +1,8 @@
-"""Squelette FastAPI — Phase 0 du plan de migration
-(`C:\\Users\\Urie\\.claude\\plans\\majestic-nibbling-anchor.md`).
-
-Ne touche ni à la base Neon de production ni au code Django, qui continue de
-tourner sans interruption : `DATABASE_URL` pointe ici vers une base de dev
-(ou `sqlite:///:memory:` par défaut). Voir ce fichier pour la suite prévue
-(Phase 1 : le reste des routeurs, un par écran déjà inventorié).
+"""API FastAPI — seule interface depuis le retrait de Django (D-CEO-42/43,
+`docs/decision_register.md`). `DATABASE_URL` pointe vers une base de dev en
+local (ou `sqlite:///:memory:` par défaut) ; en production, vers Neon —
+la bascule (`alembic stamp head` contre Neon) reste à faire par vous, voir
+`backend/docs/bascule_neon.md` et `docs/deploiement_vps_hetzner.md`.
 """
 from __future__ import annotations
 

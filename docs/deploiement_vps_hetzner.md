@@ -1,36 +1,25 @@
-# Mise en service — VPS Hetzner
-**2026-08-17** · remplace `docs/deploiement.md` (Render/Railway) comme cible de déploiement.
+# Mise en service — VPS Hetzner (FastAPI + React)
 
-Contrairement à Render/Railway (PaaS géré), un VPS Hetzner est une machine nue :
-rien n'est fourni automatiquement — ni HTTPS, ni redémarrage du process, ni
-déploiement sur `git push`. Ce document couvre ce qu'il faut mettre en place
-en plus. Tout ce qui concerne l'application elle-même (variables
-d'environnement, migration `suivi 0007 --fake`, stockage des documents,
-données personnelles) reste décrit dans `docs/deploiement.md` — le lire
-d'abord, ce fichier ne répète que ce qui change avec un VPS.
+**2026-08-22** · réécrit pour la pile FastAPI + React (D-CEO-42/43, Django
+retiré le 2026-08-21) — remplace la version précédente de ce document, qui
+décrivait un déploiement Django (gunicorn, `manage.py`, WhiteNoise). Les
+scripts `deploy/` qu'elle référençait ont été supprimés avec Django et sont
+reconstruits ici pour la nouvelle pile.
 
-Base de données : **Neon, inchangée**, comme avec Render/Railway. Neon héberge
-la base, pas l'application — le choix de l'hébergeur applicatif ne la
-concerne pas.
+Base de données : **Neon, inchangée**. Neon héberge la base, pas
+l'application — le choix de l'hébergeur applicatif ne la concerne pas.
+**Non exécuté à ce jour :** l'adoption du schéma Neon existant par Alembic
+(`backend/docs/bascule_neon.md`) — étape manuelle, préalable au tout premier
+démarrage du backend contre Neon, à faire par vous avec vos accès.
 
----
+Deux process tournent derrière nginx sur le même domaine :
+- **backend** (`hakili.service`, uvicorn, `127.0.0.1:8000`) sert l'API sous `/api/*`.
+- **frontend** : pas de process — `frontend/dist/` (build Vite) est servi en
+  statique directement par nginx. Le SPA React fait le reste côté client.
 
-## Ce qui change par rapport à Render/Railway
-
-| Sujet | Render/Railway | VPS Hetzner |
-|---|---|---|
-| HTTPS | fourni automatiquement | nginx + Let's Encrypt (certbot) à installer |
-| Process web | géré par la plateforme (`Procfile`) | service systemd (`deploy/hakili.service`) |
-| Port | `$PORT` fourni | socket Unix local, nginx fait le proxy |
-| Déploiement | auto sur `git push` | script manuel (`deploy/deploy.sh`) ou CI/CD par SSH |
-| Fichiers statiques | WhiteNoise sert tout | nginx sert `/static/`, WhiteNoise reste en secours |
-| Système de fichiers | éphémère (redéploiement = perte de `runs/`) | **persistant** — ce point ouvert de `docs/deploiement.md` disparaît |
-| Fichier secret Google | mécanisme "Secret Files" de la plateforme | déposé à la main sur le serveur (`scp`) |
-| Domaine | sous-domaine `*.onrender.com` / `*.up.railway.app` | domaine propre à pointer vers l'IP du VPS |
-
-Le `Procfile` devient inutile sur un VPS — `deploy/hakili.service` le
-remplace. Il n'est pas nécessaire de le supprimer si Render/Railway reste une
-option de repli.
+Un seul point de terminaison TLS (nginx), une seule origine pour le
+navigateur — le frontend appelle `/api/...` en relatif (`frontend/src/lib/api.ts`),
+donc aucun CORS à configurer.
 
 ---
 
@@ -50,10 +39,10 @@ ssh root@VOTRE_IP
 bash provision_serveur.sh
 ```
 
-Installe Python 3.12, nginx, certbot, git ; crée l'utilisateur système
-`hakili` (sans shell de connexion) et configure le pare-feu UFW (SSH +
-HTTP/HTTPS uniquement — le port de gunicorn n'est jamais exposé
-publiquement, seul nginx l'est).
+Installe Python 3.12, Node.js 22 (build du frontend), nginx, certbot, git ;
+crée l'utilisateur système `hakili` et configure le pare-feu UFW (SSH +
+HTTP/HTTPS uniquement — le port d'uvicorn n'est jamais exposé publiquement,
+seul nginx l'est, en écoute sur `127.0.0.1:8000`).
 
 ## Étape 2 — Déploiement du code (première fois)
 
@@ -68,8 +57,17 @@ python3.12 -m venv .venv
 
 cp .env.example .env
 chmod 600 .env
-# éditer .env : DJANGO_SECRET_KEY, DJANGO_ALLOWED_HOSTS, DJANGO_CSRF_TRUSTED_ORIGINS,
-# DATABASE_URL, ANTHROPIC_API_KEY, etc. — voir la table de docs/deploiement.md
+# éditer .env : DATABASE_URL (Neon), ANTHROPIC_API_KEY, GOOGLE_API_KEY,
+# DEEPSEEK_API_KEY, MISTRAL_API_KEY, OPENAI_API_KEY,
+# GOOGLE_SERVICE_ACCOUNT_FILE, GOOGLE_SHEET_ELEVES_ID,
+# GOOGLE_SHEET_PERSONNEL_ID — DEBUG=false en production.
+```
+
+Générer `SECRET_KEY` et la coller dans `.env` — **obligatoire hors DEBUG**,
+`app/auth/tokens.py` refuse de signer un jeton d'URL sans elle :
+
+```bash
+.venv/bin/python -c "import secrets; print(secrets.token_urlsafe(50))"
 ```
 
 Déposer le compte de service Google (jamais versionné) :
@@ -80,32 +78,22 @@ scp credentials/service_account.json hakili@VOTRE_IP:/opt/hakili/Hakili_Lab/cred
 ssh hakili@VOTRE_IP chmod 600 /opt/hakili/Hakili_Lab/credentials/service_account.json
 ```
 
-Générer la clé secrète Django et la coller dans `.env` :
+⚠ **Avant le tout premier `alembic upgrade head` contre Neon**, si la base
+porte déjà le schéma créé par les migrations Django (`referentiel_*`,
+`suivi_*`) : suivre `backend/docs/bascule_neon.md` (`alembic stamp head`,
+vérification colonne à colonne sur une branche Neon dédiée) — sinon Alembic
+tente de recréer des tables qui existent déjà et échoue bruyamment (rien
+n'est perdu, mais rien ne démarre non plus).
+
+Build initial et migration :
 
 ```bash
-.venv/bin/python -c "from django.core.management.utils import get_random_secret_key as k; print(k())"
-```
-
-⚠ Si la base Neon porte déjà les tables `copie`/`document` créées par
-l'ancien Alembic (cas d'une base existante réutilisée depuis Render/Railway),
-appliquer **une seule fois** l'étape décrite dans `docs/deploiement.md`
-(section "Une étape manuelle") avant `migrate` :
-
-```bash
-.venv/bin/python manage.py migrate suivi 0007 --fake
-```
-
-Puis, normalement :
-
-```bash
-.venv/bin/python manage.py collectstatic --noinput
-.venv/bin/python manage.py migrate --noinput
-.venv/bin/python manage.py importer_referentiel
-.venv/bin/python manage.py verifier_installation
+.venv/bin/alembic -c backend/alembic.ini upgrade head
+cd frontend && npm ci && npm run build && cd ..
 exit  # retour en root
 ```
 
-## Étape 3 — Service systemd
+## Étape 3 — Service systemd (backend)
 
 ```bash
 cp /opt/hakili/Hakili_Lab/deploy/hakili.service /etc/systemd/system/hakili.service
@@ -114,11 +102,9 @@ systemctl enable --now hakili
 systemctl status hakili
 ```
 
-Le service écoute sur un socket Unix (`/run/hakili/gunicorn.sock`), jamais
-directement exposé — seul nginx y accède. Les mêmes réglages gunicorn que le
-`Procfile` (`--workers 2 --threads 4 --timeout 180`) sont repris, pour la même
-raison : les corrections tournent dans un thread du process web, et un dépôt
-de lot peut être long sur une connexion lente.
+`hakili.service` exécute `alembic upgrade head` avant chaque démarrage
+(sans effet si le schéma est déjà à jour), puis lance uvicorn en 2 workers
+sur `127.0.0.1:8000` — jamais exposé directement, seul nginx y accède.
 
 ## Étape 4 — nginx et HTTPS
 
@@ -136,31 +122,24 @@ redirection 80→443, et programme le renouvellement automatique (timer
 systemd `certbot.timer`, déjà activé par le paquet Debian/Ubuntu — vérifier
 avec `systemctl list-timers | grep certbot`).
 
-**Point d'attention propre au VPS** : `hakili/settings.py` active
-`SECURE_SSL_REDIRECT` hors `DEBUG` et lit le protocole via l'en-tête
-`X-Forwarded-Proto` (`SECURE_PROXY_SSL_HEADER`). `deploy/nginx_hakili.conf`
-envoie bien cet en-tête (`proxy_set_header X-Forwarded-Proto $scheme`) — sans
-lui, la redirection HTTPS de Django boucle indéfiniment. Sur Render/Railway
-c'était géré par la plateforme ; sur un VPS c'est nginx qui doit le faire, il
-n'y a personne d'autre.
-
-Mettre à jour `.env` avec le domaine réel puis redémarrer le service :
-
-```bash
-# DJANGO_ALLOWED_HOSTS=votredomaine.example
-# DJANGO_CSRF_TRUSTED_ORIGINS=https://votredomaine.example
-systemctl restart hakili
-```
+**Point d'attention** : `app/security.py::SecuriteProductionMiddleware`
+force la redirection HTTPS et l'en-tête HSTS hors `DEBUG`, en lisant le
+protocole via `X-Forwarded-Proto`. `deploy/nginx_hakili.conf` envoie bien
+cet en-tête sur `/api/` — sans lui, la redirection HTTPS boucle
+indéfiniment côté backend.
 
 ## Étape 5 — Vérification
 
 ```bash
-python manage.py verifier_installation --copie copie.pdf --test socle_3eme --eleve HAK-...
+curl -s https://votredomaine.example/api/sante
+# {"ok": true}
 ```
 
-Comme documenté dans `docs/deploiement.md` : c'est le seul contrôle qui
-prouve que la chaîne tient de bout en bout avec les vraies API, en conditions
-de production.
+Puis un aller-retour réel depuis un navigateur : connexion nom+PIN, dépôt
+d'une copie, génération d'un plan et d'une fiche PDF — le contrôle
+`manage.py verifier_installation` de l'ère Django n'a pas d'équivalent
+FastAPI construit (perte assumée, voir le commit `feat!: retire Django`) ;
+c'est ce parcours manuel qui en tient lieu tant qu'il n'est pas reconstruit.
 
 ---
 
@@ -171,30 +150,31 @@ ssh root@VOTRE_IP
 bash /opt/hakili/Hakili_Lab/deploy/deploy.sh
 ```
 
-Fait l'équivalent du `release:` + redémarrage `web:` de Render/Railway :
-`git pull`, installation des dépendances, `collectstatic`, `migrate`,
-redémarrage du service. Prend la branche `main` par défaut
+`git pull`, dépendances backend, migration Alembic, build frontend,
+redémarrage de `hakili.service`. Prend la branche `main` par défaut
 (`deploy.sh nom-de-branche` pour une autre branche).
 
 ---
 
-## Ce qui NE change pas par rapport à `docs/deploiement.md`
+## Ce qui ne change pas par rapport à l'ancien déploiement Django
 
-- La table des variables d'environnement obligatoires/recommandées.
-- L'étape manuelle `migrate suivi 0007 --fake` (une seule fois, sur une base
-  Neon déjà migrée par Alembic).
+- Neon comme base, avec les mêmes réglages de tolérance au réveil de
+  connexion (`pool_pre_ping`/`pool_recycle=300`, D-CEO-19 — portés dans
+  `backend/app/db.py`).
 - Le point ouvert sur les données personnelles (CIL Burkina Faso, PIN en
-  clair dans le Sheet, consentement parental) — indépendant de l'hébergeur.
-- **Une seule instance** : le suivi de progression passe par la base, mais le
-  thread qui travaille vit dans un processus donné. Cette contrainte
-  s'applique identiquement sur un VPS — ne pas faire tourner deux
-  `hakili.service` ou un load-balancer devant plusieurs instances tant
-  qu'une file de tâches n'est pas mise en place.
+  clair dans le Sheet, consentement parental) — indépendant de la pile.
+- **Une seule instance** : pas de file de tâches, ne pas faire tourner deux
+  `hakili.service` ni un load-balancer devant plusieurs instances.
+- Le disque du VPS est persistant par nature — `runs/` (fiches PDF
+  générées) survit à un redémarrage du service comme à un reboot.
 
-## Ce qui disparaît
+## Ce qui disparaît avec Django
 
-Le point ouvert "stockage des fichiers" de `docs/deploiement.md` (système de
-fichiers éphémère, volume persistant à envisager) **ne s'applique plus** :
-le disque d'un VPS Hetzner est persistant par nature. `runs/` survit à un
-redémarrage du service comme à un reboot de la machine — aucun volume
-supplémentaire à attacher.
+- `collectstatic`/WhiteNoise — le frontend est un build statique servi par
+  nginx. `DJANGO_ALLOWED_HOSTS`/`DJANGO_CSRF_TRUSTED_ORIGINS` n'existent plus
+  (le cookie de session FastAPI est une clé opaque vérifiée en base, voir
+  `backend/app/auth/deps.py`) ; `DJANGO_SECRET_KEY` devient `SECRET_KEY`
+  (même obligation hors DEBUG, seulement pour les jetons d'URL signés —
+  voir Étape 2 ci-dessus).
+- Le `Procfile` (Render/Railway, `docs/deploiement.md`) et `manage.py
+  verifier_installation` — sans équivalent FastAPI à ce jour.

@@ -12,46 +12,35 @@ Ce document a deux parties : l'état réel de l'infrastructure aujourd'hui, puis
 
 ## Partie 1 — État réel de l'infrastructure
 
-`docs/decision_register.md` (D001 à D-CEO-25) est la **source de vérité datée** pour toute décision d'architecture. Lis-le avant de toucher à l'auth, à la persistance, ou aux Sheets — ce qui suit n'en est qu'un résumé, il peut avoir été complété depuis.
+`docs/decision_register.md` (D001 à D-CEO-43) est la **source de vérité datée** pour toute décision d'architecture. Lis-le avant de toucher à l'auth, à la persistance, ou aux Sheets — ce qui suit n'en est qu'un résumé, il peut avoir été complété depuis.
 
-### Chantier en cours : bascule vers FastAPI + React (D-CEO-42)
+### FastAPI + React portent toute l'interface (D-CEO-42/43, Django retiré le 2026-08-21)
 
-**D-CEO-39 et D-CEO-40 (ci-dessous) sont en cours d'inversion**, à la demande explicite de l'utilisateur : le rendu serveur Django est remplacé par une API **FastAPI** (`backend/`, SQLAlchemy 2.0 + Alembic) et une interface **React + Vite + Tailwind** (`frontend/`), pour un rendu visuel plus professionnel. Détail complet de la décision : `docs/decision_register.md` D-CEO-42. Plan d'exécution suivi phase par phase : `C:\Users\Urie\.claude\plans\majestic-nibbling-anchor.md`.
+**Django est supprimé du dépôt** (commit `feat!: retire Django, FastAPI + React devient la seule interface`, 2026-08-21) — plus de coexistence, plus de `manage.py`, `hakili/`, `comptes/`, `correction_web/`, `suivi_web/`, `referentiel/`, `suivi/`. L'API **FastAPI** (`backend/`, SQLAlchemy 2.0 + Alembic) et l'interface **React + Vite + Tailwind** (`frontend/`) sont la seule interface, en développement comme en production. Détail de la décision : `docs/decision_register.md` D-CEO-42 (bascule) et D-CEO-43 (module 7, fiches de travail).
 
-État à ce jour : les 17 écrans hors admin sont portés et testés (95 tests `pytest backend/tests/`, 40 tests Vitest côté `frontend/`), `src/` reste intact et réutilisé tel quel par les deux stacks. `backend/`/`frontend/` se construisent **à côté** de Django, contre une base de développement séparée — Django continue de servir en production sans interruption, et **`/api/admin/*` reste explicitement hors scope** (l'admin Django fait toujours foi pour le CRUD référentiel/suivi). La bascule en production (adoption du schéma Neon, déploiement Hetzner, retrait de Django) n'a **pas** eu lieu — elle est documentée (`backend/docs/bascule_neon.md`) mais pas exécutée, elle demande les accès de production et une fenêtre de maintenance choisie par l'utilisateur.
+`src/api/`, `src/pipeline/`, `src/knowledge/`, `src/models/`, `src/core/`, `src/integrations/` restent **indépendants du framework** — ne pas y introduire de dépendance à FastAPI. Cette discipline a survécu à deux migrations de framework (Streamlit → Django → FastAPI) sans effet sur ces modules ni sur `tests/`.
 
-Tant que cette bascule n'est pas faite, **la partie 1 ci-dessous (Django) reste exacte et à jour** — elle décrit ce qui tourne réellement en production.
+⚠ **La bascule en production n'a pas eu lieu.** Le code tourne en dev contre une base séparée (121 tests `pytest backend/tests/`, 40 tests Vitest `frontend/`, 240 tests `pytest tests/`), mais Neon porte encore le schéma créé par les anciennes migrations Django — l'adopter par Alembic (`alembic stamp head`, vérification colonne à colonne) est une étape manuelle documentée mais pas exécutée, voir `backend/docs/bascule_neon.md`. Le déploiement VPS Hetzner (`deploy/`, `docs/deploiement_vps_hetzner.md`) est prêt (2026-08-22) mais jamais exécuté contre un vrai serveur — les deux demandent les accès de production et une fenêtre choisie par l'utilisateur.
 
-### Django porte toute l'interface (D-CEO-28, achevé par D-CEO-39)
-
-**Streamlit est retiré** depuis le 2026-08-05. Django porte les 11 tables, l'authentification nom+PIN adossée au Sheet (`comptes/`), le suivi des élèves (`suivi_web/`), et la correction — copie unique, classe entière, mode libre (`correction_web/`).
-
-⚠ **Un contrôle n'a jamais été passé, et son absence n'est pas comblée par les tests :** `manage.py verifier_installation --copie … --test … --eleve …` exécute une correction complète sur une vraie copie. C'est le seul contrôle qui prouve que la chaîne tient de bout en bout. Il conditionnait le retrait de Streamlit ; le retrait a eu lieu sans lui (D-CEO-39), donc **il reste à faire**.
-
-`src/api/`, `src/pipeline/`, `src/knowledge/`, `src/models/`, `src/core/`, `src/integrations/` sont **indépendants du framework** — ne pas y introduire de dépendance à Django. Cette discipline a survécu à la migration, elle n'est pas devenue inutile : c'est elle qui a rendu le retrait de Streamlit sans effet sur les tests.
-
-**Transition achevée le 2026-08-05 (D-CEO-40) :** `copie` et `document` sont passées sous Django, SQLAlchemy et Alembic sont retirés. Un seul ORM, un seul système de migrations.
-
-⚠ **Une étape manuelle reste due sur Neon :** `python manage.py migrate suivi 0007 --fake`, une seule fois — les deux tables y existent déjà. Sans elle, le déploiement échoue bruyamment (transaction annulée, rien de perdu). Détail : `docs/deploiement.md`.
+**Perte assumée au retrait de Django, sans équivalent FastAPI construit à ce jour :** dix commandes `manage.py` de l'outillage v2 (`verifier_installation`, `rapprocher_remediation`, `corpus`, `diagnostiquer`, `donnees_demo`, `mesurer_plancher`, `recalculer_couts`, `taguer_corpus`), récupérables via `git show main:<chemin>` si besoin. Aucune n'est un écran de l'app. En particulier, **le contrôle qui exécute une correction complète sur une vraie copie de bout en bout** (`verifier_installation --copie … --test … --eleve …`) n'a pas d'équivalent — c'est le seul contrôle qui prouvait que la chaîne tenait avec les vraies API, et il n'a jamais été repassé depuis le retrait.
 
 **Commandes :**
 ```bash
-DEBUG=true python manage.py runserver                 # interface web (admin sur /admin/)
-DEBUG=true python manage.py verifier_installation     # contrôle avant mise en service
-DEBUG=true python manage.py importer_referentiel      # import du classeur (idempotent)
-DEBUG=true DATABASE_URL="sqlite:///:memory:" python manage.py test   # tests Django
-python -m pytest tests/                               # tests du pipeline
+make setup && make run    # backend uvicorn (reload), :8000 — ou voir Makefile
+cd frontend && npm install && npm run dev   # frontend Vite, proxy /api vers :8000
+make test                 # pytest tests/ + pytest backend/tests/
+cd frontend && npm test   # Vitest
+python -m alembic -c backend/alembic.ini upgrade head   # migrations (base de dev)
+python backend/scripts/importer_referentiel.py          # import du classeur (idempotent)
 ```
 Note : `DATABASE_URL` garde la convention à **trois** barres (`sqlite:///:memory:`),
-héritée de SQLAlchemy — la forme est restée après son retrait, changer le format
-casserait les configurations en place pour rien.
-
-Un piège à connaître : les settings Django **ne lisent pas** `src/core/config.py` (son `Settings()` exige `anthropic_api_key`, ce qui casserait `migrate`). `Evaluation.copy_id` reste un **champ texte** — la raison technique a disparu avec SQLAlchemy, en faire une clé étrangère est désormais possible mais c'est une décision séparée.
+héritée de SQLAlchemy — `backend/app/db.py` et `src/core/config.py` la lisent tous
+les deux, une seule variable pour toute la persistance applicative.
 
 ### Persistance : deux systèmes, un seul rôle chacun
 - **Google Sheets** (`src/integrations/google_sheets.py`) — source de vérité pour l'**identité** : élèves (`get_eleves()`) et personnel (`get_personnel()`, un seul Sheet fusionné pour enseignants/responsables/admin, colonne `role`). Contrôlé par un tiers (le docteur), lecture seule côté app. **Ne jamais recréer une table `eleve` ou `utilisateur` en base** — ça a déjà été fait et démoli deux fois (D-CEO-20, D-CEO-21) parce que ça crée une deuxième source de vérité qui diverge.
-- **Postgres/Neon** (ORM Django) — `copie` (copy_id, `identifiant_hakili` texte — pas de FK vers une table élève —, classe, notes) et `document` (scan/rapport/remédiation en `bytea`), dans `suivi/models.py` avec le reste. Le pipeline y écrit en best-effort à 5 points d'injection (D-CEO-19), **par `src/pipeline/depot.py`** et sans connaître Django ; le seul point non best-effort est la vérification que l'élève existe dans le Sheet **avant** tout appel IA (D-CEO-20).
-- `CONN_HEALTH_CHECKS` / `CONN_MAX_AGE=300` dans les settings — Neon met la base en veille, ne pas retirer ça sans comprendre pourquoi c'est là (D-CEO-19).
+- **Postgres/Neon** (SQLAlchemy, `backend/app/models/`) — `copie` (copy_id, `identifiant_hakili` texte — pas de FK vers une table élève —, classe, notes) et `document` (scan/rapport/remédiation en `bytea`), dans `backend/app/models/correction.py` avec le reste du suivi (`suivi.py`, `referentiel.py`, `auth.py`). Le pipeline y écrit en best-effort à 5 points d'injection (D-CEO-19), **par `src/pipeline/depot.py`** et sans connaître FastAPI (implémentation : `backend/app/depot.py::DepotFastAPI`) ; le seul point non best-effort est la vérification que l'élève existe dans le Sheet **avant** tout appel IA (D-CEO-20).
+- `pool_pre_ping=True` / `pool_recycle=300` dans `backend/app/db.py` — Neon met la base en veille, ne pas retirer ça sans comprendre pourquoi c'est là (D-CEO-19, réglage porté depuis Django).
 
 ### Authentification et rôles
 Connexion par **nom (liste déroulante recherchable) + PIN à 4 chiffres**, les deux lus dans le Sheet personnel à chaque connexion — pas de mot de passe, pas de table `credentials` en base (supprimée, D-CEO-25). Rôles : `administrateur`, `responsable`, `enseignant`, dérivés de la colonne `role` du Sheet. `src/services/auth_service.py` porte la logique ; `UserRole` (`src/core/roles.py`) n'est qu'un enum de confort, pas un type de colonne SQL.
@@ -61,11 +50,11 @@ Centres dérivés dynamiquement des Sheets (`src/core/centre_normalizer.py`, `de
 ### Périmètre : un centre d'encadrement, pas une école (D-CEO-32)
 **Toute personne autorisée voit tous les élèves et peut corriger n'importe quelle copie.** Le cloisonnement par centre et par classe a été retiré : les enseignants tournent et reprennent les copies d'un collègue absent, le filtrage bloquait un travail légitime sans rien protéger. Une copie mal attribuée est empêchée par la **sélection explicite de l'élève** (D-CEO-20), pas par le périmètre. Le rôle ne commande plus qu'une chose : l'accès à l'administration. Les affectations (centre, classe) restent lues du Sheet, à titre informatif.
 
-### Écrans (`suivi_web/`, migrés depuis Streamlit)
+### Écrans (`frontend/src/routes/`, servis par `backend/app/routers/`)
 - **Accueil** : liste des élèves avec pastille de tendance (vert/orange/rouge/gris, `src/core/tendance.py`, `SEUIL_TENDANCE = 1.0`), baisses en premier.
-- **Profil élève** : une seule vue pour tous les rôles — tendance, copies chronologiques, documents servis par jeton signé (`suivi_web/jetons.py`, jamais `identifiant_hakili` en clair dans une URL).
-- **Parcours** (`/parcours/<jeton>/`) : plan de remédiation ordonné, volume, palier, inscription au programme.
-- **Admin** : statistiques + `/personnel/` en lecture seule (qui peut se connecter, qui ne le peut pas, comptes en défaut en premier).
+- **Profil élève** (`ProfilEleve.tsx`) : une seule vue pour tous les rôles — tendance, copies chronologiques, documents servis par jeton signé (`backend/app/auth/tokens.py`, jamais `identifiant_hakili` en clair dans une URL).
+- **Détail de session** (`SessionDetail.tsx`) : plan de remédiation ordonné, volume, palier, inscription au programme, lien de fiche de travail par problème confirmé (module 7, D-CEO-43).
+- **Admin** (`Administration.tsx`) : reste explicitement hors du périmètre `/api/admin/*` porté par ce chantier — pas de CRUD référentiel/suivi côté React à ce jour.
 
 ### Pipeline de correction (existant, réutilisable — chantier v2 vient s'y ajouter, pas le remplacer entièrement)
 - Ingestion PDF/images 150 DPI (`src/pipeline/ingestion.py`)
@@ -182,23 +171,26 @@ python manage.py makemigrations
 | `src/pipeline/pipeline.py` | Pipeline de correction principal (Phase A/B, déjà scindé) |
 | ~~`src/pipeline/zones.py`~~ | **Supprimé le 2026-08-05 (D-CEO-38).** Le module 2 découpait la copie par zones ; trois copies réelles imprimées et scannées l'ont mis en défaut, et il reconstituait par la géométrie une correspondance que la correction produit déjà. Ne pas le reconstruire sans lire D-CEO-38 |
 | `src/models/domain.py` | Schémas Pydantic pipeline — `TeacherDecision`, `CopyGrade`, `DiagnosticResult` |
-| `hakili/settings.py` | Configuration Django — base Neon, sécurité, support SQLite pour les tests |
-| `referentiel/models.py` | 7 tables du référentiel et de la banque de questions (importées du classeur) |
-| `suivi/models.py` | 6 tables de suivi — `Probleme.changer_etat()`, `Transition`, `Session.inscrire()` et `calculer_palier()`, cœur du dispositif |
-| `suivi/plan.py` | Plan de remédiation — tri topologique sur les prérequis, coût, palier (module 6) |
-| `referentiel/couts.py` | Formule de coût — arrondi 0,5 h, plancher 0,5, plafond 4, volume de repli lycée (D-CEO-29) |
-| `referentiel/contexte.py` | Ancrage du diagnostic reconstruit depuis le référentiel (D-CEO-30) |
-| `referentiel/diagnostic.py` | **Diagnostic contraint (module 4)** — QCM court-circuités sans appel de modèle, codes admis par question, rejet et redemande. `reponses_depuis_correction()` est le point d'entrée en production : il reprend les réponses de la correction déjà faite (D-CEO-38) |
-| `suivi/diagnostic.py` | Écriture des problèmes du module 4 en `hypothese` — refuse d'écrire dans une évaluation du corpus |
-| `suivi/mesure.py` | Écart module 4 ↔ corpus : exacts, compétence juste mais type faux, manqués, en trop, écart de coût |
-| `referentiel/niveaux.py` | Ordre des niveaux — une seule définition, partagée par le tagage du corpus et le diagnostic |
+| `backend/app/db.py` | Moteur SQLAlchemy — base Neon, `pool_pre_ping`/`pool_recycle`, support SQLite pour les tests |
+| `backend/app/models/referentiel.py` | 7 tables du référentiel et de la banque de questions (importées du classeur) |
+| `backend/app/models/suivi.py` | Tables de suivi — `Probleme`, `Transition`, `Session`, `FicheRemediation` (module 7, D-CEO-43) |
+| `backend/app/services/etats.py` | `changer_etat()` — cycle de vie d'un `Probleme`, cœur du dispositif |
+| `backend/app/services/session_service.py` | `inscrire()` et `calculer_palier()` — inscription au programme, palier A/B/C |
+| `backend/app/services/plan.py` | Plan de remédiation — tri topologique sur les prérequis, coût, palier (module 6) |
+| `backend/app/services/fiche_remediation.py` | Fiche de travail — compétence × type d'erreur × niveau, catalogue versionné (module 7, D-CEO-43) |
+| `backend/app/services/couts.py` | Formule de coût — arrondi 0,5 h, plancher 0,5, plafond 4, volume de repli lycée (D-CEO-29) |
+| `backend/app/services/contexte.py` | Ancrage du diagnostic reconstruit depuis le référentiel (D-CEO-30) |
+| `backend/app/services/diagnostic_referentiel.py` | **Diagnostic contraint (module 4)** — QCM court-circuités sans appel de modèle, codes admis par question, rejet et redemande. `reponses_depuis_correction()` est le point d'entrée en production : il reprend les réponses de la correction déjà faite (D-CEO-38) |
+| `backend/app/services/diagnostic_suivi.py` | Écriture des problèmes du module 4 en `hypothese` — refuse d'écrire dans une évaluation du corpus |
+| ~~`suivi/mesure.py`~~ | **Supprimé au retrait de Django (D-CEO-42/43), pas de commande FastAPI équivalente.** Écart module 4 ↔ corpus (exacts, compétence juste/type faux, manqués, en trop, écart de coût) — récupérable via `git show main:suivi/mesure.py` |
+| `backend/app/services/niveaux.py` | Ordre des niveaux — une seule définition, partagée par le tagage du corpus et le diagnostic |
 | `prompts/diagnostic_contraint_prompt.md` | Prompt du diagnostic contraint — aucun champ de prose dans la sortie |
-| `comptes/` | Authentification Django adossée au Sheet — session signée, décorateurs d'accès |
-| `correction_web/` | Flux de correction sous Django — copie unique, lot, mode libre ; état en base, pas en session |
-| `suivi_web/jetons.py` | Jetons signés dans les URL à la place de `identifiant_hakili` (D-CEO-25) |
-| `referentiel/management/commands/importer_referentiel.py` | Import idempotent du classeur |
+| `backend/app/auth/deps.py` | Authentification nom+PIN adossée au Sheet — cookie de session (clé opaque en base), dépendances FastAPI (`connexion_requise`/équivalents) |
+| `backend/app/routers/corrections.py` | Flux de correction — copie unique, lot, mode libre ; état en base, pas en session |
+| `backend/app/auth/tokens.py` | Jetons signés dans les URL à la place de `identifiant_hakili` (D-CEO-25) |
+| `backend/scripts/importer_referentiel.py` | Import idempotent du classeur (`make importer`) |
 | `src/pipeline/depot.py` | Contrat de persistance du pipeline — 4 méthodes, aucun framework (D-CEO-40) |
-| `correction_web/depot.py` | Son implémentation Django, installée par `CorrectionWebConfig.ready()`. Opérations **rejouables** : le retry du pipeline en dépend |
+| `backend/app/depot.py` | Son implémentation FastAPI (`DepotFastAPI`), installée dans `app/main.py::lifespan`. Opérations **rejouables** : le retry du pipeline en dépend |
 | `src/integrations/google_sheets.py` | Source de vérité identité élèves/personnel |
 | `src/services/auth_service.py` | Authentification nom+PIN par rôle |
 | `src/core/tendance.py` | Calcul de tendance (pattern à réutiliser pour les indicateurs module 9) |

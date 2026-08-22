@@ -1,15 +1,17 @@
 # Adoption du schéma Neon existant par Alembic
 
-**Statut : non exécuté.** Ce document décrit la procédure prévue pour faire
-adopter par Alembic (backend FastAPI) le schéma déjà présent sur la base Neon
-de production — schéma actuellement possédé par les migrations **Django**
-(`referentiel/`, `suivi/`, D-CEO-40). C'est la dernière étape avant de pouvoir
-démarrer le backend FastAPI contre la base réelle. **À exécuter par vous**,
-avec vos accès Neon, pas par un agent automatisé — voir "Ce qui ne sera pas
-fait à votre place" plus bas.
+**Statut : non exécuté.** Ce document décrit la procédure pour faire adopter
+par Alembic (backend FastAPI, seule interface depuis le retrait de Django —
+D-CEO-42/43) le schéma présent sur la base Neon de production — schéma
+possédé jusqu'ici par les migrations **Django**, retirées du dépôt le
+2026-08-21 mais dont l'empreinte reste sur Neon (`referentiel_*`,
+`suivi_*`, D-CEO-40) tant que cette procédure n'a pas été exécutée. C'est la
+dernière étape avant de démarrer le backend FastAPI en production contre la
+base réelle. **À exécuter par vous**, avec vos accès Neon, pas par un agent
+automatisé — voir "Ce qui ne sera pas fait à votre place" plus bas.
 
-Contexte de la décision : `docs/decision_register.md` D-CEO-42 (racine du
-dépôt). Chantier suivi dans `C:\Users\Urie\.claude\plans\majestic-nibbling-anchor.md`.
+Contexte de la décision : `docs/decision_register.md` D-CEO-42/D-CEO-43
+(racine du dépôt). Déploiement applicatif : `docs/deploiement_vps_hetzner.md`.
 
 ## Précédent direct dans ce projet
 
@@ -79,30 +81,19 @@ future migration créée après la bascule s'appliquera normalement.
   identifiants de production.
 - Créer la branche Neon de vérification (étape 1) — nécessite votre accès
   au projet Neon.
-- Déployer l'image `backend/Dockerfile` sur le VPS Hetzner — nécessite un
-  accès SSH que cet agent n'a pas. Voir `docs/deploiement_vps_hetzner.md`
-  pour le pattern de déploiement Django déjà en place ; le backend FastAPI
-  suit le même schéma (service systemd ou conteneur Docker derrière nginx),
-  sur un port différent (8011, voir `backend/Dockerfile`) le temps de faire
-  tourner les deux stacks en parallèle avant la coupure finale.
-- Retirer Django — prématuré tant que la bascule n'a pas été validée en
-  production réelle.
+- Provisionner le VPS et déployer réellement — nécessite un accès SSH que
+  cet agent n'a pas. `docs/deploiement_vps_hetzner.md` et `deploy/`
+  (`provision_serveur.sh`, `hakili.service`, `nginx_hakili.conf`,
+  `deploy.sh`) sont prêts et documentés (2026-08-22), jamais exécutés
+  contre un vrai serveur.
 
 ## Frontend : build et service statique
 
-`frontend/npm run build` produit `frontend/dist/` (assets statiques,
-découpés en chunks par route — voir Partie F du plan, `React.lazy()`).
-Deux options pour le servir, aucune choisie à ce stade :
-
-- **nginx** (recommandé, cohérent avec `deploy/nginx_hakili_docker.conf`
-  déjà en place pour Django) : `frontend/dist/` servi en statique par nginx,
-  qui proxy les requêtes `/api/*` vers le backend FastAPI (port 8011).
-  Avantage : même reverse proxy que Django aujourd'hui, un seul point de
-  terminaison TLS à gérer.
-- **`StaticFiles` de FastAPI** (`from fastapi.staticfiles import StaticFiles`) :
-  le backend sert directement `dist/` en plus de l'API. Plus simple à
-  déployer (un seul processus), mais mélange le rôle "API" et "serveur de
-  fichiers statiques" que nginx sépare proprement.
-
-Aucun de ces deux chemins n'a été construit ni testé — décision à prendre
-au moment de la bascule, pas avant.
+**Tranché (2026-08-22, voir `docs/deploiement_vps_hetzner.md`) : nginx.**
+`frontend/dist/` (produit par `npm run build`) est servi en statique par
+nginx, qui proxy `/api/*` vers le backend FastAPI (`127.0.0.1:8000`) — un
+seul point de terminaison TLS, aucun CORS à gérer puisque le frontend
+appelle l'API en relatif. L'option alternative (`StaticFiles` de FastAPI,
+un seul processus) n'a pas été retenue pour garder le rôle "API" et
+"serveur de fichiers statiques" séparés, comme le faisait déjà nginx côté
+Django.

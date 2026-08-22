@@ -1,22 +1,22 @@
-# Hakili Lab — image Docker du backend FastAPI (D-CEO-42, chantier de
-# bascule vers FastAPI + React — voir docs/decision_register.md D-CEO-42 et
+# Hakili Lab — image Docker du backend FastAPI (D-CEO-42/43, seule interface
+# depuis le retrait de Django — voir docs/decision_register.md et
 # backend/docs/bascule_neon.md).
 #
 # ⚠️ Livrable de préparation, pas encore déployé : ce fichier n'a jamais été
-# construit ni poussé contre un registre ni exécuté sur le VPS Hetzner. La
-# bascule reste une décision et une action de l'utilisateur.
+# construit ni poussé contre un registre ni exécuté en production. Chemin de
+# déploiement retenu pour le VPS Hetzner : systemd + nginx natifs, sans
+# conteneur — voir docs/deploiement_vps_hetzner.md et deploy/. Cette image
+# reste une alternative disponible (registre, autre hébergeur), pas le
+# chemin documenté pas à pas.
 #
 # ⚠️ Contexte de build = LA RACINE DU DÉPÔT, pas `backend/` : `backend/app`
 # importe `src/` par chemin relatif au dépôt (bootstrap dans
-# `backend/app/__init__.py`), à l'identique de ce que fait Django avec le
-# même `src/`. Construire avec :
+# `backend/app/__init__.py`). Construire avec :
 #   docker build -f backend/Dockerfile -t hakili-backend .
 #
-# Mirroir volontaire du `Dockerfile` racine (Django) : mêmes principes
-# (utilisateur non-root, secrets montés en volume jamais copiés dans
-# l'image, port interne derrière un reverse proxy) — uvicorn à la place de
-# gunicorn+wsgi, `PORT` par défaut différent (8011) pour pouvoir tourner
-# à côté de l'instance Django (8010) le temps de la bascule.
+# Principes : utilisateur non-root, secrets montés en volume jamais copiés
+# dans l'image, port interne (8011) derrière un reverse proxy — jamais
+# exposé directement.
 
 FROM python:3.12-slim
 
@@ -31,7 +31,7 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 
 # `src/`, `prompts/`, `data/` (référentiel/connaissance packagée, pas les
 # données de copies/élèves — exclues par .dockerignore) et `backend/` : le
-# strict nécessaire à l'exécution de l'API, pas tout le dépôt Django.
+# strict nécessaire à l'exécution de l'API.
 COPY --chown=hakili src/ /app/src/
 COPY --chown=hakili prompts/ /app/prompts/
 COPY --chown=hakili data/ /app/data/

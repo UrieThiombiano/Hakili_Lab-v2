@@ -1,0 +1,26 @@
+[Unit]
+Description=Hakili Lab — API FastAPI (backend)
+After=network.target
+
+[Service]
+Type=simple
+User=hakili
+Group=hakili
+WorkingDirectory=/opt/hakili/Hakili_Lab
+EnvironmentFile=/opt/hakili/Hakili_Lab/.env
+# Migration avant chaque démarrage : sans effet si le schéma est déjà à
+# jour (même principe que backend/entrypoint.sh en conteneur).
+ExecStartPre=/opt/hakili/Hakili_Lab/.venv/bin/alembic -c backend/alembic.ini upgrade head
+ExecStart=/opt/hakili/Hakili_Lab/.venv/bin/uvicorn app.main:app \
+    --app-dir backend \
+    --host 127.0.0.1 \
+    --port 8000 \
+    --workers 2
+Restart=on-failure
+RestartSec=5
+
+# Le socket n'est jamais exposé directement — seul nginx (localhost) y
+# accède, voir deploy/nginx_hakili.conf.
+
+[Install]
+WantedBy=multi-user.target

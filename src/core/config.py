@@ -61,10 +61,14 @@ class Settings(BaseSettings):
     database_url: str = ""
     debug: bool = False
 
-    # Django uniquement (hakili/settings.py la lit via os.environ) — déclarée
-    # ici seulement parce que ce Settings() partage le même .env et rejette
-    # (extra_forbidden) toute variable non déclarée.
     hakili_acces_libre: bool = False
+
+    # Clé de signature des jetons d'URL opaques (`backend/app/auth/tokens.py`
+    # — élève/copie/session jamais en clair dans un lien, D-CEO-25). Facultative
+    # hors DEBUG (repli de dev non secret) ; `tokens.py` refuse de signer un
+    # jeton sans elle une fois DEBUG=false, plutôt que de tourner avec une clé
+    # publique connue de quiconque lit ce dépôt.
+    secret_key: str = ""
 
     # Google Sheets (source de vérité élèves/personnel, compte de service —
     # optionnel). Le personnel (enseignants, responsables, administrateur)
