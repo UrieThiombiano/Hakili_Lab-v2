@@ -6,11 +6,22 @@ import { Card, CardTitre } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import { EtatErreur, Spinner } from "@/components/ui/Etat"
 import { Stat, StatRow } from "@/components/ui/Stat"
-import { correctionsApi, elevesApi } from "@/lib/api"
+import { TypeErreurBadge, DiagnosticLisible } from "@/components/ui/Badge"
+import { LienPdf } from "@/components/ui/LienPdf"
+import { correctionsApi, elevesApi, sessionsApi } from "@/lib/api"
+import { formatHeures } from "@/lib/format"
 import { useToast } from "@/hooks/useToast"
 import { useConfirm } from "@/hooks/useConfirm"
 import { cn } from "@/lib/utils"
-import { CheckCheck, CircleCheck, Download, Pencil, SquareCheck, Trash2, TriangleAlert } from "lucide-react"
+import { ArrowUpRight, CheckCheck, CircleCheck, Pencil, SquareCheck, Trash2, TriangleAlert } from "lucide-react"
+
+/** Libellés lisibles pour les types de document persistés — voir
+ * `document.type` en base (`rapport`, `sujet_confirmation`...). */
+const LIBELLES_DOCUMENT: Record<string, string> = {
+  rapport: "Rapport (PDF)",
+  remediation: "Sujet de remédiation (PDF)",
+  sujet_confirmation: "Sujet de confirmation T1 (PDF)",
+}
 
 /** Formatage FR compact — les barèmes portent des fractions (1/3 pt…), on ne
  * veut jamais afficher `0.333333` à l'écran. */
@@ -50,7 +61,15 @@ export default function Suivre() {
         {data.etat === "echec" && <Echec erreurs={data.erreurs} onSupprimer={() => supprimer.mutate()} />}
         {data.etat === "relecture" && data.resultat && <Relecture jeton={jeton} resultat={data.resultat} onValide={() => queryClient.invalidateQueries({ queryKey: ["correction", jeton] })} />}
         {data.etat === "validation" && data.resultat && <Validation jeton={jeton} resultat={data.resultat} onValide={() => queryClient.invalidateQueries({ queryKey: ["correction", jeton] })} />}
-        {data.terminee && data.resultat && <Resultats jeton={jeton} resultat={data.resultat} onSupprimer={() => supprimer.mutate()} />}
+        {data.terminee && data.resultat && (
+          <Resultats
+            jeton={jeton}
+            resultat={data.resultat}
+            documents={data.documents}
+            jetonSession={data.jeton_session}
+            onSupprimer={() => supprimer.mutate()}
+          />
+        )}
       </div>
     </AppShell>
   )
@@ -358,7 +377,19 @@ function noteFinale(q: { teacher_decision: string; teacher_score: number | null;
   return q.score
 }
 
-function Resultats({ jeton, resultat, onSupprimer }: { jeton: string; resultat: NonNullable<import("@/types/api").CorrectionStatut["resultat"]>; onSupprimer: () => void }) {
+function Resultats({
+  jeton,
+  resultat,
+  documents,
+  jetonSession,
+  onSupprimer,
+}: {
+  jeton: string
+  resultat: NonNullable<import("@/types/api").CorrectionStatut["resultat"]>
+  documents: string[]
+  jetonSession: string | null
+  onSupprimer: () => void
+}) {
   const navigate = useNavigate()
   const { confirmer } = useConfirm()
   const note = resultat.grade?.final_score_on_20
@@ -368,72 +399,157 @@ function Resultats({ jeton, resultat, onSupprimer }: { jeton: string; resultat: 
   const diagnostic = resultat.diagnostic
 
   return (
+    <div className="flex flex-col gap-5">
+      <Card>
+        <div className="flex items-center justify-between mb-4">
+          <CardTitre className="mb-0">Correction terminée</CardTitre>
+          <button
+            onClick={async () => {
+              if (await confirmer({ titre: "Supprimer cette copie ?", message: "Cette action est définitive : le scan et les documents associés seront supprimés.", texteConfirmer: "Supprimer" })) {
+                onSupprimer()
+              }
+            }}
+            className="text-texte-faible hover:text-rouge"
+          >
+            <Trash2 className="size-4" />
+          </button>
+        </div>
+
+        <StatRow>
+          {note != null && <Stat label="Note finale" value={note} unite="/20" />}
+          <Stat label="Réussies" value={reussies} />
+          <Stat label="Ratées" value={ratees} />
+        </StatRow>
+
+        {diagnostic && (diagnostic.academic_profile || diagnostic.competency_gaps.length > 0 || diagnostic.root_causes.length > 0) && (
+          <div className="mt-5 pt-5 border-t border-bord flex flex-col gap-4">
+            {diagnostic.academic_profile && <p className="text-menu">{diagnostic.academic_profile}</p>}
+
+            {diagnostic.competency_gaps.length > 0 && (
+              <div>
+                <p className="text-petit font-semibold text-texte-doux uppercase tracking-wide mb-2">Lacunes ancrées sur le programme officiel</p>
+                <div className="flex flex-col gap-3">
+                  {diagnostic.competency_gaps.map((lacune, i) => (
+                    <div key={i}>
+                      <p className="text-menu font-medium">{lacune.lecon}</p>
+                      <p className="text-petit text-texte-doux">{lacune.classe} · {lacune.chapitre}</p>
+                      <p className="text-petit mt-0.5">{lacune.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {diagnostic.root_causes.length > 0 && (
+              <div>
+                <p className="text-petit font-semibold text-texte-doux uppercase tracking-wide mb-2">Causes derrière les erreurs visibles</p>
+                <div className="flex flex-col divide-y divide-bord">
+                  {diagnostic.root_causes.map((cause, i) => (
+                    <p key={i} className="py-2 text-petit">
+                      <strong>{cause.visible_error}</strong> — {cause.hidden_cause}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {documents.length > 0 && (
+          <div className="flex flex-wrap gap-4 mt-5 pt-5 border-t border-bord text-menu">
+            {documents.map((type) => (
+              <LienPdf key={type} label={LIBELLES_DOCUMENT[type] ?? type} hrefVoir={elevesApi.documentUrl(jeton, type)} hrefTelecharger={elevesApi.documentUrl(jeton, type, true)} />
+            ))}
+          </div>
+        )}
+        <div className="flex gap-3 mt-4">
+          <Button variant="discret" onClick={() => navigate("/corrections/nouvelle")}>Corriger une autre copie</Button>
+        </div>
+      </Card>
+
+      {jetonSession && <ApercuParcours jetonSession={jetonSession} />}
+    </div>
+  )
+}
+
+/** Lacunes détectées (diagnostic structuré) et plan de remédiation
+ * provisoire, en aperçu lecture seule — le détail interactif (confirmer,
+ * écarter, inscrire) reste sur l'écran « Parcours ». Sans ceci, une
+ * correction terminée ne montrait ni les lacunes que le module 4 vient
+ * d'écrire, ni le sujet de confirmation (T1) déjà généré à côté. */
+function ApercuParcours({ jetonSession }: { jetonSession: string }) {
+  const { data } = useQuery({
+    queryKey: ["session", jetonSession],
+    queryFn: () => sessionsApi.detail(jetonSession),
+  })
+  if (!data) return null
+
+  const plan = data.plan_provisoire.nb_problemes > 0 ? data.plan_provisoire : data.plan
+
+  return (
     <Card>
-      <div className="flex items-center justify-between mb-4">
-        <CardTitre className="mb-0">Correction terminée</CardTitre>
-        <button
-          onClick={async () => {
-            if (await confirmer({ titre: "Supprimer cette copie ?", message: "Cette action est définitive : le scan et les documents associés seront supprimés.", texteConfirmer: "Supprimer" })) {
-              onSupprimer()
-            }
-          }}
-          className="text-texte-faible hover:text-rouge"
-        >
-          <Trash2 className="size-4" />
-        </button>
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <CardTitre className="mb-0">Diagnostic structuré &amp; plan de remédiation</CardTitre>
+        <div className="flex items-center gap-4 text-petit">
+          <LienPdf label="Rapport diagnostique" hrefVoir={sessionsApi.rapportDiagnostiqueUrl(jetonSession)} hrefTelecharger={sessionsApi.rapportDiagnostiqueUrl(jetonSession, true)} />
+          {plan.etapes.length > 0 && (
+            <LienPdf
+              label={`Plan ${plan === data.plan ? "" : "provisoire "}(PDF)`}
+              hrefVoir={plan === data.plan ? sessionsApi.planUrl(jetonSession) : sessionsApi.planProvisoireUrl(jetonSession)}
+              hrefTelecharger={plan === data.plan ? sessionsApi.planUrl(jetonSession, true) : sessionsApi.planProvisoireUrl(jetonSession, true)}
+            />
+          )}
+        </div>
       </div>
 
-      <StatRow>
-        {note != null && <Stat label="Note finale" value={note} unite="/20" />}
-        <Stat label="Réussies" value={reussies} />
-        <Stat label="Ratées" value={ratees} />
-      </StatRow>
-
-      {diagnostic && (diagnostic.academic_profile || diagnostic.competency_gaps.length > 0 || diagnostic.root_causes.length > 0) && (
-        <div className="mt-5 pt-5 border-t border-bord flex flex-col gap-4">
-          {diagnostic.academic_profile && <p className="text-menu">{diagnostic.academic_profile}</p>}
-
-          {diagnostic.competency_gaps.length > 0 && (
-            <div>
-              <p className="text-petit font-semibold text-texte-doux uppercase tracking-wide mb-2">Lacunes ancrées sur le programme officiel</p>
-              <div className="flex flex-col gap-3">
-                {diagnostic.competency_gaps.map((lacune, i) => (
-                  <div key={i}>
-                    <p className="text-menu font-medium">{lacune.lecon}</p>
-                    <p className="text-petit text-texte-doux">{lacune.classe} · {lacune.chapitre}</p>
-                    <p className="text-petit mt-0.5">{lacune.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+      {plan.etapes.length === 0 ? (
+        <p className="text-petit text-texte-doux">Aucune lacune détectée sur cette copie.</p>
+      ) : (
+        <>
+          {plan === data.plan_provisoire && (
+            <p className="text-petit text-orange mb-3">
+              Estimation provisoire — à confirmer par le test de confirmation (T1) avant toute décision d'inscription.
+            </p>
           )}
-
-          {diagnostic.root_causes.length > 0 && (
-            <div>
-              <p className="text-petit font-semibold text-texte-doux uppercase tracking-wide mb-2">Causes derrière les erreurs visibles</p>
-              <div className="flex flex-col divide-y divide-bord">
-                {diagnostic.root_causes.map((cause, i) => (
-                  <p key={i} className="py-2 text-petit">
-                    <strong>{cause.visible_error}</strong> — {cause.hidden_cause}
-                  </p>
-                ))}
+          <StatRow>
+            <Stat label="Lacunes" value={plan.nb_problemes} />
+            <Stat label="Volume estimé" value={formatHeures(plan.total_heures)} />
+          </StatRow>
+          <div className="flex flex-col divide-y divide-bord mt-4">
+            {plan.etapes.map((etape) => (
+              <div key={`${etape.competence_id}-${etape.type_erreur_id}`} className="py-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-menu font-medium">{etape.competence_id}</span>
+                  <TypeErreurBadge code={etape.type_erreur_id} />
+                  <span className="text-petit text-texte-doux font-medium ml-auto">{formatHeures(etape.cout)}</span>
+                </div>
+                <p className="text-petit text-texte-doux mt-0.5">{etape.competence_libelle}</p>
+                <p className="text-petit text-texte mt-1">
+                  <DiagnosticLisible typeErreurId={etape.type_erreur_id} interpretation={etape.signatures[0]?.interpretation ?? ""} />
+                </p>
               </div>
-            </div>
-          )}
+            ))}
+          </div>
+        </>
+      )}
+
+      {data.sujet_t1_disponible && data.sujet_t1_jeton_copie && (
+        <div className="mt-5 pt-5 border-t border-bord flex items-center justify-between flex-wrap gap-3">
+          <LienPdf
+            label="Sujet de confirmation T1 (PDF)"
+            className="text-menu"
+            hrefVoir={elevesApi.documentUrl(data.sujet_t1_jeton_copie, "sujet_confirmation")}
+            hrefTelecharger={elevesApi.documentUrl(data.sujet_t1_jeton_copie, "sujet_confirmation", true)}
+          />
+          <Link to={`/corrections/confirmation/${jetonSession}`} className="text-petit text-bleu hover:text-bleu-sombre font-medium">
+            Déposer la copie T1
+          </Link>
         </div>
       )}
 
-      <div className="flex flex-wrap gap-4 mt-5 pt-5 border-t border-bord">
-        <a href={elevesApi.documentUrl(jeton, "rapport", true)} className="inline-flex items-center gap-1.5 text-menu text-bleu hover:text-bleu-sombre">
-          <Download className="size-4" /> Rapport (PDF)
-        </a>
-        <a href={elevesApi.documentUrl(jeton, "remediation", true)} className="inline-flex items-center gap-1.5 text-menu text-bleu hover:text-bleu-sombre">
-          <Download className="size-4" /> Plan de remédiation (PDF)
-        </a>
-      </div>
-      <div className="flex gap-3 mt-4">
-        <Button variant="discret" onClick={() => navigate("/corrections/nouvelle")}>Corriger une autre copie</Button>
-      </div>
+      <Link to={`/sessions/${jetonSession}`} className="inline-flex items-center gap-1 text-petit text-bleu hover:text-bleu-sombre font-medium mt-5">
+        Voir le parcours complet <ArrowUpRight className="size-3.5" />
+      </Link>
     </Card>
   )
 }

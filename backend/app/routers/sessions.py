@@ -78,8 +78,8 @@ def _probleme_schema(db: SQLASession, p: Probleme) -> ProblemeSchema:
     )
 
 
-def _plan_schema(db: SQLASession, session: Session) -> PlanSchema:
-    plan = plan_service.construire(db, session)
+def _plan_schema(db: SQLASession, session: Session, etats: tuple[str, ...] = ("confirme", "en_remediation")) -> PlanSchema:
+    plan = plan_service.construire(db, session, etats=etats)
     return PlanSchema(
         etapes=[
             EtapePlanSchema(
@@ -113,10 +113,19 @@ def session_detail(
     sujet_t0 = (
         db.query(Evaluation)
         .filter(Evaluation.session_id == session.id, Evaluation.type == "T0", Evaluation.sujet_confirmation.isnot(None))
+        # Le plus récent d'abord — même ordre que `soumettre_confirmation`
+        # (corrections.py) : sans lui, `.first()` rendait le T0 le plus
+        # ancien à avoir un sujet, pas celui qui a produit les hypothèses
+        # actuellement ouvertes (une session peut avoir plusieurs T0).
+        .order_by(Evaluation.date.desc(), Evaluation.numero.desc())
         .first()
     )
     hypotheses = _problemes(db, session.id, "hypothese")
     sujet_t1_disponible = bool(sujet_t0) and any(p.exercices_confirmation for p in hypotheses)
+    # Lien direct vers le PDF du sujet T1 (document "sujet_confirmation" de
+    # la copie T0 qui l'a généré) — sans lui, l'enseignant voit « Déposer la
+    # copie T1 » sans jamais avoir pu obtenir le sujet à faire passer.
+    sujet_t1_jeton_copie = jeton(sujet_t0.copy_id) if sujet_t0 else None
 
     return SessionDetailReponse(
         id=session.id,
@@ -128,8 +137,10 @@ def session_detail(
         jeton_eleve=jeton(session.identifiant_hakili),
         eleve=eleve,
         plan=_plan_schema(db, session),
+        plan_provisoire=_plan_schema(db, session, etats=("hypothese",)),
         cout_total_hypothese=svc.cout_total_hypothese(db, session),
         sujet_t1_disponible=sujet_t1_disponible,
+        sujet_t1_jeton_copie=sujet_t1_jeton_copie,
         peut_inscrire=session.etat in ("attente_inscription", "hors_dispositif"),
         palier_c=session.palier == "C",
         hypotheses=[_probleme_schema(db, p) for p in hypotheses],
@@ -284,6 +295,67 @@ def plan_remediation(
 
     disposition = "attachment" if telecharger else "inline"
     nom = f"plan_remediation_{eleve.get('nom', 'eleve')}".replace(" ", "_")
+    return Response(content=donnees, media_type="application/pdf", headers={"Content-Disposition": f'{disposition}; filename="{nom}.pdf"'})
+
+
+@router.get("/{jeton_session}/plan-provisoire")
+def plan_provisoire(
+    jeton_session: str,
+    telecharger: bool = Query(default=False),
+    db: SQLASession = Depends(get_session),
+    utilisateur: dict = Depends(utilisateur_requis),
+) -> Response:
+    """Télécharge une estimation provisoire du plan de remédiation, à partir
+    des lacunes encore à l'état d'hypothèse — **avant** le test de
+    confirmation T1, donc non contractuelle. Contrairement à `/plan`, ne
+    refuse jamais faute de problème : aucune hypothèse ouverte est un état
+    normal juste après T0, pas une erreur."""
+    from src.pipeline.pdf_plan_html import generate_plan_pdf
+
+    session = _session_autorisee(db, utilisateur, jeton_session)
+    eleve = eleve_autorise(utilisateur, session.identifiant_hakili)
+
+    plan = plan_service.construire(db, session, etats=("hypothese",))
+
+    student_name = f"{eleve.get('nom', '')} {eleve.get('prenom', '')}".strip()
+    pdf_path = Path(settings.runs_dir) / "plans_remediation" / f"{uuid.uuid4().hex}.pdf"
+    generate_plan_pdf(pdf_path, student_name, session, plan, provisoire=True)
+    donnees = pdf_path.read_bytes()
+    pdf_path.unlink(missing_ok=True)
+
+    disposition = "attachment" if telecharger else "inline"
+    nom = f"plan_provisoire_{eleve.get('nom', 'eleve')}".replace(" ", "_")
+    return Response(content=donnees, media_type="application/pdf", headers={"Content-Disposition": f'{disposition}; filename="{nom}.pdf"'})
+
+
+@router.get("/{jeton_session}/rapport-diagnostique")
+def rapport_diagnostique(
+    jeton_session: str,
+    telecharger: bool = Query(default=False),
+    db: SQLASession = Depends(get_session),
+    utilisateur: dict = Depends(utilisateur_requis),
+) -> Response:
+    """Télécharge le rapport diagnostique des lacunes (module 9) : l'état
+    des lieux complet de la session — hypothèses, confirmées, écartées,
+    résolues — construit à partir du diagnostic structuré (module 4), pas
+    du texte libre. Contrairement à `/plan`, a du sens même sans aucun
+    problème (juste après T0, ou une session entièrement résolue)."""
+    from app.services import diagnostic_rapport
+    from src.pipeline.pdf_diagnostic_html import generate_diagnostic_pdf
+
+    session = _session_autorisee(db, utilisateur, jeton_session)
+    eleve = eleve_autorise(utilisateur, session.identifiant_hakili)
+
+    rapport = diagnostic_rapport.construire(db, session)
+
+    student_name = f"{eleve.get('nom', '')} {eleve.get('prenom', '')}".strip()
+    pdf_path = Path(settings.runs_dir) / "rapports_diagnostiques" / f"{uuid.uuid4().hex}.pdf"
+    generate_diagnostic_pdf(pdf_path, student_name, rapport)
+    donnees = pdf_path.read_bytes()
+    pdf_path.unlink(missing_ok=True)
+
+    disposition = "attachment" if telecharger else "inline"
+    nom = f"rapport_diagnostique_{eleve.get('nom', 'eleve')}".replace(" ", "_")
     return Response(content=donnees, media_type="application/pdf", headers={"Content-Disposition": f'{disposition}; filename="{nom}.pdf"'})
 
 

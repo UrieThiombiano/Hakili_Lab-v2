@@ -169,8 +169,12 @@ export interface SessionDetailReponse {
   jeton_eleve: string
   eleve: { nom?: string; prenom?: string; [key: string]: unknown }
   plan: PlanSchema
+  /** Estimation avant T1, à partir des hypothèses non confirmées — jamais contractuelle. */
+  plan_provisoire: PlanSchema
   cout_total_hypothese: string
   sujet_t1_disponible: boolean
+  /** Jeton de la copie T0 portant le document `sujet_confirmation` — `null` si `sujet_t1_disponible` est faux. */
+  sujet_t1_jeton_copie: string | null
   peut_inscrire: boolean
   palier_c: boolean
   hypotheses: ProblemeSchema[]
@@ -279,6 +283,10 @@ export interface CorrectionStatut {
   echouee: boolean
   erreurs: string[]
   resultat: ResultatPipeline | null
+  /** Types de documents réellement persistés pour cette copie ("rapport", "sujet_confirmation"...). */
+  documents: string[]
+  /** Jeton du parcours (session) de l'élève, si un existe déjà. */
+  jeton_session: string | null
 }
 
 export interface CorrectionResume {

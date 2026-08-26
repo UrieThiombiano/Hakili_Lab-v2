@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session as SQLASession
 from app.auth.deps import cle_personne, utilisateur_requis
 from app.auth.tokens import jeton, valeur_depuis_jeton
 from app.db import get_session
-from app.models import Copie, Correction
+from app.models import Copie, Correction, Document, Session
 from app.schemas import (
     CorrectionCreeReponse,
     CorrectionResume,
@@ -41,7 +41,20 @@ router = APIRouter(prefix="/api/corrections", tags=["corrections"])
 _TYPES_EVALUATION = {"T0", "T1", "T3", "T4", "T5"}
 
 
-def _statut(correction: Correction) -> CorrectionStatut:
+def _statut(db: SQLASession, correction: Correction) -> CorrectionStatut:
+    documents = [
+        d for (d,) in db.query(Document.type).filter(Document.copy_id == correction.copy_id).all()
+    ]
+    # Le parcours (session) de l'élève existe dès qu'une correction a déjà
+    # écrit une hypothèse (module 4) — pas forcément celle-ci, une session
+    # peut en porter plusieurs. Lecture seule : on ne le crée jamais ici,
+    # seul le pipeline (`diagnostic_suivi.preparer_evaluation`) le fait.
+    session = (
+        db.query(Session)
+        .filter(Session.identifiant_hakili == correction.identifiant_hakili)
+        .order_by(Session.id.desc())
+        .first()
+    )
     return CorrectionStatut(
         etat=correction.etat,
         etape=correction.etape,
@@ -52,6 +65,8 @@ def _statut(correction: Correction) -> CorrectionStatut:
         echouee=correction.echouee,
         erreurs=list(correction.erreurs or []),
         resultat=correction.resultat,
+        documents=documents,
+        jeton_session=jeton(str(session.id)) if session else None,
     )
 
 
@@ -387,7 +402,7 @@ def suivre(
     correction = correction_autorisee(db, utilisateur, copy_id)
     if taches.signaler_si_abandonnee(db, correction):
         db.commit()
-    return _statut(correction)
+    return _statut(db, correction)
 
 
 @router.post("/{jeton_copie}/transcription", response_model=CorrectionStatut)
@@ -406,7 +421,7 @@ def valider_transcription(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lien invalide")
     correction = correction_autorisee(db, utilisateur, copy_id)
     if correction.etat != "relecture":
-        return _statut(correction)
+        return _statut(db, correction)
 
     resultat = deserialiser(correction.resultat)
     for page in resultat.transcription.pages:
@@ -418,7 +433,7 @@ def valider_transcription(
     db.add(correction)
     db.commit()
     taches.lancer_correction(db, correction)
-    return _statut(correction)
+    return _statut(db, correction)
 
 
 @router.get("/{jeton_copie}/pages/{page_number}")
@@ -470,7 +485,7 @@ def valider_notes(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lien invalide")
     correction = correction_autorisee(db, utilisateur, copy_id)
     if correction.etat != "validation":
-        return _statut(correction)
+        return _statut(db, correction)
 
     resultat = deserialiser(correction.resultat)
     bareme = {item.id: item for item in (resultat.rubric.items if resultat.rubric else [])}
@@ -491,7 +506,7 @@ def valider_notes(
     db.add(correction)
     db.commit()
     taches.lancer_diagnostic(db, correction)
-    return _statut(correction)
+    return _statut(db, correction)
 
 
 def _note_saisie(brut, *, maximum: float) -> float:

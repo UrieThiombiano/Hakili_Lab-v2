@@ -363,7 +363,13 @@ class OpenAIClient:
                 model=settings.openai_model,
                 messages=[{"role": "user", "content": user_content}],
                 response_format={"type": "json_object"},
-                max_completion_tokens=4096,
+                # 16384 plutôt que 4096 : sur une copie où beaucoup de
+                # questions échouent, le diagnostic complet dépasse
+                # facilement l'ancien plafond — constaté en conditions
+                # réelles (45/45 échouées, coupé pile à 4096 tokens en
+                # sortie), ce fallback n'est censé se déclencher que quand
+                # Claude a déjà échoué : ne pas lui infliger la même limite.
+                max_completion_tokens=16384,
             )
             raw = response.choices[0].message.content or ""
             logger.info("GPT-5 diagnostic OK — tokens: %d in / %d out",

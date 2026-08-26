@@ -109,6 +109,17 @@
       color: #7f8c8d;
       font-style: italic;
     }
+
+    .bandeau-provisoire {
+      background: #FDF2E3;
+      border: 1pt solid #E67E22;
+      color: #A04000;
+      font-weight: bold;
+      font-size: 9pt;
+      text-align: center;
+      padding: 6pt 10pt;
+      margin-bottom: 12pt;
+    }
   </style>
 </head>
 <body>
@@ -117,11 +128,17 @@
   <table style="width:100%; border-collapse:collapse;">
     <tr>
       <td class="hdr-left">HAKILI LAB</td>
-      <td class="hdr-right">Fiche de remédiation</td>
+      <td class="hdr-right">{% if PROVISOIRE %}Plan provisoire{% else %}Fiche de remédiation{% endif %}</td>
     </tr>
   </table>
   <hr style="border:0; border-top:1.4pt solid #C0392B; margin-top:3pt;"/>
 </div>
+
+{% if PROVISOIRE %}
+<div class="bandeau-provisoire">
+  ESTIMATION PROVISOIRE — construite à partir de lacunes non confirmées, à confirmer par le test de confirmation (T1)
+</div>
+{% endif %}
 
 <div id="page_footer">
   <hr style="border:0; border-top:0.8pt solid #1A5276; margin-bottom:3pt;"/>
@@ -142,7 +159,7 @@
 
 <table class="stats-box">
   <tr>
-    <td><span class="valeur">{{ NB_PROBLEMES }}</span><span class="etiquette">problème{% if NB_PROBLEMES > 1 %}s{% endif %} confirmé{% if NB_PROBLEMES > 1 %}s{% endif %}</span></td>
+    <td><span class="valeur">{{ NB_PROBLEMES }}</span><span class="etiquette">problème{% if NB_PROBLEMES > 1 %}s{% endif %} {% if PROVISOIRE %}en hypothèse{% else %}confirmé{% if NB_PROBLEMES > 1 %}s{% endif %}{% endif %}</span></td>
     <td><span class="valeur">{{ TOTAL_HEURES }} h</span><span class="etiquette">volume estimé</span></td>
     <td><span class="valeur">{{ PALIER or "—" }}</span><span class="etiquette">palier</span></td>
   </tr>
@@ -192,7 +209,11 @@
 {% endfor %}
 
 <div class="doc-footer">
+  {% if PROVISOIRE %}
+  Fiche générée par Hakili Lab — estimation établie à partir de lacunes non encore confirmées.
+  {% else %}
   Fiche générée par Hakili Lab — plan établi à partir des problèmes confirmés au test de confirmation (T1).
+  {% endif %}
 </div>
 
 </body>

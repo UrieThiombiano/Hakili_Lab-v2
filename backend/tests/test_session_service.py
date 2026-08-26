@@ -2,10 +2,22 @@
 `etablir_le_plan()`, `inscrire()` (voir `app/services/session_service.py`)."""
 from __future__ import annotations
 
+from decimal import Decimal
+
 import pytest
 
 from app.services import session_service as svc
 from tests.conftest import creer_probleme
+
+
+def test_seuil_palier_bornes():
+    # Fonction pure extraite de `calculer_palier` — réutilisée par
+    # `plan.py::construire()` pour le plan provisoire (hypothèses, pas de
+    # coût confirmé à interroger).
+    assert svc._seuil_palier(Decimal("7.99")) == "A"
+    assert svc._seuil_palier(Decimal("8")) == "B"
+    assert svc._seuil_palier(Decimal("20")) == "B"
+    assert svc._seuil_palier(Decimal("20.01")) == "C"
 
 
 def test_calculer_palier_borne_a(db, session_suivi, referentiel_minimal):

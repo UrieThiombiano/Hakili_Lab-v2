@@ -358,7 +358,7 @@ class ClaudeClient:
         prompt_path = Path(__file__).parent.parent.parent / "prompts" / filename
         return prompt_path.read_text(encoding="utf-8")
 
-    def _creer_message(self, *, model: str, **kwargs: Any) -> Any:
+    def _creer_message(self, *, model: str, stream: bool = False, **kwargs: Any) -> Any:
         """Appelle l'API en retirant ce que le modèle visé n'accepte plus.
 
         Un seul passage obligé vers `messages.create`, pour que le filtrage des
@@ -366,7 +366,12 @@ class ClaudeClient:
         dépende pas de la vigilance de chaque appelant. Le retrait est
         journalisé : un `temperature=0` qui disparaît en silence donnerait
         l'illusion d'un déterminisme qu'on n'a plus.
-        """
+
+        `stream=True` : passe par `messages.stream(...)` et rend le message
+        final assemblé (même forme qu'un appel non streamé — `.content`,
+        `.stop_reason`, etc.) — nécessaire au-delà d'un certain `max_tokens`,
+        le SDK Anthropic refuse un appel non streamé au-delà (« Streaming is
+        required for operations that may take longer than 10 minutes »)."""
         if model.startswith(_PREFIXES_SANS_ECHANTILLONNAGE):
             retires = [p for p in _PARAMETRES_ECHANTILLONNAGE if p in kwargs]
             for parametre in retires:
@@ -376,6 +381,9 @@ class ClaudeClient:
                     "%s n'accepte plus %s — paramètre(s) retiré(s) de l'appel.",
                     model, ", ".join(retires),
                 )
+        if stream:
+            with self.client.messages.stream(model=model, **kwargs) as flux:
+                return flux.get_final_message()
         return self.client.messages.create(model=model, **kwargs)
 
     @staticmethod
@@ -616,9 +624,25 @@ class ClaudeClient:
         )
 
         def _call_diagnose(model: str) -> object:
+            # 64000 plutôt que 16384 : `claude_model_opus` pointe en pratique
+            # vers une famille de modèles qui préfixe sa réponse d'un bloc
+            # `thinking` non affiché ici (voir `_texte_reponse`) — sur une
+            # copie où beaucoup de questions échouent (donc un diagnostic
+            # long à produire), le budget peut être épuisé par la pensée
+            # interne avant qu'aucun texte ne soit émis (`stop_reason=
+            # max_tokens`, `_texte_reponse` lève `ValueError`). Constaté en
+            # conditions réelles même à 32000 sur une copie à 45/45 questions
+            # échouées (le pire cas du référentiel) — 64000 réduit le risque
+            # sans l'éliminer complètement ; le fallback GPT-5 ci-dessous
+            # (lui aussi élargi, `openai_client.py`) reste le filet de
+            # sécurité si ça arrive malgré tout.
+            # `stream=True` : à ce niveau de `max_tokens`, le SDK Anthropic
+            # refuse un appel non streamé (« Streaming is required for
+            # operations that may take longer than 10 minutes »).
             return self._creer_message(
                 model=model,
-                max_tokens=16384,
+                stream=True,
+                max_tokens=64000,
                 temperature=0,
                 messages=[
                     {
@@ -1507,6 +1531,7 @@ class ClaudeClient:
 
         text = _TRAILING_COMMA.sub(r"\1", text)
 
+        derniere_erreur: Exception | None = None
         for candidate in (text, _close_json(text)):
             candidate = _TRAILING_COMMA.sub(r"\1", candidate)
             try:
@@ -1527,16 +1552,29 @@ class ClaudeClient:
                     raw_response=raw_text,
                     error=None,
                 )
-            except (json.JSONDecodeError, Exception):
+            except Exception as exc:  # noqa: BLE001 — capturée pour être loggée, pas silencieusement perdue
+                derniere_erreur = exc
                 continue
 
-        logger.error("JSON irréparable (%s). Début : %.300s", model_cls.__name__, raw_text)
+        # La raison réelle (JSON malformé vs modèle Pydantic invalide, et le
+        # message précis) était jusqu'ici jetée — seul un extrait de 300
+        # caractères du texte brut survivait, sans dire pourquoi le parsing
+        # avait échoué. Elle est maintenant loggée en entier (DEBUG, peut
+        # être volumineux) pour permettre un post-mortem.
+        logger.error(
+            "JSON irréparable (%s) — %s : %s. Début : %.300s",
+            model_cls.__name__,
+            type(derniere_erreur).__name__ if derniere_erreur else "?",
+            derniere_erreur,
+            raw_text,
+        )
+        logger.debug("[%s] Texte brut complet de la réponse échouée :\n%s", model_cls.__name__, raw_text)
         return ClaudeResponse(
             success=False,
             data=None,
             confidence=0.0,
             raw_response=raw_text,
-            error=f"JSON invalide. Début : {raw_text[:200]}",
+            error=f"JSON invalide ({type(derniere_erreur).__name__ if derniere_erreur else '?'}) : {derniere_erreur}",
         )
 
     def _estimate_confidence(self, result: Any) -> float:

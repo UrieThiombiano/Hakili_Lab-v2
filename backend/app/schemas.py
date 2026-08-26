@@ -141,8 +141,15 @@ class SessionDetailReponse(BaseModel):
     jeton_eleve: str
     eleve: dict
     plan: PlanSchema
+    #: Estimation avant T1, à partir des hypothèses non confirmées — jamais
+    #: contractuelle, voir `plan.py::construire(etats=("hypothese",))`.
+    plan_provisoire: PlanSchema
     cout_total_hypothese: Decimal
     sujet_t1_disponible: bool
+    #: Jeton de la copie T0 qui porte le document `sujet_confirmation` — sert
+    #: à construire le lien `elevesApi.documentUrl(jeton, "sujet_confirmation")`.
+    #: `None` si `sujet_t1_disponible` est faux.
+    sujet_t1_jeton_copie: str | None
     peut_inscrire: bool
     palier_c: bool
     hypotheses: list[ProblemeSchema]
@@ -204,6 +211,15 @@ class CorrectionStatut(BaseModel):
     echouee: bool
     erreurs: list[str]
     resultat: dict | None
+    #: Types de documents déjà persistés pour cette copie (`rapport`,
+    #: `sujet_confirmation`...) — remplace l'ancien lien "Plan de
+    #: remédiation" qui pointait presque toujours vers un document jamais
+    #: généré (404) : le frontend n'affiche plus que ce qui existe vraiment.
+    documents: list[str] = []
+    #: Jeton du parcours (session) de l'élève, si un existe déjà — permet
+    #: d'afficher le plan provisoire et le rapport diagnostique sans
+    #: attendre que l'enseignant aille chercher l'écran « Parcours ».
+    jeton_session: str | None = None
 
 
 class TranscriptionRequete(BaseModel):

@@ -220,6 +220,149 @@ def test_plan_remediation_sans_probleme_confirme_refuse():
     app.dependency_overrides.clear()
 
 
+def test_session_detail_expose_le_sujet_t1_telechargeable():
+    """Sans ce champ, l'enseignant voit « Déposer la copie T1 » sans jamais
+    avoir pu obtenir le sujet à faire passer à l'élève — le document
+    `sujet_confirmation` existe pourtant déjà (généré par le module 5)."""
+    client, SessionLocal = _client_avec_base()
+    db, session = _seed(SessionLocal)
+
+    from app.models import Copie, Document, Evaluation, Probleme
+
+    db.add(Copie(copy_id="copie-t0-1", identifiant_hakili="eleve-1", classe="5eme", annee_scolaire="2025-2026"))
+    db.add(
+        Evaluation(
+            session_id=session.id,
+            type="T0",
+            numero=1,
+            copy_id="copie-t0-1",
+            sujet_confirmation=[{"numero": 1, "topic": "A × CPT", "question": "Développer...", "hint": ""}],
+        )
+    )
+    db.add(Probleme(session_id=session.id, competence_id="A", type_erreur_id="CPT", etat="hypothese", exercices_confirmation=[1]))
+    db.add(Document(copy_id="copie-t0-1", type="sujet_confirmation", fichier=b"%PDF-1.4 sujet T1"))
+    db.commit()
+
+    import app.routers.eleves as eleves_router_mod
+    eleves_router_mod.eleve_autorise = _override_eleve_autorise
+
+    from app.auth.tokens import jeton
+
+    r = client.get(f"/api/sessions/{jeton(str(session.id))}")
+    assert r.status_code == 200, r.text
+    corps = r.json()
+    assert corps["sujet_t1_disponible"] is True
+    assert corps["sujet_t1_jeton_copie"]
+
+    # Le jeton rendu doit effectivement pointer vers le document généré.
+    r2 = client.get(f"/api/eleves/documents/{corps['sujet_t1_jeton_copie']}/sujet_confirmation")
+    assert r2.status_code == 200, r2.text
+    assert r2.content == b"%PDF-1.4 sujet T1"
+    app.dependency_overrides.clear()
+
+
+def test_session_detail_sujet_t1_absent_sans_evaluation():
+    client, SessionLocal = _client_avec_base()
+    db, session = _seed(SessionLocal)
+
+    from app.auth.tokens import jeton
+
+    r = client.get(f"/api/sessions/{jeton(str(session.id))}")
+    assert r.status_code == 200, r.text
+    corps = r.json()
+    assert corps["sujet_t1_disponible"] is False
+    assert corps["sujet_t1_jeton_copie"] is None
+    app.dependency_overrides.clear()
+
+
+def test_session_detail_expose_plan_provisoire():
+    client, SessionLocal = _client_avec_base()
+    db, session = _seed(SessionLocal)
+    db.add(Probleme(session_id=session.id, competence_id="A", type_erreur_id="CPT", etat="hypothese", cout_estime="4"))
+    db.commit()
+
+    from app.auth.tokens import jeton
+
+    r = client.get(f"/api/sessions/{jeton(str(session.id))}")
+    assert r.status_code == 200, r.text
+    corps = r.json()
+    # Le plan officiel n'inclut pas l'hypothèse ; le provisoire, si.
+    assert corps["plan"]["nb_problemes"] == 0
+    assert corps["plan_provisoire"]["nb_problemes"] == 1
+    app.dependency_overrides.clear()
+
+
+def test_plan_provisoire_ne_refuse_pas_si_vide(tmp_path):
+    client, SessionLocal = _client_avec_base()
+    db, session = _seed(SessionLocal)
+
+    from src.core.config import settings
+
+    settings.runs_dir = str(tmp_path)
+
+    from app.auth.tokens import jeton
+
+    # Contrairement à `/plan`, une session sans aucune hypothèse est un état
+    # normal juste après T0 — pas une erreur 400.
+    r = client.get(f"/api/sessions/{jeton(str(session.id))}/plan-provisoire")
+    assert r.status_code == 200, r.text
+    assert r.content[:4] == b"%PDF"
+    app.dependency_overrides.clear()
+
+
+def test_plan_provisoire_genere_un_pdf_depuis_hypotheses(tmp_path):
+    client, SessionLocal = _client_avec_base()
+    db, session = _seed(SessionLocal)
+    db.add(Probleme(session_id=session.id, competence_id="A", type_erreur_id="CPT", etat="hypothese", cout_estime="4"))
+    db.commit()
+
+    from src.core.config import settings
+
+    settings.runs_dir = str(tmp_path)
+
+    from app.auth.tokens import jeton
+
+    r = client.get(f"/api/sessions/{jeton(str(session.id))}/plan-provisoire")
+    assert r.status_code == 200, r.text
+    assert r.headers["content-type"] == "application/pdf"
+    assert r.content[:4] == b"%PDF"
+    app.dependency_overrides.clear()
+
+
+def test_rapport_diagnostique_ne_refuse_pas_si_vide(tmp_path):
+    client, SessionLocal = _client_avec_base()
+    db, session = _seed(SessionLocal)
+
+    from src.core.config import settings
+
+    settings.runs_dir = str(tmp_path)
+
+    from app.auth.tokens import jeton
+
+    r = client.get(f"/api/sessions/{jeton(str(session.id))}/rapport-diagnostique")
+    assert r.status_code == 200, r.text
+    assert r.content[:4] == b"%PDF"
+    app.dependency_overrides.clear()
+
+
+def test_rapport_diagnostique_couvre_tous_les_etats(tmp_path):
+    client, SessionLocal = _client_avec_base()
+    db, session = _seed(SessionLocal)
+    db.add(Probleme(session_id=session.id, competence_id="A", type_erreur_id="CPT", etat="hypothese", cout_estime="4"))
+    db.commit()
+
+    from src.core.config import settings
+
+    settings.runs_dir = str(tmp_path)
+
+    from app.auth.tokens import jeton
+
+    r = client.get(f"/api/sessions/{jeton(str(session.id))}/rapport-diagnostique")
+    assert r.status_code == 200, r.text
+    assert r.headers["content-type"] == "application/pdf"
+    app.dependency_overrides.clear()
+
+
 def test_plan_remediation_genere_un_pdf(tmp_path):
     client, SessionLocal = _client_avec_base()
     db, session = _seed(SessionLocal)

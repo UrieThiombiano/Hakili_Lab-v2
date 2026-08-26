@@ -16,7 +16,7 @@ from decimal import Decimal
 from sqlalchemy.orm import Session as SQLASession
 
 from app.models import Competence, Prerequis, Probleme, Session, SignatureErreur
-from app.services.session_service import calculer_palier
+from app.services.session_service import _seuil_palier
 
 #: Ordre scolaire, pour départager deux problèmes également prioritaires.
 _ORDRE_NIVEAUX = ["Primaire", "6eme", "5eme", "4eme", "3eme", "2ndeC", "1ereD"]
@@ -50,12 +50,22 @@ def _niveau(competence: Competence) -> int:
 
 def ordonner(db: SQLASession, problemes: list[Probleme]) -> list[Probleme]:
     """Trie les problèmes pour que chaque prérequis en difficulté vienne
-    avant. Tri topologique par couches : à chaque tour on sort les problèmes
-    dont aucun prérequis n'est encore à traiter. Un cycle (la base l'interdit,
-    mais un import mal formé pourrait en créer un) verse le reste tel quel
-    plutôt que de boucler indéfiniment.
+    avant. Tri topologique par couches, au niveau de la **compétence** (les
+    prérequis lient des compétences entre elles, pas des problèmes) : à
+    chaque tour on sort les compétences dont aucun prérequis n'est encore à
+    traiter. Un cycle (la base l'interdit, mais un import mal formé pourrait
+    en créer un) verse le reste tel quel plutôt que de boucler indéfiniment.
+
+    Une même compétence peut porter **plusieurs** problèmes (deux types
+    d'erreur différents sur la même compétence — la contrainte d'unicité en
+    base est `(session, compétence, type d'erreur)`, pas `(session,
+    compétence)`) : groupés par compétence pour le tri, mais aucun n'est
+    perdu — un dict compétence→UN problème les aurait silencieusement fait
+    disparaître.
     """
-    par_code = {p.competence.code: p for p in problemes}
+    par_code: dict[str, list[Probleme]] = {}
+    for p in problemes:
+        par_code.setdefault(p.competence.code, []).append(p)
     restants = dict(par_code)
 
     liens = (
@@ -79,9 +89,11 @@ def ordonner(db: SQLASession, problemes: list[Probleme]) -> list[Probleme]:
             # Cycle : on verse le reste par niveau plutôt que de boucler.
             prets = list(restants)
 
-        prets.sort(key=lambda c: (_niveau(restants[c].competence), c))
+        prets.sort(key=lambda c: (_niveau(restants[c][0].competence), c))
         for code in prets:
-            ordonnes.append(restants.pop(code))
+            groupe = restants.pop(code)
+            groupe.sort(key=lambda p: p.type_erreur_id)  # ordre stable entre les problèmes d'une même compétence
+            ordonnes.extend(groupe)
             traites.add(code)
 
     return ordonnes
@@ -101,15 +113,18 @@ def _signatures(db: SQLASession, probleme: Probleme) -> list[SignatureErreur]:
     )
 
 
-def construire(db: SQLASession, session: Session) -> dict:
-    """Plan complet d'une session : étapes ordonnées, coût, palier.
+def construire(db: SQLASession, session: Session, etats: tuple[str, ...] = ("confirme", "en_remediation")) -> dict:
+    """Plan d'une session : étapes ordonnées, coût, palier.
 
-    N'inclut que les problèmes **confirmés** ou déjà **en remédiation** —
-    une hypothèse non vérifiée n'a rien à faire dans un plan de travail.
+    Par défaut, n'inclut que les problèmes **confirmés** ou déjà **en
+    remédiation** — une hypothèse non vérifiée n'a rien à faire dans un plan
+    de travail officiel. `etats=("hypothese",)` donne le plan *provisoire*
+    (estimation avant le test de confirmation T1, non contractuelle) — voir
+    `GET /api/sessions/{jeton}/plan-provisoire`.
     """
     problemes = (
         db.query(Probleme)
-        .filter(Probleme.session_id == session.id, Probleme.etat.in_(["confirme", "en_remediation"]))
+        .filter(Probleme.session_id == session.id, Probleme.etat.in_(etats))
         .all()
     )
 
@@ -146,7 +161,11 @@ def construire(db: SQLASession, session: Session) -> dict:
     return {
         "etapes": etapes,
         "total_heures": total,
-        "palier": calculer_palier(db, session) if etapes else "",
+        # Palier dérivé du total *de ce plan*, pas de `cout_total_confirme` —
+        # correct aussi bien pour le plan officiel que pour le provisoire
+        # (`etats=("hypothese",)`), qui ne doit pas se baser sur un coût
+        # confirmé qu'il ne contient justement pas.
+        "palier": _seuil_palier(total) if etapes else "",
         "nb_problemes": len(etapes),
         "repose_sur_estimation": any(e.probleme.competence.volume_estime for e in etapes),
     }

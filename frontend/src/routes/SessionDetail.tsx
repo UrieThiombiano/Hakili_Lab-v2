@@ -6,13 +6,14 @@ import { Card, CardTitre } from "@/components/ui/Card"
 import { Spinner, EtatVide } from "@/components/ui/Etat"
 import { EtatSessionBadge, PalierBadge, TypeErreurBadge, DiagnosticLisible } from "@/components/ui/Badge"
 import { Button } from "@/components/ui/Button"
-import { sessionsApi } from "@/lib/api"
+import { LienPdf } from "@/components/ui/LienPdf"
+import { elevesApi, sessionsApi } from "@/lib/api"
 import { formatDate, formatHeures } from "@/lib/format"
 import { useToast } from "@/hooks/useToast"
-import { Download, FileText, ListChecks, Clock, ArrowUpRight, UploadCloud } from "lucide-react"
+import { FileText, ListChecks, Clock, ArrowUpRight, UploadCloud } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { LucideIcon } from "lucide-react"
-import type { ProblemeSchema } from "@/types/api"
+import type { PrerequisBloquant, ProblemeSchema } from "@/types/api"
 
 function initiales(nom: string, prenom: string) {
   return `${nom[0] ?? ""}${prenom[0] ?? ""}`.toUpperCase() || "?"
@@ -32,7 +33,21 @@ function StatIcone({ icon: Icon, value, label, tint }: { icon: LucideIcon; value
   )
 }
 
-function LigneProbleme({ numero, probleme, actions }: { numero?: number; probleme: ProblemeSchema; actions?: React.ReactNode }) {
+function LigneProbleme({
+  numero,
+  probleme,
+  actions,
+  cout,
+  prerequisBloquants,
+}: {
+  numero?: number
+  probleme: ProblemeSchema
+  actions?: React.ReactNode
+  /** Coût estimé de cette lacune — affiché quand la ligne vient d'un plan (confirmé ou provisoire). */
+  cout?: string
+  /** Prérequis eux-mêmes en difficulté, dans l'ordre du plan — voir `EtapePlanSchema`. */
+  prerequisBloquants?: PrerequisBloquant[]
+}) {
   return (
     <div className="flex items-start justify-between gap-4 py-3 px-2 -mx-2 rounded transition-colors duration-150 hover:bg-surface-creuse">
       <div className="flex items-start gap-3 min-w-0">
@@ -45,6 +60,7 @@ function LigneProbleme({ numero, probleme, actions }: { numero?: number; problem
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-menu font-semibold text-marine">{probleme.competence_id}</span>
             <TypeErreurBadge code={probleme.type_erreur_id} />
+            {cout != null && <span className="text-petit text-texte-doux font-medium">{formatHeures(cout)}</span>}
           </div>
           <p className="text-petit text-texte-doux mt-0.5">{probleme.competence_libelle}</p>
           <p className="text-petit text-texte mt-1">
@@ -59,6 +75,11 @@ function LigneProbleme({ numero, probleme, actions }: { numero?: number; problem
                 {probleme.justification}
               </p>
             </details>
+          )}
+          {prerequisBloquants && prerequisBloquants.length > 0 && (
+            <p className="text-micro text-texte-doux mt-1.5">
+              À traiter d'abord : {prerequisBloquants.map((p) => p.libelle).join(", ")}
+            </p>
           )}
         </div>
       </div>
@@ -154,13 +175,14 @@ export default function SessionDetail() {
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="lg:col-span-2 flex flex-col gap-5">
           <Card>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <CardTitre className="mb-0">Plan de remédiation</CardTitre>
-              {data.plan.etapes.length > 0 && (
-                <a href={sessionsApi.planUrl(jeton, true)} className="inline-flex items-center gap-1.5 text-petit text-bleu hover:text-bleu-sombre">
-                  <Download className="size-3.5" /> Plan PDF
-                </a>
-              )}
+              <div className="flex items-center gap-4 text-petit">
+                <LienPdf label="Rapport diagnostique" hrefVoir={sessionsApi.rapportDiagnostiqueUrl(jeton)} hrefTelecharger={sessionsApi.rapportDiagnostiqueUrl(jeton, true)} />
+                {data.plan.etapes.length > 0 && (
+                  <LienPdf label="Plan PDF" hrefVoir={sessionsApi.planUrl(jeton)} hrefTelecharger={sessionsApi.planUrl(jeton, true)} />
+                )}
+              </div>
             </div>
             {data.plan.etapes.length === 0 ? (
               <EtatVide titre="Aucun problème confirmé" description="Le plan apparaît une fois le test de confirmation passé." />
@@ -210,12 +232,13 @@ export default function SessionDetail() {
                               À traiter d'abord : {etape.prerequis_bloquants.map((p) => p.libelle).join(", ")}
                             </p>
                           )}
-                          <a
-                            href={sessionsApi.ficheTravailUrl(jeton, etape.probleme_id, true)}
-                            className="inline-flex items-center gap-1 text-micro text-bleu hover:text-bleu-sombre mt-1.5"
-                          >
-                            <FileText className="size-3" /> Fiche de travail (séance)
-                          </a>
+                          <LienPdf
+                            label="Fiche de travail (séance)"
+                            icon={FileText}
+                            hrefVoir={sessionsApi.ficheTravailUrl(jeton, etape.probleme_id)}
+                            hrefTelecharger={sessionsApi.ficheTravailUrl(jeton, etape.probleme_id, true)}
+                            className="text-micro mt-1.5"
+                          />
                         </div>
                       </div>
                     </div>
@@ -228,21 +251,38 @@ export default function SessionDetail() {
           {data.hypotheses.length > 0 && (
             <Card>
               <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <CardTitre className="mb-0">Hypothèses à confirmer (T1)</CardTitre>
-                  <span className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-rond bg-orange-pale text-orange text-micro font-bold">
-                    {data.hypotheses.length}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <CardTitre className="mb-0">Plan provisoire (non confirmé)</CardTitre>
+                  <span className="inline-flex items-center px-2 h-6 rounded-rond bg-orange-pale text-orange text-micro font-bold uppercase tracking-wide">
+                    Provisoire
                   </span>
                 </div>
-                {data.sujet_t1_disponible && (
-                  <Link to={`/corrections/confirmation/${jeton}`} className="text-petit text-bleu hover:text-bleu-sombre font-medium">
-                    Déposer la copie T1
-                  </Link>
-                )}
+                <div className="flex items-center gap-4 text-petit">
+                  <LienPdf label="Plan provisoire PDF" hrefVoir={sessionsApi.planProvisoireUrl(jeton)} hrefTelecharger={sessionsApi.planProvisoireUrl(jeton, true)} />
+                  {data.sujet_t1_disponible && (
+                    <>
+                      {data.sujet_t1_jeton_copie && (
+                        <LienPdf
+                          label="Sujet T1"
+                          icon={FileText}
+                          hrefVoir={elevesApi.documentUrl(data.sujet_t1_jeton_copie, "sujet_confirmation")}
+                          hrefTelecharger={elevesApi.documentUrl(data.sujet_t1_jeton_copie, "sujet_confirmation", true)}
+                        />
+                      )}
+                      <Link to={`/corrections/confirmation/${jeton}`} className="text-petit text-bleu hover:text-bleu-sombre font-medium">
+                        Déposer la copie T1
+                      </Link>
+                    </>
+                  )}
+                </div>
               </div>
-              <p className="text-petit text-texte-doux mb-2">
-                Volume estimé (hypothèses, avant confirmation) : <span className="font-medium text-texte">{formatHeures(data.cout_total_hypothese)}</span>
+              <p className="text-petit text-orange mb-3">
+                Estimation construite à partir de lacunes non encore confirmées — à confirmer par le test de confirmation (T1) avant toute décision d'inscription.
               </p>
+              <div className="flex flex-wrap gap-6 mb-3">
+                <StatIcone icon={ListChecks} value={data.plan_provisoire.nb_problemes} label="Lacunes (hypothèses)" tint="bg-orange-pale text-orange" />
+                <StatIcone icon={Clock} value={formatHeures(data.plan_provisoire.total_heures)} label="Volume estimé" tint="bg-orange-pale text-orange" />
+              </div>
               {data.sujet_t1_disponible && (
                 <p className="text-petit text-texte-doux mb-2 pb-3 border-b border-bord">
                   Dépose le scan des réponses de l'élève : le système corrige, puis confirme ou écarte chaque hypothèse automatiquement.
@@ -250,29 +290,35 @@ export default function SessionDetail() {
                 </p>
               )}
               <div className="flex flex-col divide-y divide-bord">
-                {data.hypotheses.map((p, i) => (
-                  <LigneProbleme
-                    key={p.id}
-                    numero={i + 1}
-                    probleme={p}
-                    actions={
-                      p.type_erreur_id === "ATT" ? (
-                        <Button taille="petit" variant="discret" onClick={() => trancher.mutate({ type: "T1", id: p.id, decision: "ecarte" })}>
-                          Écarter
-                        </Button>
-                      ) : (
-                        <>
+                {data.plan_provisoire.etapes.map((etape) => {
+                  const p = data.hypotheses.find((h) => h.id === etape.probleme_id)
+                  if (!p) return null
+                  return (
+                    <LigneProbleme
+                      key={p.id}
+                      numero={etape.rang}
+                      probleme={p}
+                      cout={etape.cout}
+                      prerequisBloquants={etape.prerequis_bloquants}
+                      actions={
+                        p.type_erreur_id === "ATT" ? (
                           <Button taille="petit" variant="discret" onClick={() => trancher.mutate({ type: "T1", id: p.id, decision: "ecarte" })}>
                             Écarter
                           </Button>
-                          <Button taille="petit" onClick={() => trancher.mutate({ type: "T1", id: p.id, decision: "confirme" })}>
-                            Confirmer
-                          </Button>
-                        </>
-                      )
-                    }
-                  />
-                ))}
+                        ) : (
+                          <>
+                            <Button taille="petit" variant="discret" onClick={() => trancher.mutate({ type: "T1", id: p.id, decision: "ecarte" })}>
+                              Écarter
+                            </Button>
+                            <Button taille="petit" onClick={() => trancher.mutate({ type: "T1", id: p.id, decision: "confirme" })}>
+                              Confirmer
+                            </Button>
+                          </>
+                        )
+                      }
+                    />
+                  )
+                })}
               </div>
             </Card>
           )}
@@ -281,11 +327,9 @@ export default function SessionDetail() {
             <Card>
               <div className="flex items-center justify-between mb-2">
                 <CardTitre className="mb-0">En remédiation — vérification (T3)</CardTitre>
-                <div className="flex items-center gap-3">
-                  <a href={sessionsApi.sujetUrl(jeton, "T3", true)} className="inline-flex items-center gap-1.5 text-petit text-bleu hover:text-bleu-sombre">
-                    <FileText className="size-3.5" /> Sujet T3
-                  </a>
-                  <Link to={`/corrections/verification/${jeton}/T3`} className="inline-flex items-center gap-1.5 text-petit text-bleu hover:text-bleu-sombre">
+                <div className="flex items-center gap-3 text-petit">
+                  <LienPdf label="Sujet T3" icon={FileText} hrefVoir={sessionsApi.sujetUrl(jeton, "T3")} hrefTelecharger={sessionsApi.sujetUrl(jeton, "T3", true)} />
+                  <Link to={`/corrections/verification/${jeton}/T3`} className="inline-flex items-center gap-1.5 text-bleu hover:text-bleu-sombre">
                     <UploadCloud className="size-3.5" /> Déposer la copie corrigée
                   </Link>
                 </div>
@@ -332,11 +376,9 @@ export default function SessionDetail() {
                 <CardTitre className="mb-0">Résolus — contrôle de rétention</CardTitre>
                 <div className="flex gap-3">
                   {["T4", "T5"].map((t) => (
-                    <span key={t} className="flex items-center gap-3">
-                      <a href={sessionsApi.sujetUrl(jeton, t, true)} className="inline-flex items-center gap-1 text-petit text-bleu hover:text-bleu-sombre">
-                        <FileText className="size-3.5" /> Sujet {t}
-                      </a>
-                      <Link to={`/corrections/verification/${jeton}/${t}`} className="inline-flex items-center gap-1 text-petit text-bleu hover:text-bleu-sombre">
+                    <span key={t} className="flex items-center gap-3 text-petit">
+                      <LienPdf label={`Sujet ${t}`} icon={FileText} hrefVoir={sessionsApi.sujetUrl(jeton, t)} hrefTelecharger={sessionsApi.sujetUrl(jeton, t, true)} />
+                      <Link to={`/corrections/verification/${jeton}/${t}`} className="inline-flex items-center gap-1 text-bleu hover:text-bleu-sombre">
                         <UploadCloud className="size-3.5" /> Déposer
                       </Link>
                     </span>

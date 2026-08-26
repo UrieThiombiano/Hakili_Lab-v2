@@ -40,7 +40,7 @@ from __future__ import annotations
 import json
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Callable
@@ -919,6 +919,8 @@ def _run_phase_b(
         "grade": grade.model_dump(),
         "diagnostic": result.diagnostic.model_dump() if result.diagnostic else None,
         "remediation_subject": result.remediation_subject.model_dump() if result.remediation_subject else None,
+        "errors": list(result.errors or []),
+        "validation_issues": [asdict(i) for i in (result.validation_issues or [])],
     }
     json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     result.json_path = json_path

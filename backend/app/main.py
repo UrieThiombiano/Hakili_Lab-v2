@@ -6,6 +6,8 @@ la bascule (`alembic stamp head` contre Neon) reste à faire par vous, voir
 """
 from __future__ import annotations
 
+import logging
+import logging.handlers
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -33,6 +35,27 @@ from src.pipeline.depot import installer_depot
 # docs/deploiement_vps_hetzner.md) sert l'API et le frontend buildé depuis un
 # seul processus/port — un seul bloc Caddy par app sur ce serveur, pas deux.
 _FRONTEND_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
+_LOGS_DIR = Path(__file__).resolve().parents[2] / "logs"
+
+
+def _configurer_logging() -> None:
+    """Persiste les `logger.warning`/`logger.error` déjà écrits dans le
+    pipeline (diagnostic IA, modules 4/5 best-effort) — jusqu'ici, ils ne
+    vivaient que dans le terminal d'`uvicorn` et disparaissaient au premier
+    redémarrage. `logs/` existe déjà mais ne contenait que des fichiers
+    Django obsolètes (dernier retrait 2026-08-21) : aucun handler fichier
+    n'était branché côté FastAPI."""
+    _LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    handler = logging.handlers.RotatingFileHandler(
+        _LOGS_DIR / "app.log", maxBytes=5_000_000, backupCount=3, encoding="utf-8"
+    )
+    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s"))
+    racine = logging.getLogger()
+    racine.addHandler(handler)
+    racine.setLevel(logging.INFO)
+
+
+_configurer_logging()
 
 
 class _SPAStaticFiles(StaticFiles):

@@ -52,14 +52,21 @@ def cout_total_hypothese(db: SQLASession, session: Session) -> Decimal:
     return Decimal(total) if total is not None else Decimal("0")
 
 
-def calculer_palier(db: SQLASession, session: Session) -> str:
-    """Palier d'après le coût total des problèmes confirmés (protocole §7)."""
-    total = cout_total_confirme(db, session)
+def _seuil_palier(total: Decimal) -> str:
+    """Seuils de palier (protocole §7), en fonction pure — réutilisée par
+    `calculer_palier` (coût confirmé) et par `plan.py::construire()` (coût
+    des étapes réellement listées, y compris pour le plan provisoire basé
+    sur des hypothèses)."""
     if total < 8:
         return "A"
     if total <= 20:
         return "B"
     return "C"
+
+
+def calculer_palier(db: SQLASession, session: Session) -> str:
+    """Palier d'après le coût total des problèmes confirmés (protocole §7)."""
+    return _seuil_palier(cout_total_confirme(db, session))
 
 
 def etablir_le_plan(db: SQLASession, session: Session) -> Session:

@@ -12,18 +12,23 @@ vi.mock("@/components/layout/AppShell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }))
 
-const { sessionsApiMock } = vi.hoisted(() => ({
+const { sessionsApiMock, elevesApiMock } = vi.hoisted(() => ({
   sessionsApiMock: {
     detail: vi.fn(),
     trancher: vi.fn(),
     relancer: vi.fn(),
     inscrire: vi.fn(),
     planUrl: () => "#",
+    planProvisoireUrl: () => "#",
+    rapportDiagnostiqueUrl: () => "#",
     ficheTravailUrl: () => "#",
     sujetUrl: () => "#",
   },
+  elevesApiMock: {
+    documentUrl: () => "#",
+  },
 }))
-vi.mock("@/lib/api", () => ({ sessionsApi: sessionsApiMock }))
+vi.mock("@/lib/api", () => ({ sessionsApi: sessionsApiMock, elevesApi: elevesApiMock }))
 
 import SessionDetail from "./SessionDetail"
 
@@ -38,8 +43,10 @@ function reponseBase(overrides: Partial<SessionDetailReponse> = {}): SessionDeta
     jeton_eleve: "jeton-eleve",
     eleve: { nom: "Sanou", prenom: "Feryel" },
     plan: { etapes: [], total_heures: "0", palier: "", nb_problemes: 0, repose_sur_estimation: false },
+    plan_provisoire: { etapes: [], total_heures: "0", palier: "", nb_problemes: 0, repose_sur_estimation: false },
     cout_total_hypothese: "2.00",
     sujet_t1_disponible: false,
+    sujet_t1_jeton_copie: null,
     peut_inscrire: false,
     palier_c: false,
     hypotheses: [],
@@ -76,6 +83,10 @@ describe("SessionDetail", () => {
     sessionsApiMock.detail.mockResolvedValue(
       reponseBase({
         hypotheses: [{ id: 42, competence_id: "L.IDR", competence_libelle: "Identifier", type_erreur_id: "CPT", etat: "hypothese", cout_estime: "2.00", justification: "", interpretation: "" }],
+        plan_provisoire: {
+          etapes: [{ rang: 1, probleme_id: 42, cout: "2.00", competence_id: "L.IDR", competence_libelle: "Identifier", type_erreur_id: "CPT", prerequis_bloquants: [], signatures: [] }],
+          total_heures: "2.00", palier: "A", nb_problemes: 1, repose_sur_estimation: false,
+        },
       }),
     )
     sessionsApiMock.trancher.mockResolvedValue({ compte: { confirme: 1 }, erreurs: [] })
@@ -93,6 +104,10 @@ describe("SessionDetail", () => {
     sessionsApiMock.detail.mockResolvedValue(
       reponseBase({
         hypotheses: [{ id: 7, competence_id: "N.CALC", competence_libelle: "Calculer", type_erreur_id: "ATT", etat: "hypothese", cout_estime: "0.00", justification: "", interpretation: "" }],
+        plan_provisoire: {
+          etapes: [{ rang: 1, probleme_id: 7, cout: "0.00", competence_id: "N.CALC", competence_libelle: "Calculer", type_erreur_id: "ATT", prerequis_bloquants: [], signatures: [] }],
+          total_heures: "0.00", palier: "A", nb_problemes: 1, repose_sur_estimation: false,
+        },
       }),
     )
 

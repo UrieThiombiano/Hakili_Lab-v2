@@ -155,6 +155,48 @@ def test_flux_complet_t0_libre(tmp_path, monkeypatch):
     r4b = client.get(f"/api/corrections/{jeton_copie}")
     assert r4b.json()["etat"] == "terminee"
     assert r4b.json()["resultat"]["grade"]["final_score"] == 1.0
+    # Mode libre : le bareme_id ne commence pas par "socle_", le module 4 ne
+    # tourne jamais (`taches.py::_ecrire_hypotheses_module4`) — pas de
+    # session, et `run_phase_b` mocké n'ajoute aucun document.
+    assert r4b.json()["documents"] == []
+    assert r4b.json()["jeton_session"] is None
+
+    app.dependency_overrides.clear()
+
+
+def test_statut_expose_documents_et_session_existants(tmp_path, monkeypatch):
+    """Sans ces champs, l'écran de résultat n'a aucun moyen de savoir quels
+    documents existent vraiment (l'ancien lien « Plan de remédiation »
+    pointait presque toujours vers un document jamais généré) ni qu'un
+    parcours (session) existe déjà pour cet élève."""
+    client, SessionLocal = _client_avec_base(tmp_path)
+
+    import src.pipeline.pipeline as pipeline_mod
+
+    monkeypatch.setattr(pipeline_mod, "run_transcription", lambda **kw: _pipeline_result(copy_id=kw["copy_id"], avec_transcription=True))
+
+    r = client.post(
+        "/api/corrections",
+        data={"eleve": "eleve-1", "test": "libre", "type_evaluation": "T0", "instructions": ""},
+        files=[("copie", ("copie.pdf", b"%PDF-1.4", "application/pdf")), ("sujet", ("sujet.pdf", b"%PDF-1.4", "application/pdf"))],
+    )
+    jeton_copie = r.json()["jeton"]
+
+    from app.auth.tokens import valeur_depuis_jeton
+    from app.models import Document, Session
+
+    copy_id = valeur_depuis_jeton(jeton_copie)
+    db = SessionLocal()
+    db.add(Document(copy_id=copy_id, type="rapport", fichier=b"%PDF-1.4"))
+    db.add(Session(identifiant_hakili="eleve-1"))
+    db.commit()
+    db.close()
+
+    r2 = client.get(f"/api/corrections/{jeton_copie}")
+    assert r2.status_code == 200, r2.text
+    corps = r2.json()
+    assert corps["documents"] == ["rapport"]
+    assert corps["jeton_session"]
 
     app.dependency_overrides.clear()
 
