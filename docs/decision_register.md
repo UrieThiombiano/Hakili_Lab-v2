@@ -807,6 +807,47 @@ Cette règle aurait pu être abandonnée : Django est le seul appelant depuis D-
 
 ---
 
+### D-CEO-44 — Choix des fournisseurs IA par tâche, exposé dans Paramètres *(nouveau 2026-08-29)*
+
+**Décision :** le routage multi-provider de D-CEO-03, jusque-là figé dans `.env` (`VISION_PROVIDER`, `GRADING_PROVIDER`, `DIAGNOSTIC_PROVIDER`), devient une **configuration globale** — une seule pour toute la plateforme — éditable depuis **Paramètres → Modèles IA** par l'administrateur seul (lecture seule pour les autres casquettes), à la demande de l'utilisateur.
+
+**Où vit la config.** `data/preferences_modeles.json` (fichier, pas de table — cohérent avec la discipline « une seule source de vérité » ; `.gitignore`, propre à chaque instance). **Il prime sur `.env`**, qui ne sert plus que de valeur de repli quand le fichier est absent/incomplet. `src/core/preferences_modeles.py` porte le magasin (`charger`/`enregistrer`/`valider`/`resoudre`/`catalogue`), indépendant de FastAPI comme de SQLAlchemy — le pipeline (`src/pipeline/pipeline.py`, fabriques de clients) et le backend (`GET`/`PUT /api/admin/preferences-modeles`) l'importent tel quel. Rechargement à chaud (contrôle `mtime`) : pas de redémarrage après un enregistrement.
+
+**Trois familles de tâches, listes de fournisseurs fermées :**
+- `transcription` (lecture des copies) → Claude · Gemini · ChatGPT
+- `correction` → DeepSeek · Claude · Gemini
+- `analyse` (diagnostic pédagogique texte libre qui alimente le rapport de copie) → Gemini · Claude · ChatGPT · DeepSeek
+
+Un fournisseur hors liste pour une tâche = 422 ; sans clé API configurée = 400. Quand Claude est choisi, une **variante Sonnet / Opus** s'ajoute (résolue en `CLAUDE_MODEL_HEAVY` / `CLAUDE_MODEL_OPUS`).
+
+**Support Gemini étendu.** `GeminiTranscriptionClient` (nom historique conservé, alias `GeminiClient`) porte désormais `grade()` et `diagnose()`, calqués sur `DeepSeekClient`, avec les prompts partagés `prompts/grading_prompt.md` / `diagnostic_prompt.md`. `ClaudeClient` accepte `modele_heavy`/`modele_opus` au constructeur et `model=` ponctuel sur `transcribe`/`grade`/`diagnose` (rétro-compatible : `None` ⇒ `.env`).
+
+**Ce que le réglage NE touche pas — volontairement :**
+- Le **diagnostic contraint du module 4** (`diagnose_constrained` / `diagnose_unanchored`) reste sur Claude : lui seul porte l'outil à `enum`, première des trois barrières contre un code hors référentiel (CLAUDE.md). Changer ce fournisseur ré-ouvrirait le jalon de validation « 100 sorties consécutives valides ».
+- La **génération des sujets T1/T3/T4/T5** (`generate_confirmation_subject`, `generate_verification_subject`) et l'**extraction énoncé/barème** restent sur Claude — aucun autre client ne porte ces méthodes.
+
+**Modèles Claude passés à la famille 5** dans `.env` / `.env.example` / `src/core/config.py` : `CLAUDE_MODEL_HEAVY=claude-sonnet-5`, `CLAUDE_MODEL_OPUS=claude-opus-5` (⚠ pas de repli 404 côté Claude — un ID sans accès sur la clé = erreur dure ; `.env` reste le point de contrôle).
+
+**Vérifié :** 12 tests `test_preferences_modeles.py` + 4 tests routeur admin + 6 tests `tests/test_routage_modeles.py` (parsing Gemini, sélection de client par étape), suites complètes vertes (152 `backend/tests/`, 246 `tests/`, 44 Vitest). Aller-retour réel non encore repassé.
+
+---
+
+### D-CEO-45 — Déploiement regroupé dans `deploy/`, livrable au commanditaire *(nouveau 2026-09-09)*
+
+Les fichiers de déploiement étaient éparpillés (`backend/Dockerfile`, `backend/entrypoint.sh`, `backend/docs/bascule_neon.md`, `docs/deploiement_vps_hetzner.md`, `deploy/deploy.sh`, `deploy/caddy_snippet.txt`). Tout est **regroupé dans `deploy/`** pour une livraison propre au commanditaire : `Dockerfile`, `entrypoint.sh`, `deploy.sh`, `caddy_snippet.txt`, `bascule_neon.md`, et `deploy/README.md` comme guide unique de bout en bout (pré-requis, premier déploiement, mises à jour, retour arrière, dépannage).
+
+**Ce qui ne bouge pas :** l'architecture de déploiement décidée le 2026-08-22 (D-CEO-42/43, `bascule_neon.md`) est inchangée — un seul conteneur sert l'API FastAPI **et** le frontend React buildé sur un port interne (`8011`), derrière le Caddy partagé du VPS Hetzner `167.233.234.219`. Le frontend est buildé sur l'hôte avant `docker build` (pas de stage Node).
+
+**Restent à la racine du dépôt, emplacement imposé :** `.dockerignore` (lu par Docker à la racine du contexte de build — nettoyé des restes Django : `staticfiles/`, `collectstatic`) et `.env.example` (gabarit commun dev/prod ; les surcharges prod — `DEBUG=false`, `SECRET_KEY` obligatoire, `DATABASE_URL` Postgres — sont listées dans `deploy/README.md`).
+
+**Améliorations au passage :** `deploy.sh` monte aussi `logs/` en volume (les journaux applicatifs de `app/main.py` survivaient jusque-là au plus au redémarrage du conteneur) ; contrôle de santé par boucle sur `/api/sante` au lieu d'un `sleep 5` sec ; `deploy.sh` se replace à la racine du dépôt (`git rev-parse --show-toplevel`) quel que soit le répertoire d'appel.
+
+Références mises à jour : `backend/app/main.py`, `CLAUDE.md`, `README.md`, `docs/deploiement.md` (marqué historique). `backend/docs/` supprimé (vide).
+
+**Non exécuté :** toujours aucun déploiement contre le vrai serveur (accès SSH du commanditaire) ni bascule Neon (`deploy/bascule_neon.md`). Build local revérifié : `npm run build` + `docker build -f deploy/Dockerfile` + `docker run` → `/api/sante` OK.
+
+---
+
 ## Tableau de synthèse
 
 | ID | Sujet | Décision finale | Date |
@@ -849,6 +890,8 @@ Cette règle aurait pu être abandonnée : Django est le seul appelant depuis D-
 | **D-CEO-41** | **Arbitrage C tranché : `remediation/`** | **`remediation/` (79 modules, 7 niveaux, 2 838 exercices corrigés) remplace les 121 chunks curriculum comme matière du module 7 ; `RemediationRetriever` branché sur le module 4 (contexte diagnostic) et le module 5 (T1, T3/T4/T5) via `reference_pedagogique` ; rapprochement compétence ↔ leçon auto-validé au-delà d'un seuil, sans classeur de relecture** | **2026-08-13** |
 | **D-CEO-42** | **Django+HTMX → FastAPI + React/Vite/Tailwind** | **D-CEO-39/40 inversées à la demande explicite de l'utilisateur : rendu serveur remplacé par API FastAPI (SQLAlchemy+Alembic) et SPA React/Tailwind, pour un rendu visuel professionnel. `src/` intact et réutilisé tel quel ; `backend/`/`frontend/` construits à côté de Django sur une base de dev séparée, jamais contre Neon en double écriture ; `/admin` explicitement hors scope ; bascule production non exécutée** | **2026-08-20** |
 | **D-CEO-43** | **Module 7 construit — fiche de travail** | **Générateur de fiches (compétence × type d'erreur × niveau, cataloguées, sans appel de modèle) construit sur la matière de D-CEO-41. Confusion de nommage corrigée : le plan du module 6 s'appelait « fiche de remédiation », renommé « plan de remédiation » partout (endpoint, template, frontend). Trois bugs réels corrigés au passage : substitution LaTeX naïve (`\le` mangeait `\left`), parsing `remediation/` (DÉCLIC/ATTENTION dupliqués entre modules), migration `session_suivi` jamais appliquée sur `dev.db`** | **2026-08-22** |
+| **D-CEO-44** | **Fournisseurs IA choisis dans Paramètres** | **Le routage de D-CEO-03 (jusque-là figé dans `.env`) devient une config globale éditée par l'admin dans Paramètres → Modèles IA. Persistée dans `data/preferences_modeles.json` (`src/core/preferences_modeles.py`, sans dépendance framework, rechargée à chaud), qui prime sur `.env`. Trois familles : transcription (Claude/Gemini/ChatGPT), correction (DeepSeek/Claude/Gemini), analyse (Gemini/Claude/ChatGPT/DeepSeek), + variante Claude Sonnet/Opus. `GeminiClient` gagne `grade()`/`diagnose()`. Restent Claude-only : module 4 (outil `enum`), génération de sujets, extraction barème. Modèles Claude → famille 5** | **2026-08-29** |
+| **D-CEO-45** | **Déploiement regroupé dans `deploy/`** | **Tous les fichiers de déploiement (ex-`backend/Dockerfile`, `backend/entrypoint.sh`, `backend/docs/bascule_neon.md`, `docs/deploiement_vps_hetzner.md`) réunis dans `deploy/`, avec `deploy/README.md` comme guide unique de livraison au commanditaire. Architecture inchangée (un conteneur API+frontend, port `8011`, Caddy partagé du VPS Hetzner). `.dockerignore` (nettoyé des restes Django) et `.env.example` restent à la racine, emplacement imposé. `deploy.sh` : volume `logs/` ajouté, contrôle santé en boucle. Non exécuté contre le vrai serveur ; build local revérifié** | **2026-09-09** |
 | **D-CEO-39** | **Streamlit retiré** | **`src/ui/` supprimé (3 106 lignes) avec `streamlit`, `pandas` et `numpy` — ce dernier ne servait qu'au module 2, parti le même jour. Django porte seul l'interface depuis le 30 juillet et le filet ne rattrapait plus rien : sans la clé Google, aucune des deux interfaces ne permet de se connecter. L'essai réel de bout en bout qui conditionnait le retrait n'a pas été passé — il reste à faire, découplé plutôt que bloquant. Débloque le passage de `copie`/`document` sous Django** | **2026-08-05** |
 | **D-CEO-38** | **Module 2 supprimé, diagnostic branché sur la correction** | **Trois copies 5e réelles imprimées/scannées : les trois refusées. Cause mesurée — un bord de cadre passe de 121–156 dans le PDF à 243–248 après impression (papier 251,6), le seuil d'encre à 140 ne le voit pas et le recalage s'accroche au texte : dérive jusqu'à 85 pt, 4 pages/10 acceptées à tort. Le tramage, lui, n'existe pas (0,00 % de pixels sous 200 dans un cadre). Remplacé par `reponses_depuis_correction()` : la correction rend déjà `observed_answer` par code de question, et le code du barème est celui du référentiel. D-CEO-35 et D-CEO-36 caduques** | **2026-08-05** |
 | **D-CEO-37** | **Identités factices en développement** | **Élèves et personnel inventés à la place de la lecture des Sheets, verrouillés sur `DEBUG` + `HAKILI_SHEETS_FACTICES` : rien n'est écrit, le branchement est au ras du réseau (`_fetch_raw_rows`) avec les en-têtes réels, donc toute la chaîne aval s'exécute pour de vrai. Cas limites couverts (centre vu une fois, fratrie, double affectation). `donnees_demo` ajoute trois parcours, sans jamais toucher aux sessions `CORPUS-*`** | **2026-08-05** |

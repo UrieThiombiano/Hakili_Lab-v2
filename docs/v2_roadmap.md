@@ -461,6 +461,48 @@ Limite structurelle assumée : certaines compétences ont un libellé volontaire
 
 ## Journal de bord
 
+### 2026-08-29 (suite) — Le sujet T1 n'était plus généré à la réanalyse d'une copie
+
+Signalé par l'utilisateur : « les exos de confirmation de lacunes ne sont plus
+générés après analyse ». Cause trouvée dans `app/services/taches.py::_ecrire_hypotheses_module4` :
+le sujet T1 n'était généré que si le diagnostic du T0 **créait** au moins une hypothèse
+(`ecriture.crees` non vide). Or réanalyser la copie d'un élève qui a déjà une session
+ouverte (cas courant en test, et en production quand un collègue a déjà lancé un T0)
+ne crée rien de neuf — tous les couples compétence × type d'erreur sont « déjà suivis » —
+donc `_generer_sujet_confirmation` n'était jamais appelé, même quand aucun sujet n'existait.
+Confirmé sur `dev.db` : session 16, évaluations T0 nº 12 et 13 du 2026-08-29,
+« 0 problème(s) écrits, 14 déjà suivis », aucun sujet.
+
+Correctif : on génère désormais dès qu'un T0 laisse des hypothèses ouvertes **et**
+qu'aucun T0 de la session ne porte encore de `sujet_confirmation` persisté
+(`_session_a_un_sujet_t1`, même critère que `sessions.py::session_detail` pour le lien
+« Sujet T1 »). Un sujet déjà présent → pas de second appel modèle. Trois tests neufs
+(`backend/tests/test_taches.py`). 155 tests backend OK.
+
+### 2026-08-29 — Choix des fournisseurs IA sorti dans Paramètres (D-CEO-44)
+
+Demande de l'utilisateur : que le choix du modèle par étape ne soit plus figé dans `.env`.
+Fait — **Paramètres → Modèles IA**, config globale, éditable par l'administrateur seul,
+lecture seule pour les autres casquettes. Trois familles : transcription
+(Claude / Gemini / ChatGPT), correction (DeepSeek / Claude / Gemini), analyse —
+diagnostic texte libre du rapport de copie — (Gemini / Claude / ChatGPT / DeepSeek),
+plus une variante Sonnet / Opus quand Claude est choisi.
+
+Mécanique : `src/core/preferences_modeles.py` (magasin fichier `data/preferences_modeles.json`,
+rechargé à chaud, sans dépendance de framework), qui **prime sur `.env`** — ce dernier
+devient le repli. Les fabriques de clients du pipeline (`_make_*_client`) le consultent ;
+`GET`/`PUT /api/admin/preferences-modeles` l'exposent. `GeminiClient` a gagné `grade()` et
+`diagnose()` ; `ClaudeClient` accepte un modèle au constructeur / par appel. Modèles Claude
+passés à la famille 5 (`claude-sonnet-5` / `claude-opus-5`).
+
+**Restent Claude-only, volontairement :** le diagnostic contraint du module 4
+(`diagnose_constrained`, outil `enum` = 1re barrière anti-code hors référentiel — changer
+son fournisseur ré-ouvrirait le jalon « 100 sorties valides »), la génération des sujets
+T1/T3/T4/T5, l'extraction énoncé/barème. Aucun autre client ne porte ces méthodes.
+
+**Vérifié :** 152 `backend/tests/`, 246 `tests/`, 47 Vitest — verts (dont 12 + 4 + 6 + 3
+nouveaux tests ciblés). Aller-retour réel `claude-in-chrome` non repassé.
+
 ### 2026-08-13 (suite 4) — `bareme_socle_tleD.yaml` reconstruit — dernier niveau, arbitrage H clos
 
 66 items (20 A + 14 B + 32 sous-items C, 6 problèmes). Ce corrigé est le plus favorable des 7 : sa grille

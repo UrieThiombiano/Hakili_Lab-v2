@@ -20,7 +20,7 @@ Ce document a deux parties : l'état réel de l'infrastructure aujourd'hui, puis
 
 `src/api/`, `src/pipeline/`, `src/knowledge/`, `src/models/`, `src/core/`, `src/integrations/` restent **indépendants du framework** — ne pas y introduire de dépendance à FastAPI. Cette discipline a survécu à deux migrations de framework (Streamlit → Django → FastAPI) sans effet sur ces modules ni sur `tests/`.
 
-⚠ **La bascule en production n'a pas eu lieu.** Le code tourne en dev contre une base séparée (121 tests `pytest backend/tests/`, 40 tests Vitest `frontend/`, 240 tests `pytest tests/`). Selon l'utilisateur (2026-08-22, à vérifier plutôt qu'à supposer), l'adoption du schéma Neon par Alembic (`alembic stamp head`) serait déjà faite — voir `backend/docs/bascule_neon.md`. La cible réelle est un **VPS Hetzner partagé** (`167.233.234.219`, plusieurs apps en service derrière Docker + Caddy déjà en place, pas un VPS dédié à provisionner) : `deploy/` (`deploy.sh`, `caddy_snippet.txt`) et `docs/deploiement_vps_hetzner.md` sont prêts et testés localement (image Docker construite et lancée avec succès, API + frontend + SPA vérifiés, 2026-08-22) mais jamais exécutés contre le vrai serveur — ça demande les accès SSH de l'utilisateur.
+⚠ **La bascule en production n'a pas eu lieu.** Le code tourne en dev contre une base séparée (121 tests `pytest backend/tests/`, 40 tests Vitest `frontend/`, 240 tests `pytest tests/`). Selon l'utilisateur (2026-08-22, à vérifier plutôt qu'à supposer), l'adoption du schéma Neon par Alembic (`alembic stamp head`) serait déjà faite — voir `deploy/bascule_neon.md`. La cible réelle est un **VPS Hetzner partagé** (`167.233.234.219`, plusieurs apps en service derrière Docker + Caddy déjà en place, pas un VPS dédié à provisionner). **Tout le déploiement est regroupé dans `deploy/`** (`Dockerfile`, `entrypoint.sh`, `deploy.sh`, `caddy_snippet.txt`, `bascule_neon.md`, et `deploy/README.md` comme guide de livraison — D-CEO-45, 2026-09-09) ; testé localement (image construite et lancée, API + frontend + SPA vérifiés) mais jamais exécuté contre le vrai serveur — ça demande les accès SSH de l'utilisateur.
 
 **Perte assumée au retrait de Django, sans équivalent FastAPI construit à ce jour :** dix commandes `manage.py` de l'outillage v2 (`verifier_installation`, `rapprocher_remediation`, `corpus`, `diagnostiquer`, `donnees_demo`, `mesurer_plancher`, `recalculer_couts`, `taguer_corpus`), récupérables via `git show main:<chemin>` si besoin. Aucune n'est un écran de l'app. En particulier, **le contrôle qui exécute une correction complète sur une vraie copie de bout en bout** (`verifier_installation --copie … --test … --eleve …`) n'a pas d'équivalent — c'est le seul contrôle qui prouvait que la chaîne tenait avec les vraies API, et il n'a jamais été repassé depuis le retrait.
 
@@ -61,7 +61,7 @@ Centres dérivés dynamiquement des Sheets (`src/core/centre_normalizer.py`, `de
 - Transcription multimodale (Gemini 2.5 Flash / Claude Sonnet fallback)
 - Correction binaire 0/1 proposée par IA, validée par l'enseignant dans un tableau (`TeacherDecision`, `src/models/domain.py` — **déjà implémenté**, `compute_final_score()` priorise la décision enseignant)
 - Diagnostic + remédiation + export PDF/HTML (`src/pipeline/pdf_report_html.py`, `pdf_remediation_html.py`)
-- Routing multi-provider automatique par tâche, fallback Claude (table complète : voir `docs/decision_register.md` D-CEO-03)
+- Routing multi-provider par tâche, fallback Claude (table d'origine : `docs/decision_register.md` D-CEO-03). **Depuis D-CEO-44**, le fournisseur de chaque étape (transcription / correction / analyse) est choisi dans **Paramètres → Modèles IA** (admin) et vit dans `data/preferences_modeles.json` (`src/core/preferences_modeles.py`), qui **prime sur `.env`**. Restent Claude-only par sécurité : diagnostic contraint module 4, génération des sujets T1/T3/T4/T5, extraction énoncé/barème.
 
 **Attention à un piège de doc :** `README.md` décrit encore `TeacherDecision` et le tableau de validation comme "à construire". **C'est fait.** Ne t'y fie pas pour l'état d'avancement — vérifie `docs/v2_roadmap.md` et `docs/decision_register.md`. (`AGENTS.md` portait la même erreur : supprimé au nettoyage du 2026-07-30.)
 
@@ -112,7 +112,7 @@ Sept états de session (D-CEO-34), dont **trois sorties sans remédiation à ne 
 
 ## Contraintes actives (fusion existant + chantier v2)
 
-- Python + **Django (rendu serveur, HTMX)**, seule interface depuis le retrait de Streamlit (D-CEO-39).
+- Python + **API FastAPI (`backend/`) + SPA React/Vite/Tailwind (`frontend/`)**, seule interface depuis le retrait de Django (D-CEO-42/43). `src/` reste sans dépendance de framework.
 - Barème binaire 0/1 par question et sous-question (hors nouveau format QCM/court/rédigé du chantier v2).
 - L'enseignant a toujours le dernier mot sur le score (`TeacherDecision`, déjà implémenté).
 - **Aucun code de compétence ou de type d'erreur inventé — tout vient du référentiel.**
@@ -148,18 +148,25 @@ Avant de coder sur ce dépôt :
 ## Commandes
 
 ```powershell
-# Windows
+# Windows — deux terminaux
 .\.venv\Scripts\Activate.ps1
-$env:DEBUG="true"; python manage.py runserver     # interface Django, admin sur /admin/
+$env:DEBUG="true"; .\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --reload
+cd frontend; npm install; npm run dev          # Vite :5173, proxy /api -> :8000
 
 # Unix / make
-make setup && make run          # lance Django
-make test
+make setup && make run          # API FastAPI (uvicorn --reload, :8000)
+cd frontend && npm install && npm run dev
+make test                       # pytest tests/ + pytest backend/tests/
+cd frontend && npm test         # Vitest
 make lint
 
-# Migrations (Django, base Neon) — un seul système depuis D-CEO-40
-python manage.py migrate
-python manage.py makemigrations
+# Migrations (Alembic, base de dev — Neon en prod via deploy/entrypoint.sh)
+.\.venv\Scripts\python.exe -m alembic -c backend/alembic.ini upgrade head
+.\.venv\Scripts\python.exe -m alembic -c backend/alembic.ini revision --autogenerate -m "…"
+python backend/scripts/importer_referentiel.py   # import du classeur (idempotent)
+
+# Déploiement : tout est dans deploy/ (voir deploy/README.md)
+bash deploy/deploy.sh
 ```
 
 ---
@@ -200,8 +207,10 @@ python manage.py makemigrations
 | `docs/audit_donnees.md` | Audit de la base et de la connaissance — constats classés par gravité, plan en 9 étapes |
 | `docs/v2_roadmap.md` | Chantier v2 — avancement détaillé, jalons, journal de bord — source de vérité sur "où en est-on" |
 | `docs/harmonisation_donnees.md` | Écart ancien système ↔ référentiel v2 — arbitrages en attente, défauts constatés. **À lire avant le module 1** |
-| `docs/deploiement.md` | Mise en service Railway/Render (hébergeur précédent) — variables d'environnement, données de mineurs, valeur historique pour tout ce qui est indépendant de l'hébergeur |
-| `docs/deploiement_vps_hetzner.md` | **Cible de déploiement actuelle** — VPS Hetzner **partagé** (Docker + Caddy déjà en place pour plusieurs apps) : un conteneur de plus, un bloc Caddy de plus, script de mise à jour (`deploy/deploy.sh`) |
+| `deploy/README.md` | **Guide de déploiement (livraison commanditaire)** — VPS Hetzner **partagé** (Docker + Caddy déjà en place) : pré-requis, premier déploiement, mises à jour, retour arrière, dépannage |
+| `deploy/Dockerfile` · `deploy/entrypoint.sh` · `deploy/deploy.sh` · `deploy/caddy_snippet.txt` | Image (API + frontend buildé, un conteneur), démarrage (`alembic upgrade` + uvicorn), script git pull → build → conteneur, bloc reverse proxy Caddy |
+| `deploy/bascule_neon.md` | Procédure unique d'adoption du schéma Neon existant par Alembic (`alembic stamp head`) — à faire avant le premier démarrage réel |
+| `docs/deploiement.md` | **Historique** — mise en service Railway/Render (hébergeur précédent) ; conservé pour le raisonnement sur variables d'environnement et données de mineurs |
 | `docs/architecture_cible.md` | Recommandation de sortie de Streamlit — **appliquée** (D-CEO-39), valeur historique |
 | `docs/accents_a_corriger.md` | Généré — liste des accents à corriger dans le classeur, à remettre au docteur |
 | `guide-v2.md` | Chantier v2 — les 9 modules, détaillés |
