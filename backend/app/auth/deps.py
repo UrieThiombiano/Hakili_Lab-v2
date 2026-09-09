@@ -97,7 +97,12 @@ def ouvrir_session(db: SQLASession, response: Response, personne: dict) -> str:
     # CSRF de Django.
     from app.auth.csrf import generer_jeton_csrf, poser_cookie_csrf
 
-    poser_cookie_csrf(response, generer_jeton_csrf(), secure=not settings.debug)
+    poser_cookie_csrf(
+        response,
+        generer_jeton_csrf(),
+        secure=not settings.debug,
+        max_age=int(DUREE_SESSION.total_seconds()),
+    )
     return session_id
 
 

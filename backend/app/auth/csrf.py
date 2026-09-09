@@ -41,19 +41,32 @@ def _acces_libre() -> bool:
 
     return acces_libre()
 
-#: Chemins exemptés : pas encore de session au moment de l'appel, donc pas
-#: encore de cookie CSRF à recopier.
-_CHEMINS_EXEMPTES = {"/api/auth/login"}
+#: Chemins exemptés :
+#:  - `/api/auth/login` : pas encore de session, donc pas encore de cookie
+#:    CSRF à recopier.
+#:  - `/api/auth/logout` : une déconnexion forcée par un tiers est sans
+#:    danger, et l'exempter évite de coincer une session dont le cookie CSRF
+#:    a expiré (l'utilisateur ne pourrait alors même plus se déconnecter).
+_CHEMINS_EXEMPTES = {"/api/auth/login", "/api/auth/logout"}
 
 
 def generer_jeton_csrf() -> str:
     return secrets.token_urlsafe(32)
 
 
-def poser_cookie_csrf(response: Response, jeton: str, *, secure: bool) -> None:
+def poser_cookie_csrf(response: Response, jeton: str, *, secure: bool, max_age: int | None = None) -> None:
     """Cookie **non** httpOnly, délibérément : le frontend doit pouvoir le
-    lire pour le recopier en en-tête (`document.cookie`)."""
-    response.set_cookie(COOKIE_CSRF, jeton, httponly=False, samesite="lax", secure=secure)
+    lire pour le recopier en en-tête (`document.cookie`).
+
+    `max_age` calé sur celui du cookie de session : sans lui, le cookie CSRF
+    est un cookie de session navigateur, effacé à la fermeture du navigateur
+    alors que le cookie d'auth (`max_age` explicite) survit — on se retrouve
+    alors « connecté » mais sans jeton CSRF, et toute requête mutante répond
+    403 (dépôt de copie volumineux : la connexion est coupée en cours d'envoi
+    et le proxy de dev renvoie « Bad Gateway »)."""
+    response.set_cookie(
+        COOKIE_CSRF, jeton, max_age=max_age, httponly=False, samesite="lax", secure=secure
+    )
 
 
 class CSRFMiddleware:
@@ -75,6 +88,16 @@ class CSRFMiddleware:
             cookie = request.cookies.get(COOKIE_CSRF)
             entete = request.headers.get(HEADER_CSRF)
             if not cookie or not entete or not secrets.compare_digest(cookie, entete):
+                # Vider le corps encore en cours d'envoi avant de répondre :
+                # sans ça, fermer la connexion en plein upload (dépôt de copie,
+                # plusieurs Mo) déclenche un `ECONNRESET` que le proxy de dev
+                # Vite renvoie au navigateur en « Bad Gateway » au lieu du 403.
+                while True:
+                    message = await receive()
+                    if message["type"] != "http.request":
+                        break
+                    if not message.get("more_body", False):
+                        break
                 reponse = JSONResponse({"detail": "Jeton CSRF manquant ou invalide."}, status_code=403)
                 await reponse(scope, receive, send)
                 return

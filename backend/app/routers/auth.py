@@ -22,6 +22,7 @@ from app.auth.deps import (
     ouvrir_session,
 )
 from app.db import get_session
+from src.core.config import settings
 from src.integrations import google_sheets
 from src.integrations.google_sheets import GoogleSheetsError
 from src.services.identite_service import LIBELLES_CASQUETTE, roles_valides_de
@@ -109,9 +110,28 @@ def logout(
 
 @router.get("/me")
 def me(
+    response: Response,
     personne: dict | None = Depends(get_personne_courante),
     casquette: str = Depends(get_casquette_courante),
+    hakili_session: str | None = Cookie(default=None),
+    csrf_token: str | None = Cookie(default=None),
 ) -> dict:
+    # Auto-réparation : une session ouverte avant que le cookie CSRF n'ait un
+    # `Max-Age` (ou dont le cookie de session navigateur a été perdu à la
+    # fermeture) se retrouve « connectée » mais sans jeton CSRF — toute action
+    # mutante répond alors 403. `me()` est appelé à chaque chargement de la
+    # SPA : c'est le bon endroit pour reposer le cookie manquant.
+    if personne and hakili_session and not csrf_token and not acces_libre():
+        from app.auth.csrf import generer_jeton_csrf, poser_cookie_csrf
+        from app.auth.deps import DUREE_SESSION
+
+        poser_cookie_csrf(
+            response,
+            generer_jeton_csrf(),
+            secure=not settings.debug,
+            max_age=int(DUREE_SESSION.total_seconds()),
+        )
+
     if not personne:
         return {"acces_libre": acces_libre(), "personne": None}
     roles = roles_valides_de(personne)
