@@ -44,24 +44,47 @@ Deux fichiers restent **à la racine du dépôt**, à leur emplacement imposé :
 ## Ce que le serveur partagé impose (à ne pas casser)
 
 - **Un port interne par app, jamais exposé à Internet.** Caddy y accède en
-  `localhost`. Ports pris au 2026-08-22 : `7860` (guichet-entrepreneur),
-  `8001` (api-sylviane). **`8011` est libre** — c'est celui câblé dans
-  `Dockerfile` et `deploy.sh`. **Vérifier auprès de l'administrateur
-  (`HakiliLab`)** qu'il l'est toujours avant le premier déploiement.
+  `localhost`. Ports pris (`Tuto deploiement Heztner.txt`) : `7860`
+  (guichet-entrepreneur), `8001` (api-sylviane) ; libres : `8010`, `8011`,
+  `8012`. On utilise **`8011`** — c'est celui câblé dans `Dockerfile` et
+  `deploy.sh`. **Vérifier auprès de l'administrateur (`HakiliLab`)** qu'il
+  l'est toujours avant le premier déploiement.
 - **Le Caddyfile `/etc/caddy/Caddyfile` est partagé.** N'y ajouter que le bloc
   de `caddy_snippet.txt`. Ne jamais modifier ni retirer le bloc d'une autre app.
 - **Une app = un conteneur = un port = un bloc Caddy.** Ne pas scinder en deux
   conteneurs (API + statique) : ça demanderait un deuxième port.
-- Pas de `ufw`, pas de `systemctl restart caddy` (reload seulement), aucune
-  commande à l'échelle du serveur sans avoir vérifié qu'elle n'affecte que
-  cette app.
+- Pas de `ufw` (contrairement aux étapes 7/12 du tuto, prévues pour un test en
+  IP:port d'une app Shiny — ici le conteneur n'écoute que sur `127.0.0.1:8011`),
+  pas de `systemctl restart caddy` (reload seulement), aucune commande à
+  l'échelle du serveur sans avoir vérifié qu'elle n'affecte que cette app.
+
+---
+
+## Référence serveur — `Tuto deploiement Heztner.txt`
+
+Le fichier `Tuto deploiement Heztner.txt` (racine du dossier de travail, **hors
+dépôt** — il contient le mot de passe SSH) est le tutoriel générique du serveur.
+Il décrit une app Shiny, mais **le contexte serveur qu'il donne s'applique tel
+quel** à Hakili Lab :
+
+| Ce que le tuto donne | Pour Hakili Lab |
+|---|---|
+| `ssh …@167.233.234.219` + mot de passe (dans le fichier) | Le nom de compte y est un placeholder — le demander à l'admin (`HakiliLab`) |
+| Docker + Caddy déjà installés, Caddyfile partagé `/etc/caddy/Caddyfile` | Idem — on ajoute un conteneur + un bloc Caddy, rien à installer |
+| Ports pris : `7860` (guichet-entrepreneur), `8001` (api-sylviane) ; **libres : `8010`, `8011`, `8012`** | On utilise **`8011`** (câblé dans `Dockerfile`/`deploy.sh`) |
+| Admin serveur : **HakiliLab** | À contacter pour le port et l'accès `sudo` au Caddyfile |
+| Étapes 6-7 : `docker run -p 8010:7860` puis `sudo ufw allow 8010/tcp` pour tester en IP:port | **Non applicable** : `deploy.sh` publie sur `127.0.0.1:8011` seulement — Caddy y accède en local, aucun port à ouvrir dans `ufw` |
+| Étape 5 : Dockerfile à la Shiny | Remplacé par `deploy/Dockerfile` (API FastAPI + frontend React buildé) |
+
+La suite de ce guide reprend les étapes du tuto avec les spécificités Hakili Lab.
 
 ---
 
 ## Pré-requis
 
-- **Accès SSH** au serveur (`ssh <compte>@167.233.234.219` — identifiants dans
-  `Tuto deploiement Heztner.txt`, hors dépôt).
+- **Accès SSH** au serveur (`ssh <compte>@167.233.234.219` — mot de passe et
+  contexte dans `Tuto deploiement Heztner.txt`, hors dépôt ; le nom de compte
+  est à demander à l'admin `HakiliLab`).
 - **Dépôt GitHub** accessible depuis le serveur (token si privé).
 - **Base Neon** : URL de connexion (`postgresql://…?sslmode=require`) + accès au
   projet Neon pour l'étape 0.
@@ -237,7 +260,8 @@ déploiement. La base (élèves, personnel, suivi) est sur **Neon**, hors serveu
 
 ## Note — branche déployée
 
-`fastapi-react` est la branche livrée (FastAPI + React, D-CEO-42/43). Elle
-n'est pas encore fusionnée dans `main` (« bascule production non exécutée »).
-Une fois la mise en service confirmée et la branche fusionnée, changer le
-défaut de `deploy.sh` (`BRANCHE="${1:-main}"`) et déployer depuis `main`.
+`fastapi-react` est la branche livrée (FastAPI + React, D-CEO-42 → 45). Sa
+fusion dans `main` est proposée dans la **PR #1** ; tant qu'elle n'est pas
+mergée, `deploy.sh` déploie `fastapi-react` (son défaut). Une fois la PR
+mergée et la mise en service confirmée, changer le défaut de `deploy.sh`
+(`BRANCHE="${1:-main}"`) et déployer depuis `main`.
