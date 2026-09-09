@@ -23,7 +23,8 @@ CORS, pas de second conteneur, pas de nginx.
 
 | Fichier | Rôle |
 |---|---|
-| `README.md` | Ce guide. |
+| `README.md` | Ce guide (explications). |
+| `CHECKLIST.md` | Runbook linéaire à cocher pour la session SSH — sans explications. |
 | `Dockerfile` | Image de l'app complète (API + frontend buildé). Contexte de build = racine du dépôt. |
 | `entrypoint.sh` | Démarrage du conteneur : `alembic upgrade head` puis `uvicorn` (2 workers). |
 | `deploy.sh` | Script de déploiement / mise à jour : `git pull` → build frontend → build image → relance du conteneur → contrôle santé. |
