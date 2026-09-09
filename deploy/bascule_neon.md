@@ -11,7 +11,7 @@ base réelle. **À exécuter par vous**, avec vos accès Neon, pas par un agent
 automatisé — voir "Ce qui ne sera pas fait à votre place" plus bas.
 
 Contexte de la décision : `docs/decision_register.md` D-CEO-42/D-CEO-43
-(racine du dépôt). Déploiement applicatif : `docs/deploiement_vps_hetzner.md`.
+(racine du dépôt). Déploiement applicatif : `deploy/README.md`.
 
 ## Précédent direct dans ce projet
 
@@ -71,7 +71,7 @@ Ceci enregistre la révision `head` actuelle (les deux migrations existantes,
 DDL — exactement le même principe que `migrate suivi 0007 --fake`.
 
 Après cette commande, les démarrages suivants du backend FastAPI (voir
-`backend/entrypoint.sh`) exécutent `alembic upgrade head` normalement : sur
+`deploy/entrypoint.sh`) exécutent `alembic upgrade head` normalement : sur
 un schéma déjà stampé, cette commande ne fait rien (déjà à `head`) ; une
 future migration créée après la bascule s'appliquera normalement.
 
@@ -82,23 +82,20 @@ future migration créée après la bascule s'appliquera normalement.
 - Créer la branche Neon de vérification (étape 1) — nécessite votre accès
   au projet Neon.
 - Déployer réellement sur le VPS partagé (`167.233.234.219`) — nécessite un
-  accès SSH que cet agent n'a pas. `docs/deploiement_vps_hetzner.md` et
-  `deploy/` (`deploy.sh`, `caddy_snippet.txt`) sont prêts et documentés
-  (2026-08-22, réécrits une deuxième fois le même jour une fois découvert
-  qu'il s'agit d'un serveur Docker + Caddy partagé, pas d'un VPS dédié à
-  provisionner), jamais exécutés contre le vrai serveur.
+  accès SSH que cet agent n'a pas. `deploy/` (README, `Dockerfile`,
+  `entrypoint.sh`, `deploy.sh`, `caddy_snippet.txt`) est prêt et documenté,
+  jamais exécuté contre le vrai serveur.
 
 ## Frontend : build et service statique
 
-**Tranché (2026-08-22, voir `docs/deploiement_vps_hetzner.md`) : un seul
+**Tranché (2026-08-22, voir `deploy/README.md`) : un seul
 conteneur.** Le serveur cible héberge plusieurs apps derrière Caddy, une
 app = un conteneur = un port = un bloc Caddy — deux conteneurs (API +
 statique) doubleraient inutilement ce qu'il faut demander à
 l'administrateur du serveur. `frontend/dist/` (produit par `npm run build`,
-hors conteneur — voir en-tête de `backend/Dockerfile`) est donc servi par
+hors conteneur — voir en-tête de `deploy/Dockerfile`) est donc servi par
 FastAPI lui-même (`fastapi.staticfiles`, `backend/app/main.py`) : un seul
 port, un seul bloc Caddy, aucun CORS à gérer puisque le frontend appelle
 l'API en relatif. Nginx n'intervient nulle part sur ce serveur — Caddy fait
 tout le reverse proxy et gère seul le HTTPS (Let's Encrypt automatique) pour
 toutes les apps qui y tournent.
-Django.

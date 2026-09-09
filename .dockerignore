@@ -1,3 +1,6 @@
+# Contexte de build de l'image (deploy/Dockerfile). Contexte = racine du dépôt ;
+# Docker lit ce fichier ici. But : ne copier que le nécessaire à l'exécution.
+
 # Secrets — jamais dans l'image (montés en volume au runtime)
 .env
 .env.*
@@ -5,8 +8,6 @@
 credentials/
 
 # Bases locales
-db.sqlite3
-dev.db
 *.sqlite3
 *.db
 
@@ -16,12 +17,9 @@ logs/
 data/copies/
 data/outputs/
 
-# Fichiers statiques régénérés au build (collectstatic)
-staticfiles/
-
-# Frontend : dist/ DOIT exister avant `docker build` (buildé sur l'hôte,
-# voir l'en-tête de backend/Dockerfile) et n'est pas exclu ici — seul
-# node_modules/ est exclu, volumineux et jamais utilisé dans l'image.
+# Frontend : frontend/dist/ DOIT exister avant `docker build` (buildé sur
+# l'hôte, voir l'en-tête de deploy/Dockerfile) et n'est donc PAS exclu ici.
+# Seul node_modules/ l'est — volumineux, jamais utilisé dans l'image.
 frontend/node_modules/
 
 # Python
@@ -38,12 +36,16 @@ htmlcov/
 # Git / éditeurs / OS
 .git/
 .gitignore
+.github/
 .vscode/
 .idea/
+.claude/
 .DS_Store
 Thumbs.db
 
-# Docs (non nécessaires à l'exécution, réduisent le contexte de build)
+# Docs et tests (non nécessaires à l'exécution, réduisent le contexte de build)
 docs/
+tests/
+backend/tests/
 *.md
 !README.md
