@@ -8,6 +8,8 @@ import type {
   MeReponse,
   PersonneListe,
   PersonnelReponse,
+  PreferencesModelesReponse,
+  PreferencesModelesRequete,
   SessionDetailReponse,
   StatistiquesReponse,
   SujetDisponible,
@@ -71,11 +73,30 @@ async function requete<T>(chemin: string, options: RequeteOptions = {}): Promise
 function get<T>(chemin: string): Promise<T> {
   return requete<T>(chemin)
 }
+/** Récupère un endpoint qui rend un fichier (PDF) plutôt que du JSON — pour
+ * les générations lentes (sujets de test) où un `<a target="_blank">` laisserait
+ * un onglet blanc pendant une minute. L'appelant ouvre le Blob lui-même. */
+async function getBlob(chemin: string): Promise<Blob> {
+  const reponse = await fetch(`${BASE}${chemin}`, { credentials: "include" })
+  if (!reponse.ok) {
+    let detail: unknown
+    try {
+      detail = (await reponse.json()).detail
+    } catch {
+      detail = reponse.statusText
+    }
+    throw new ApiError(reponse.status, detail)
+  }
+  return reponse.blob()
+}
 function postJson<T>(chemin: string, corps: unknown): Promise<T> {
   return requete<T>(chemin, { method: "POST", body: JSON.stringify(corps) })
 }
 function postForm<T>(chemin: string, corps: FormData): Promise<T> {
   return requete<T>(chemin, { method: "POST", body: corps })
+}
+function putJson<T>(chemin: string, corps: unknown): Promise<T> {
+  return requete<T>(chemin, { method: "PUT", body: JSON.stringify(corps) })
 }
 function del<T>(chemin: string): Promise<T> {
   return requete<T>(chemin, { method: "DELETE" })
@@ -120,6 +141,11 @@ export const sessionsApi = {
     `${BASE}/sessions/${jetonSession}/problemes/${problemeId}/fiche${telecharger ? "?telecharger=true" : ""}`,
   sujetUrl: (jetonSession: string, typeEvaluation: string, telecharger = false) =>
     `${BASE}/sessions/${jetonSession}/sujets/${typeEvaluation}${telecharger ? "?telecharger=true" : ""}`,
+  /** « Un sujet de test » adapté au profil actuel — le backend choisit le
+   * type (T1/T3/T4) selon l'état des lacunes, et régénère à chaque appel. */
+  sujetTestBlob: (jetonSession: string) => getBlob(`/sessions/${jetonSession}/sujet-test`),
+  /** Sujet d'un type précis (T1/T3/T4/T5), régénéré à chaque appel. */
+  sujetBlob: (jetonSession: string, typeEvaluation: string) => getBlob(`/sessions/${jetonSession}/sujets/${typeEvaluation}`),
 }
 
 // ── Corrections ──────────────────────────────────────────────────────────
@@ -149,4 +175,7 @@ export const correctionsApi = {
 export const adminApi = {
   personnel: () => get<PersonnelReponse>("/admin/personnel"),
   statistiques: () => get<StatistiquesReponse>("/admin/statistiques"),
+  preferencesModeles: () => get<PreferencesModelesReponse>("/admin/preferences-modeles"),
+  majPreferencesModeles: (corps: PreferencesModelesRequete) =>
+    putJson<PreferencesModelesReponse>("/admin/preferences-modeles", corps),
 }

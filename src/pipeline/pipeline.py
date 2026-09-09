@@ -16,10 +16,11 @@ Flux en deux phases :
     run_phase_a() [= run_transcription() + run_grading() enchaînés]
     → tableau de validation → run_phase_b().
 
-Routage multi-providers (contrôlé par .env) :
-  Transcription  → VISION_PROVIDER      : "gemini" | "claude"
-  Correction     → GRADING_PROVIDER     : "deepseek" | "claude"
-  Diagnostic     → DIAGNOSTIC_PROVIDER  : "deepseek" | "mistral" | "claude"
+Routage multi-providers (Paramètres → Modèles IA, `data/preferences_modeles.json`,
+prime sur .env — D-CEO-44) :
+  Transcription  → tâche "transcription" : "claude" | "gemini" | "openai"
+  Correction     → tâche "correction"    : "deepseek" | "claude" | "gemini"
+  Diagnostic     → tâche "analyse"        : "gemini" | "claude" | "openai" | "deepseek"
 
   Fallback automatique sur GPT-5 (OpenAI) si le provider principal de l'étape
   échoue — transcription, nom élève, correction, diagnostic.
@@ -49,6 +50,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 from src.api.claude_client import ClaudeClient
 from src.api.openai_client import OpenAIClient
+from src.core import preferences_modeles
 from src.core.config import settings
 from src.knowledge.curriculum_retriever import CurriculumRetriever
 from src.models.domain import (
@@ -88,37 +90,43 @@ logger = logging.getLogger(__name__)
 
 # ── Factories de clients ───────────────────────────────────────────────────────
 
+# Le fournisseur de chaque étape vient de Paramètres → Modèles IA
+# (`data/preferences_modeles.json`, D-CEO-44), avec repli sur les valeurs `.env`.
+# Le repli client reste Claude partout : c'est le seul provider sans trou de
+# couverture (transcription, correction, diagnostic).
+
 def _make_transcription_client():
-    provider = settings.vision_provider.lower()
-    if provider == "gemini" and settings.google_api_key:
+    r = preferences_modeles.resoudre("transcription")
+    if r.fournisseur == "gemini" and settings.google_api_key:
         from src.api.gemini_client import GeminiTranscriptionClient
         return GeminiTranscriptionClient()
-    if provider == "mistral" and settings.mistral_api_key:
-        from src.api.mistral_client import MistralTranscriptionClient
-        return MistralTranscriptionClient()
-    return ClaudeClient()
+    if r.fournisseur == "openai" and settings.openai_api_key:
+        return OpenAIClient()
+    return ClaudeClient(modele_heavy=r.modele)
 
 
 def _make_grading_client():
-    provider = settings.grading_provider.lower()
-    if provider == "deepseek" and settings.deepseek_api_key:
+    r = preferences_modeles.resoudre("correction")
+    if r.fournisseur == "deepseek" and settings.deepseek_api_key:
         from src.api.deepseek_client import DeepSeekClient
         return DeepSeekClient()
-    return ClaudeClient()
+    if r.fournisseur == "gemini" and settings.google_api_key:
+        from src.api.gemini_client import GeminiTranscriptionClient
+        return GeminiTranscriptionClient()
+    return ClaudeClient(modele_heavy=r.modele)
 
 
 def _make_diagnostic_client():
-    provider = settings.diagnostic_provider.lower()
-    if provider == "deepseek" and settings.deepseek_api_key:
+    r = preferences_modeles.resoudre("analyse")
+    if r.fournisseur == "deepseek" and settings.deepseek_api_key:
         from src.api.deepseek_client import DeepSeekClient
         return DeepSeekClient()
-    if provider == "mistral" and settings.mistral_api_key:
-        try:
-            from src.api.mistral_client import MistralRemediationClient
-            return MistralRemediationClient()
-        except (ImportError, Exception) as e:
-            logger.warning("Mistral diagnostic indisponible (%s) — fallback Claude", e)
-    return ClaudeClient()
+    if r.fournisseur == "gemini" and settings.google_api_key:
+        from src.api.gemini_client import GeminiTranscriptionClient
+        return GeminiTranscriptionClient()
+    if r.fournisseur == "openai" and settings.openai_api_key:
+        return OpenAIClient()
+    return ClaudeClient(modele_opus=r.modele)
 
 
 def _fallback_openai_client() -> OpenAIClient | None:
@@ -145,8 +153,8 @@ def _client_label(client, step: str = "") -> str:
     if cls == "OpenAIClient":
         return f"GPT-5 · {settings.openai_model}"
     if step == "diagnostic":
-        return f"Claude Opus · {settings.claude_model_opus}"
-    return f"Claude · {settings.claude_model_heavy}"
+        return f"Claude · {getattr(client, '_modele_opus', settings.claude_model_opus)}"
+    return f"Claude · {getattr(client, '_modele_heavy', settings.claude_model_heavy)}"
 
 
 # ── Persistance base de données (best-effort — ne bloque jamais le pipeline) ──

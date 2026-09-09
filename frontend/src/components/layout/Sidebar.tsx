@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
-import { Info, FileStack, Route as RouteIcon, BookOpen, ShieldCheck, X, ChevronsLeft, ChevronsRight, LogOut } from "lucide-react"
+import { Info, FileStack, Route as RouteIcon, BookOpen, ShieldCheck, Settings, X, ChevronsLeft, ChevronsRight, LogOut } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 
 const LIENS = [
@@ -13,6 +13,8 @@ const LIENS = [
 /** Visible seulement casquette administrateur — miroir de
  * `templates_django/base.html` (`{% if casquette == 'administrateur' %}`). */
 const LIEN_ADMIN = { to: "/administration", label: "Administration", icon: ShieldCheck, exact: false }
+
+const LIEN_PARAMETRES = { to: "/parametres", label: "Paramètres", icon: Settings, exact: false }
 
 export function Sidebar({
   ouvert,
@@ -27,7 +29,9 @@ export function Sidebar({
 }) {
   const { logout, casquette } = useAuth()
   const navigate = useNavigate()
-  const liens = casquette === "administrateur" ? [...LIENS, LIEN_ADMIN] : LIENS
+  const liens = casquette === "administrateur"
+    ? [...LIENS, LIEN_ADMIN, LIEN_PARAMETRES]
+    : [...LIENS, LIEN_PARAMETRES]
 
   return (
     <>

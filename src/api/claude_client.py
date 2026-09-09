@@ -325,8 +325,18 @@ _retry = retry(
 
 
 class ClaudeClient:
-    def __init__(self) -> None:
+    def __init__(
+        self, *, modele_heavy: str | None = None, modele_opus: str | None = None
+    ) -> None:
         import anthropic
+
+        # Modèles par défaut de CE client. `None` ⇒ valeurs `.env` (`settings`).
+        # Le pipeline les surcharge selon Paramètres → Modèles IA (variante
+        # Sonnet / Opus, src/core/preferences_modeles.py). Les méthodes
+        # `transcribe`/`grade`/`diagnose` acceptent en plus un `model=` ponctuel
+        # qui prime sur ces défauts.
+        self._modele_heavy = modele_heavy or settings.claude_model_heavy
+        self._modele_opus = modele_opus or settings.claude_model_opus
 
         # `anthropic_api_key` est facultative à l'import de la configuration (voir
         # src/core/config.py) pour que les chemins sans IA — migrations Django,
@@ -401,14 +411,20 @@ class ClaudeClient:
 
     # ── Transcription ──────────────────────────────────────────────────────────
 
-    def transcribe(self, copy_id: str, image_paths: list[Path]) -> ClaudeResponse:
+    def transcribe(
+        self, copy_id: str, image_paths: list[Path], model: str | None = None
+    ) -> ClaudeResponse:
+        modele = model or self._modele_heavy
         logger.info("[%s] Claude transcription — modèle : %s | pages : %d",
-                    copy_id, settings.claude_model_heavy, len(image_paths))
+                    copy_id, modele, len(image_paths))
         if len(image_paths) <= _MAX_PAGES_PER_BATCH:
-            return self._transcribe_batch(copy_id, image_paths, page_offset=0)
-        return self._transcribe_batched(copy_id, image_paths)
+            return self._transcribe_batch(copy_id, image_paths, page_offset=0, model=modele)
+        return self._transcribe_batched(copy_id, image_paths, model=modele)
 
-    def _transcribe_batched(self, copy_id: str, image_paths: list[Path]) -> ClaudeResponse:
+    def _transcribe_batched(
+        self, copy_id: str, image_paths: list[Path], model: str | None = None
+    ) -> ClaudeResponse:
+        modele = model or self._modele_heavy
         batches = [
             (start, image_paths[start : start + _MAX_PAGES_PER_BATCH])
             for start in range(0, len(image_paths), _MAX_PAGES_PER_BATCH)
@@ -417,7 +433,7 @@ class ClaudeClient:
         batch_results: list[tuple[int, ClaudeResponse]] = []
         with ThreadPoolExecutor(max_workers=len(batches)) as pool:
             future_to_offset = {
-                pool.submit(self._transcribe_batch, copy_id, batch, offset): offset
+                pool.submit(self._transcribe_batch, copy_id, batch, offset, modele): offset
                 for offset, batch in batches
             }
             for fut in as_completed(future_to_offset):
@@ -461,7 +477,8 @@ class ClaudeClient:
 
     @_retry
     def _transcribe_batch(
-        self, copy_id: str, image_paths: list[Path], page_offset: int = 0
+        self, copy_id: str, image_paths: list[Path], page_offset: int = 0,
+        model: str | None = None,
     ) -> ClaudeResponse:
         page_hint = (
             f"\nCes images sont les pages {page_offset + 1} à {page_offset + len(image_paths)}."
@@ -493,7 +510,7 @@ class ClaudeClient:
         ]
 
         response = self._creer_message(
-            model=settings.claude_model_heavy,
+            model=model or self._modele_heavy,
             max_tokens=_TOKENS_PER_BATCH,
             temperature=0,
             tools=[_TRANSCRIPTION_TOOL],
@@ -514,9 +531,11 @@ class ClaudeClient:
         expert_instructions: str = "",
         official_answers: str = "",
         temperature: float = 0,
+        model: str | None = None,
     ) -> ClaudeResponse:
+        modele = model or self._modele_heavy
         logger.info("[%s] Claude correction — modèle : %s",
-                    transcription.copy_id, settings.claude_model_heavy)
+                    transcription.copy_id, modele)
         expert_block = (
             f"\n\nINSTRUCTIONS EXPERT:\n{expert_instructions}"
             if expert_instructions.strip() else ""
@@ -552,7 +571,7 @@ class ClaudeClient:
         )
 
         response = self._creer_message(
-            model=settings.claude_model_heavy,
+            model=modele,
             max_tokens=8192,
             temperature=temperature,
             tools=[_GRADING_TOOL],
@@ -579,9 +598,12 @@ class ClaudeClient:
     # ── Diagnostic ────────────────────────────────────────────────────────────
 
     @_retry
-    def diagnose(self, grades: CopyGrade, curriculum_context: str = "") -> ClaudeResponse:
+    def diagnose(
+        self, grades: CopyGrade, curriculum_context: str = "", model: str | None = None
+    ) -> ClaudeResponse:
+        modele_diag = model or self._modele_opus
         logger.info("[%s] Claude diagnostic — modèle : %s",
-                    grades.copy_id, settings.claude_model_opus)
+                    grades.copy_id, modele_diag)
         base_prompt = self._diagnostic_prompt.replace(
             "{{CURRICULUM_CONTEXT}}", curriculum_context or ""
         )
@@ -660,11 +682,11 @@ class ClaudeClient:
 
         import anthropic as _anthropic
         try:
-            response = _call_diagnose(settings.claude_model_opus)
+            response = _call_diagnose(modele_diag)
         except _anthropic.BadRequestError:
             logger.warning(
-                "[%s] claude_model_opus '%s' invalide (400) — fallback diagnostic → %s",
-                grades.copy_id, settings.claude_model_opus, settings.claude_model_heavy,
+                "[%s] modèle diagnostic '%s' invalide (400) — fallback diagnostic → %s",
+                grades.copy_id, modele_diag, settings.claude_model_heavy,
             )
             try:
                 response = _call_diagnose(settings.claude_model_heavy)
@@ -906,9 +928,18 @@ class ClaudeClient:
             f"{request.model_dump_json(indent=2)}"
         )
 
+        # `stream=True` + `max_tokens` large : même raison que `_call_diagnose`.
+        # `claude_model_heavy` pointe vers une famille (Sonnet 5) qui préfixe sa
+        # réponse d'un bloc `thinking` non affiché, et l'échantillonnage
+        # (`temperature`) lui est retiré par `_creer_message`. Avec 8192, sur
+        # une dizaine d'hypothèses, la pensée interne épuisait tout le budget
+        # avant qu'aucun texte JSON ne soit émis (`stop_reason=max_tokens`,
+        # `_texte_reponse` lève `ValueError`) — le sujet T1 n'était jamais
+        # généré. Constaté en conditions réelles (copie-b8e7f8db4f78, 2026-09-09).
         response = self._creer_message(
             model=settings.claude_model_heavy,
-            max_tokens=8192,
+            stream=True,
+            max_tokens=64000,
             temperature=0,
             messages=[
                 {
@@ -926,7 +957,19 @@ class ClaudeClient:
             ],
         )
 
-        raw = self._texte_reponse(response)
+        if getattr(response, "stop_reason", None) == "max_tokens":
+            logger.warning(
+                "[%s] Sujet T1 tronqué (stop_reason=max_tokens) — tentative de réparation JSON.",
+                request.copy_id,
+            )
+        try:
+            raw = self._texte_reponse(response)
+        except ValueError as exc:
+            # Budget encore épuisé par le `thinking` : échec propre plutôt que
+            # remontée d'exception — l'appelant (`taches._generer_sujet_confirmation`)
+            # est best-effort.
+            logger.warning("[%s] Sujet T1 non généré — %s", request.copy_id, exc)
+            return ClaudeResponse(success=False, data=None, confidence=0.0, raw_response="", error=str(exc))
         return self._parse_response(raw, ConfirmationSubject)
 
     # ── Sujet de vérification / rétention (T3, T4, T5, module 5 étendu) ───────
@@ -961,9 +1004,13 @@ class ClaudeClient:
             f"{request.model_dump_json(indent=2)}"
         )
 
+        # `stream=True` + `max_tokens` large : voir `generate_confirmation_subject`
+        # et `_call_diagnose` — le `thinking` de Sonnet 5 épuise sinon le budget
+        # avant tout texte JSON, et le sujet n'est jamais produit.
         response = self._creer_message(
             model=settings.claude_model_heavy,
-            max_tokens=8192,
+            stream=True,
+            max_tokens=64000,
             temperature=0,
             messages=[
                 {
@@ -981,7 +1028,16 @@ class ClaudeClient:
             ],
         )
 
-        raw = self._texte_reponse(response)
+        if getattr(response, "stop_reason", None) == "max_tokens":
+            logger.warning(
+                "[%s] Sujet %s tronqué (stop_reason=max_tokens) — tentative de réparation JSON.",
+                request.copy_id, request.type_evaluation,
+            )
+        try:
+            raw = self._texte_reponse(response)
+        except ValueError as exc:
+            logger.warning("[%s] Sujet %s non généré — %s", request.copy_id, request.type_evaluation, exc)
+            return ClaudeResponse(success=False, data=None, confidence=0.0, raw_response="", error=str(exc))
         return self._parse_response(raw, VerificationSubject)
 
     # ── Sujet d'enrichissement (score parfait) ────────────────────────────────
@@ -1007,9 +1063,11 @@ class ClaudeClient:
             " par { et finissant par }. Aucun texte avant ou après."
         )
 
+        # `stream=True` + `max_tokens` large : voir `generate_confirmation_subject`.
         response = self._creer_message(
             model=settings.claude_model_heavy,
-            max_tokens=8192,
+            stream=True,
+            max_tokens=64000,
             temperature=0,
             messages=[
                 {

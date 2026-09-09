@@ -278,3 +278,34 @@ class StatistiquesReponse(BaseModel):
     nb_copies: int | None
     centres: list[str]
     centres_suspects: list[str]
+
+
+# ── Préférences de modèles IA (Paramètres → Modèles IA, D-CEO-44) ────────────
+
+
+class PreferenceTache(BaseModel):
+    fournisseur: str
+    variante_claude: str = "sonnet"
+
+
+class FournisseurOption(BaseModel):
+    cle: str
+    libelle: str
+    cle_presente: bool
+
+
+class TacheOption(BaseModel):
+    cle: str
+    libelle: str
+    fournisseurs: list[FournisseurOption]
+
+
+class PreferencesModelesReponse(BaseModel):
+    taches: list[TacheOption]
+    variantes_claude: list[str]
+    preferences: dict[str, PreferenceTache]
+    modifiable: bool  # l'utilisateur courant peut-il éditer (admin) ?
+
+
+class PreferencesModelesRequete(BaseModel):
+    preferences: dict[str, PreferenceTache]

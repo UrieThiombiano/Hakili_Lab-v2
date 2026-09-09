@@ -87,6 +87,74 @@ def test_personnel_sheets_indisponible(monkeypatch):
     app.dependency_overrides.clear()
 
 
+def _isoler_prefs(monkeypatch, tmp_path):
+    from src.core import preferences_modeles as pm
+
+    monkeypatch.setenv("PREFERENCES_MODELES_PATH", str(tmp_path / "prefs.json"))
+    pm._reinitialiser_cache()
+    return pm
+
+
+def test_preferences_modeles_lecture_enseignant_non_modifiable(monkeypatch, tmp_path):
+    _isoler_prefs(monkeypatch, tmp_path)
+    client, _ = _client_avec_base(utilisateur=_ENSEIGNANT)
+    r = client.get("/api/admin/preferences-modeles")
+    assert r.status_code == 200
+    corps = r.json()
+    assert corps["modifiable"] is False
+    assert [t["cle"] for t in corps["taches"]] == ["transcription", "correction", "analyse"]
+    app.dependency_overrides.clear()
+
+
+def test_preferences_modeles_ecriture_refuse_enseignant(monkeypatch, tmp_path):
+    _isoler_prefs(monkeypatch, tmp_path)
+    client, _ = _client_avec_base(utilisateur=_ENSEIGNANT)
+    r = client.put(
+        "/api/admin/preferences-modeles",
+        json={"preferences": {
+            "transcription": {"fournisseur": "claude", "variante_claude": "sonnet"},
+            "correction": {"fournisseur": "deepseek", "variante_claude": "sonnet"},
+            "analyse": {"fournisseur": "claude", "variante_claude": "opus"},
+        }},
+    )
+    assert r.status_code == 403
+    app.dependency_overrides.clear()
+
+
+def test_preferences_modeles_ecriture_admin_persiste(monkeypatch, tmp_path):
+    _isoler_prefs(monkeypatch, tmp_path)
+    client, _ = _client_avec_base()
+    r = client.put(
+        "/api/admin/preferences-modeles",
+        json={"preferences": {
+            "transcription": {"fournisseur": "openai", "variante_claude": "sonnet"},
+            "correction": {"fournisseur": "claude", "variante_claude": "sonnet"},
+            "analyse": {"fournisseur": "deepseek", "variante_claude": "opus"},
+        }},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["preferences"]["transcription"]["fournisseur"] == "openai"
+
+    relu = client.get("/api/admin/preferences-modeles").json()
+    assert relu["preferences"]["analyse"]["fournisseur"] == "deepseek"
+    app.dependency_overrides.clear()
+
+
+def test_preferences_modeles_fournisseur_hors_liste_422(monkeypatch, tmp_path):
+    _isoler_prefs(monkeypatch, tmp_path)
+    client, _ = _client_avec_base()
+    r = client.put(
+        "/api/admin/preferences-modeles",
+        json={"preferences": {
+            "transcription": {"fournisseur": "claude", "variante_claude": "sonnet"},
+            "correction": {"fournisseur": "openai", "variante_claude": "sonnet"},
+            "analyse": {"fournisseur": "claude", "variante_claude": "opus"},
+        }},
+    )
+    assert r.status_code == 422
+    app.dependency_overrides.clear()
+
+
 def test_statistiques_compte_copies_et_centres(monkeypatch):
     client, SessionLocal = _client_avec_base()
     db = SessionLocal()

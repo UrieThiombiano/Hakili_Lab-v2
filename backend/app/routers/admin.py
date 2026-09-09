@@ -5,18 +5,30 @@ routeur ne couvre que la partie lecture seule déjà portée côté Django.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.auth.deps import admin_requis
+from app.auth.deps import acces_libre, admin_requis, utilisateur_requis
 from app.db import get_session
 from app.models import Copie
-from app.schemas import PersonnelLigne, PersonnelReponse, StatistiquesReponse
+from app.schemas import (
+    PersonnelLigne,
+    PersonnelReponse,
+    PreferencesModelesRequete,
+    PreferencesModelesReponse,
+    StatistiquesReponse,
+)
 from sqlalchemy.orm import Session as SQLASession
+from src.core import preferences_modeles
+from src.core.roles import UserRole
 from src.integrations import google_sheets
 from src.integrations.google_sheets import GoogleSheetsError
 from src.services.identite_service import roles_valides_de
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
+
+
+def _est_admin(utilisateur: dict) -> bool:
+    return acces_libre() or utilisateur.get("role_enum") == UserRole.admin
 
 _ORDRE_ETAT = {"regresse": 0, "stagne": 1, "progresse": 2}
 
@@ -92,4 +104,59 @@ def statistiques(
         nb_copies=nb_copies,
         centres=centres,
         centres_suspects=suspects,
+    )
+
+
+# ── Préférences de modèles IA (D-CEO-44) ────────────────────────────────────
+
+
+@router.get("/preferences-modeles", response_model=PreferencesModelesReponse)
+def preferences_modeles_lire(
+    utilisateur: dict = Depends(utilisateur_requis),
+) -> PreferencesModelesReponse:
+    """Config des fournisseurs IA par tâche. Lisible par tout utilisateur
+    connecté ; seul l'administrateur peut la modifier (`modifiable`)."""
+    cat = preferences_modeles.catalogue()
+    return PreferencesModelesReponse(
+        taches=cat["taches"],
+        variantes_claude=cat["variantes_claude"],
+        preferences=cat["preferences"],
+        modifiable=_est_admin(utilisateur),
+    )
+
+
+@router.put("/preferences-modeles", response_model=PreferencesModelesReponse)
+def preferences_modeles_ecrire(
+    corps: PreferencesModelesRequete,
+    _: dict = Depends(admin_requis),
+) -> PreferencesModelesReponse:
+    """Enregistre les préférences (admin uniquement). 422 si un fournisseur
+    n'est pas autorisé pour la tâche ; 400 s'il n'a pas de clé API configurée."""
+    demande = {
+        tache: entree.model_dump() for tache, entree in corps.preferences.items()
+    }
+    try:
+        valides = preferences_modeles.valider(demande)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+        ) from exc
+
+    for tache, entree in valides.items():
+        if not preferences_modeles.cle_presente(entree["fournisseur"]):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Aucune clé API configurée pour « {entree['fournisseur']} » "
+                    f"(tâche « {tache} »). Renseignez-la dans .env avant de la choisir."
+                ),
+            )
+
+    preferences_modeles.enregistrer(valides)
+    cat = preferences_modeles.catalogue()
+    return PreferencesModelesReponse(
+        taches=cat["taches"],
+        variantes_claude=cat["variantes_claude"],
+        preferences=cat["preferences"],
+        modifiable=True,
     )

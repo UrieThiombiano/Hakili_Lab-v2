@@ -343,3 +343,33 @@ export interface StatistiquesReponse {
   centres: string[]
   centres_suspects: string[]
 }
+
+// ── Préférences de modèles IA ────────────────────────────────────────────
+
+export interface PreferenceTache {
+  fournisseur: string
+  variante_claude: string
+}
+
+export interface FournisseurOption {
+  cle: string
+  libelle: string
+  cle_presente: boolean
+}
+
+export interface TacheOption {
+  cle: string
+  libelle: string
+  fournisseurs: FournisseurOption[]
+}
+
+export interface PreferencesModelesReponse {
+  taches: TacheOption[]
+  variantes_claude: string[]
+  preferences: Record<string, PreferenceTache>
+  modifiable: boolean
+}
+
+export interface PreferencesModelesRequete {
+  preferences: Record<string, PreferenceTache>
+}

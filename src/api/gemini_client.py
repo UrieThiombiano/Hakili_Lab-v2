@@ -25,7 +25,10 @@ from tenacity import retry, retry_if_exception, stop_after_attempt, wait_exponen
 from src.core.config import settings
 from src.models.domain import (
     ClaudeResponse,
+    CopyGrade,
+    DiagnosticResult,
     PageTranscription,
+    Rubric,
     TranscriptionResult,
 )
 
@@ -127,6 +130,78 @@ def _repair_json(text: str) -> str:
     return text + "".join(close_map[c] for c in reversed(stack))
 
 
+# ── Schémas JSON pour correction / diagnostic (repris de deepseek_client.py) ──
+
+_GRADING_SCHEMA = """
+{
+  "copy_id": "<string>",
+  "total_score": <nombre décimal, ex: 12.5>,
+  "total_possible": <nombre décimal, ex: 20.0>,
+  "questions": [
+    {
+      "rubric_item_id": "<string — id EXACT du RubricItem du barème>",
+      "score": <0 si incorrect, ou valeur exacte de max_score si correct>,
+      "confidence": <float 0.0-1.0>,
+      "comment": "<1 phrase bienveillante pour l'enseignant>",
+      "observed_answer": "<ce que l'élève a écrit, résumé en 1 ligne — '—' si absent>",
+      "requires_review": <true|false>
+    }
+  ]
+}
+"""
+
+_DIAGNOSTIC_SCHEMA = """
+{
+  "copy_id": "<string>",
+  "strengths": ["<string>", ...],
+  "weaknesses": ["<string>", ...],
+  "root_causes": [
+    {"visible_error": "<string>", "hidden_cause": "<string>", "linked_questions": ["Q1", ...]}
+  ],
+  "skills": [
+    {"name": "<string>", "level": "<mastered|partial|weak|unknown>", "evidence": "<string>"}
+  ],
+  "remediation_plan": [
+    {"priority": <integer, 1 = plus haute>, "topic": "<string>", "action": "<string>"}
+  ]
+}
+"""
+
+
+def _parse_structured(raw: str, model_cls: type) -> ClaudeResponse:
+    """Parse tolérant d'une réponse JSON structurée → `ClaudeResponse`.
+
+    Renvoie `success=False` en cas d'échec pour laisser le pipeline basculer
+    sur le fallback GPT-5 (`openai_client.py`)."""
+    text = (raw or "").strip()
+    m = _JSON_FENCE.search(text)
+    if m:
+        text = m.group(1).strip()
+    start, end = text.find("{"), text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        text = text[start : end + 1]
+    text = _TRAILING_COMMA.sub(r"\1", text)
+
+    for candidate in (text, _repair_json(text)):
+        candidate = _TRAILING_COMMA.sub(r"\1", candidate)
+        try:
+            data = json.loads(candidate)
+            validated = model_cls(**data)
+            return ClaudeResponse(
+                success=True, data=validated, confidence=0.85,
+                raw_response=raw[:2000], error=None,
+            )
+        except (json.JSONDecodeError, Exception):
+            continue
+
+    logger.error("Gemini — JSON structuré irréparable (%s). Début : %.300s",
+                 model_cls.__name__, raw)
+    return ClaudeResponse(
+        success=False, data=None, confidence=0.0, raw_response=(raw or "")[:500],
+        error=f"JSON invalide retourné par Gemini ({model_cls.__name__}).",
+    )
+
+
 # ── Retry 429 ────────────────────────────────────────────────────────────────
 
 def _is_retryable_gemini(exc: BaseException) -> bool:
@@ -159,7 +234,11 @@ _GEMINI_FALLBACKS = [
 
 
 class GeminiTranscriptionClient:
-    """Transcription multimodale via Gemini Flash — remplace ClaudeClient.transcribe()."""
+    """Gemini Flash — transcription, correction et diagnostic.
+
+    (Nom historique : le client ne faisait que transcrire. Il porte désormais
+    aussi `grade()` et `diagnose()`, sélectionnables depuis Paramètres →
+    Modèles IA. Alias `GeminiClient` plus bas.)"""
 
     def __init__(self) -> None:
         if not settings.google_api_key:
@@ -169,6 +248,8 @@ class GeminiTranscriptionClient:
         self._client = genai.Client(api_key=settings.google_api_key)
         self._model = self._probe_model(settings.gemini_model)
         self._transcription_prompt = self._load_prompt("transcription_prompt.md")
+        self._grading_prompt = self._load_prompt("grading_prompt.md")
+        self._diagnostic_prompt = self._load_prompt("diagnostic_prompt.md")
         logger.info("GeminiTranscriptionClient initialisé (modèle=%s)", self._model)
 
     def _probe_model(self, configured: str) -> str:
@@ -427,3 +508,104 @@ class GeminiTranscriptionClient:
 
     def _estimate_confidence(self, result: TranscriptionResult) -> float:
         return {"good": 0.9, "medium": 0.7, "poor": 0.5}.get(result.global_quality, 0.5)
+
+    # ── Correction ────────────────────────────────────────────────────────────
+
+    @_retry_gemini
+    def grade(
+        self,
+        transcription: TranscriptionResult,
+        rubric: Rubric,
+        subject_text: str,
+        expert_instructions: str = "",
+        official_answers: str = "",
+        temperature: float = 0,
+    ) -> ClaudeResponse:
+        """Correction selon barème via Gemini — même signature que
+        `ClaudeClient.grade` / `DeepSeekClient.grade`."""
+        logger.info("[%s] Gemini correction — modèle : %s",
+                    transcription.copy_id, self._model)
+        expert_block = (
+            f"\n\nINSTRUCTIONS EXPERT:\n{expert_instructions}"
+            if expert_instructions.strip() else ""
+        )
+        official_block = f"\n\n{official_answers}" if official_answers.strip() else ""
+        auto_block = (
+            "\n\nINSTRUCTION SPÉCIALE : Aucun barème ni corrigé fourni. "
+            "Identifie les questions (Q1, Q2a…), résous-les toi-même, compare à la "
+            "copie, attribue 1 si juste sinon 0, et fixe total_possible = nombre de "
+            "questions identifiées. Si la transcription est vide, retourne une entrée "
+            "unique rubric_item_id='Q1', score=0, confidence=0.1, requires_review=true, "
+            "comment='Copie illisible — révision manuelle requise', "
+            "observed_answer='[ILLISIBLE]', total_possible=1."
+            if not rubric.items else ""
+        )
+
+        prompt = (
+            f"{self._grading_prompt}{auto_block}{official_block}{expert_block}"
+            f"\n\nÉNONCÉ:\n{subject_text}"
+            f"\n\nBARÈME:\n{rubric.model_dump_json(indent=2)}"
+            f"\n\nTRANSCRIPTION:\n{transcription.model_dump_json(indent=2)}"
+            f"\n\nRetourne UNIQUEMENT un objet JSON valide avec cette structure exacte :"
+            f"\n{_GRADING_SCHEMA}"
+        )
+
+        try:
+            response = self._client.models.generate_content(
+                model=self._model,
+                contents=[prompt],
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    max_output_tokens=_MAX_OUTPUT_TOKENS,
+                    temperature=temperature,
+                ),
+            )
+            result = _parse_structured(response.text or "", CopyGrade)
+            if result.success and result.data is not None and expert_instructions.strip():
+                result.data.expert_instructions_used = True
+            return result
+        except Exception as e:
+            if _is_retryable_gemini(e):
+                raise
+            logger.error("Gemini grade erreur (copy_id=%s) : %s", transcription.copy_id, e)
+            return ClaudeResponse(success=False, data=None, confidence=0.0,
+                                  raw_response="", error=str(e))
+
+    # ── Diagnostic ────────────────────────────────────────────────────────────
+
+    @_retry_gemini
+    def diagnose(self, grades: CopyGrade, curriculum_context: str = "") -> ClaudeResponse:
+        """Diagnostic pédagogique texte libre via Gemini — même signature que
+        `ClaudeClient.diagnose` / `DeepSeekClient.diagnose`."""
+        logger.info("[%s] Gemini diagnostic — modèle : %s", grades.copy_id, self._model)
+        base_prompt = self._diagnostic_prompt.replace(
+            "{{CURRICULUM_CONTEXT}}", curriculum_context or ""
+        )
+        prompt = (
+            f"{base_prompt}"
+            f"\n\nRÉSULTATS DE CORRECTION:\n{grades.model_dump_json(indent=2)}"
+            f"\n\nRetourne UNIQUEMENT un objet JSON valide avec cette structure exacte :"
+            f"\n{_DIAGNOSTIC_SCHEMA}"
+        )
+
+        try:
+            response = self._client.models.generate_content(
+                model=self._model,
+                contents=[prompt],
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    max_output_tokens=_MAX_OUTPUT_TOKENS,
+                    temperature=0.2,
+                ),
+            )
+            return _parse_structured(response.text or "", DiagnosticResult)
+        except Exception as e:
+            if _is_retryable_gemini(e):
+                raise
+            logger.error("Gemini diagnose erreur (copy_id=%s) : %s", grades.copy_id, e)
+            return ClaudeResponse(success=False, data=None, confidence=0.0,
+                                  raw_response="", error=str(e))
+
+
+#: Alias lisible — le client ne se limite plus à la transcription.
+GeminiClient = GeminiTranscriptionClient

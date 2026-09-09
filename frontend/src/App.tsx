@@ -10,6 +10,7 @@ const ProfilEleve = lazy(() => import("@/routes/ProfilEleve"))
 const SessionDetail = lazy(() => import("@/routes/SessionDetail"))
 const Sujets = lazy(() => import("@/routes/Sujets"))
 const APropos = lazy(() => import("@/routes/APropos"))
+const Parametres = lazy(() => import("@/routes/Parametres"))
 const NouvelleCorrection = lazy(() => import("@/routes/correction/Nouvelle"))
 const Lot = lazy(() => import("@/routes/correction/Lot"))
 const SoumettreConfirmation = lazy(() => import("@/routes/correction/SoumettreConfirmation"))
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/eleves/:jeton" element={<RouteProtegee><ProfilEleve /></RouteProtegee>} />
         <Route path="/sessions/:jeton" element={<RouteProtegee><SessionDetail /></RouteProtegee>} />
         <Route path="/sujets" element={<RouteProtegee><Sujets /></RouteProtegee>} />
+        <Route path="/parametres" element={<RouteProtegee><Parametres /></RouteProtegee>} />
         <Route path="/administration" element={<RouteAdmin><Administration /></RouteAdmin>} />
         <Route path="/analyse-de-copie" element={<RouteProtegee><NouvelleCorrection /></RouteProtegee>} />
         <Route path="/corrections/nouvelle" element={<RouteProtegee><NouvelleCorrection /></RouteProtegee>} />
