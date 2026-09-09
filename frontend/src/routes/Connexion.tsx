@@ -52,8 +52,8 @@ export default function Connexion() {
     <div className="min-h-screen flex items-center justify-center fond-cahier px-4">
       <Card className="w-full max-w-sm animate-entree-page">
         <div className="flex items-center gap-3 mb-1">
-          <img src="/hakili_logo.png" alt="Hakili Lab" className="size-10 object-contain shrink-0" />
-          <h1 className="text-h1 font-bold text-marine leading-tight">RÉMÉDIATION MATHS</h1>
+          <img src="/hakili_logo.png" alt="Maïya" className="size-10 rounded-full object-cover bg-white shrink-0" />
+          <h1 className="text-h1 font-bold text-marine leading-tight">Maïya</h1>
         </div>
         <p className="text-petit text-texte-doux mb-6">Sélectionnez votre nom, puis saisissez votre code PIN.</p>
 
