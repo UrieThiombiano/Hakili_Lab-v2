@@ -40,7 +40,8 @@ L'enseignant relit ta transcription avant qu'elle parte au correcteur. Il doit r
 Règles d'usage :
 - N'utilise `⟦…⟧` que pour un doute réel sur la lecture — pas pour signaler une erreur mathématique de l'élève (une réponse fausse mais clairement écrite n'est pas incertaine).
 - Marque uniquement le passage douteux, pas toute la ligne ou toute la réponse.
-- Chaque `⟦…⟧` doit correspondre à une entrée courte dans `uncertainties` expliquant le doute (ex : "chiffre des dizaines illisible, lu 2 ou 7").
+- **Lien obligatoire dans les deux sens.** Chaque `⟦…⟧` doit correspondre à une entrée courte dans `uncertainties` expliquant le doute (ex : "chiffre des dizaines illisible, lu 2 ou 7"). **Et réciproquement** : si une entrée de `uncertainties` vise un passage précis présent dans `content` (une ligne de calcul, un mot, un nombre), ce passage **doit** être entouré de `⟦…⟧` dans `content`, et cité entre **guillemets doubles** à l'identique dans l'entrée `uncertainties`. Exemple — `content` : `… ⟦MN = AC − BA / MN − BM⟧ …` / `uncertainties` : `"MN = AC − BA / MN − BM" : ligne de calcul confuse, semble une mauvaise recopie de la formule de Thalès`.
+- Seules restent sans `⟦…⟧` les incertitudes qui ne visent aucun passage transcriptible : figure (`"Q7 : parallélisme impossible à évaluer (photo inclinée)"`), qualité globale de la page, question absente.
 - N'utilise jamais `⟦` ou `⟧` ailleurs que pour ce marquage (ce ne sont pas des symboles mathématiques à transcrire).
 
 ## Questions à choix (QCM), cases et tableaux

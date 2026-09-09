@@ -463,6 +463,45 @@ def test_fiche_travail_genere_puis_corrigee(tmp_path, monkeypatch):
     app.dependency_overrides.clear()
 
 
+def test_sujet_test_choisit_le_type_selon_le_profil(monkeypatch):
+    """`/sujet-test` choisit T1/T3/T4 selon l'état des lacunes du moment —
+    ici un problème `en_remediation` ⇒ T3. La génération elle-même (appel
+    modèle) est déjà couverte ailleurs, on ne vérifie que l'aiguillage."""
+    client, SessionLocal = _client_avec_base()
+    db, session = _seed(SessionLocal)
+    db.add(Probleme(session_id=session.id, competence_id="A", type_erreur_id="CPT", etat="en_remediation"))
+    db.commit()
+
+    import app.routers.sessions as sessions_mod
+    from fastapi import Response
+
+    capte: dict[str, str] = {}
+
+    def _faux_generer_sujet(jeton_session, type_evaluation, telecharger, db, utilisateur):
+        capte["type"] = type_evaluation
+        return Response(content=b"%PDF", media_type="application/pdf")
+
+    monkeypatch.setattr(sessions_mod, "generer_sujet", _faux_generer_sujet)
+
+    from app.auth.tokens import jeton
+
+    r = client.get(f"/api/sessions/{jeton(str(session.id))}/sujet-test")
+    assert r.status_code == 200, r.text
+    assert capte["type"] == "T3"
+    app.dependency_overrides.clear()
+
+
+def test_sujet_test_refuse_sans_lacune_a_evaluer():
+    client, SessionLocal = _client_avec_base()
+    db, session = _seed(SessionLocal)
+
+    from app.auth.tokens import jeton
+
+    r = client.get(f"/api/sessions/{jeton(str(session.id))}/sujet-test")
+    assert r.status_code == 400
+    app.dependency_overrides.clear()
+
+
 def test_jeton_invalide_donne_404():
     client, SessionLocal = _client_avec_base()
     r = client.get("/api/sessions/jeton-invalide")

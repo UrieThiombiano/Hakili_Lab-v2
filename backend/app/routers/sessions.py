@@ -451,6 +451,48 @@ def corriger_fiche_travail(
     return {"ok": True, "version": fiche.version, "corrigee_par": fiche.corrigee_par}
 
 
+def _type_sujet_courant(
+    hypotheses: list[Probleme], en_remediation: list[Probleme], resolus: list[Probleme]
+) -> str | None:
+    """Le type d'évaluation qui correspond au profil actuel de l'élève :
+    hypothèses ouvertes → T1 (confirmation), remédiation en cours → T3
+    (vérification), problèmes résolus → T4 (rétention). `None` s'il n'y a
+    rien à évaluer."""
+    if hypotheses:
+        return "T1"
+    if en_remediation:
+        return "T3"
+    if resolus:
+        return "T4"
+    return None
+
+
+@router.get("/{jeton_session}/sujet-test")
+def generer_sujet_test(
+    jeton_session: str,
+    telecharger: bool = Query(default=False),
+    db: SQLASession = Depends(get_session),
+    utilisateur: dict = Depends(utilisateur_requis),
+) -> Response:
+    """Génère « un sujet de test » adapté au profil **actuel** de l'élève :
+    le type (T1/T3/T4) est choisi selon l'état de ses lacunes, et le sujet est
+    régénéré à chaque appel à partir des problèmes concernés à cet instant.
+    Raccourci de `/sujets/{type}` pour l'enseignant qui veut juste « tester
+    l'élève maintenant » sans choisir le type lui-même."""
+    session = _session_autorisee(db, utilisateur, jeton_session)
+    type_evaluation = _type_sujet_courant(
+        _problemes(db, session.id, "hypothese"),
+        _problemes(db, session.id, "en_remediation"),
+        _problemes(db, session.id, "resolu"),
+    )
+    if type_evaluation is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Aucune lacune à évaluer pour l'instant — ni hypothèse ouverte, ni problème en remédiation ou résolu.",
+        )
+    return generer_sujet(jeton_session, type_evaluation, telecharger, db, utilisateur)
+
+
 @router.get("/{jeton_session}/sujets/{type_evaluation}")
 def generer_sujet(
     jeton_session: str,
@@ -459,30 +501,44 @@ def generer_sujet(
     db: SQLASession = Depends(get_session),
     utilisateur: dict = Depends(utilisateur_requis),
 ) -> Response:
-    """Génère à la volée le sujet T3 (vérification après remédiation) ou
-    T4/T5 (contrôle de rétention), ciblé sur les problèmes réellement
-    concernés. Jamais stocké — régénéré à chaque demande."""
+    """Génère à la volée le sujet de confirmation T1 (discrimine chaque
+    hypothèse), de vérification T3 (après remédiation) ou de rétention T4/T5,
+    ciblé sur les problèmes réellement concernés. Jamais mis en cache —
+    régénéré à chaque demande, donc toujours aligné sur le profil courant."""
     from src.pipeline.pdf_remediation_html import generate_remediation_pdf
 
     session = _session_autorisee(db, utilisateur, jeton_session)
     eleve = eleve_autorise(utilisateur, session.identifiant_hakili)
 
-    try:
-        sujet = generation.generer_sujet_verification(db, session, type_evaluation)
-    except ValueError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Type d'évaluation invalide")
+    if type_evaluation == "T1":
+        resultat = generation.generer_sujet_confirmation(db, session)
+        if resultat is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Aucune hypothèse ouverte à confirmer, ou génération momentanément indisponible.",
+            )
+        sujet, hypotheses = resultat
+        # Acte officiel « ce sujet est celui donné à l'élève » : persisté pour
+        # le diagnostic automatique au dépôt de la copie T1.
+        student_name = f"{eleve.get('nom', '')} {eleve.get('prenom', '')}".strip()
+        generation.persister_sujet_confirmation(db, session, sujet, hypotheses, student_name)
+    else:
+        try:
+            sujet = generation.generer_sujet_verification(db, session, type_evaluation)
+        except ValueError:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Type d'évaluation invalide")
 
-    if sujet is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Rien à générer pour {type_evaluation} — aucun problème dans l'état requis, ou génération momentanément indisponible.",
-        )
+        if sujet is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Rien à générer pour {type_evaluation} — aucun problème dans l'état requis, ou génération momentanément indisponible.",
+            )
 
-    # Ce téléchargement est l'acte officiel « ce sujet est celui donné à
-    # l'élève » — il est donc persisté comme sujet en attente de dépôt, pour
-    # que la copie corrigée puisse être diagnostiquée automatiquement
-    # (module 5, suite). Régénérer avant dépôt remplace simplement l'ancien.
-    generation.persister_sujet_verification(db, session, type_evaluation, sujet)
+        # Ce téléchargement est l'acte officiel « ce sujet est celui donné à
+        # l'élève » — il est donc persisté comme sujet en attente de dépôt, pour
+        # que la copie corrigée puisse être diagnostiquée automatiquement
+        # (module 5, suite). Régénérer avant dépôt remplace simplement l'ancien.
+        generation.persister_sujet_verification(db, session, type_evaluation, sujet)
 
     student_name = f"{eleve.get('nom', '')} {eleve.get('prenom', '')}".strip()
     pdf_path = Path(settings.runs_dir) / "sujets_verification" / f"{uuid.uuid4().hex}.pdf"

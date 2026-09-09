@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest"
 import { render, screen, waitFor } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { MemoryRouter, Route, Routes } from "react-router-dom"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ToastProvider } from "@/hooks/useToast"
@@ -11,7 +12,12 @@ vi.mock("@/components/layout/AppShell", () => ({
 }))
 
 const { correctionsApiMock, elevesApiMock, sessionsApiMock } = vi.hoisted(() => ({
-  correctionsApiMock: { statut: vi.fn(), supprimer: vi.fn() },
+  correctionsApiMock: {
+    statut: vi.fn(),
+    supprimer: vi.fn(),
+    validerTranscription: vi.fn(),
+    pageImageUrl: (_jeton: string, page: number) => `#page-${page}`,
+  },
   elevesApiMock: { documentUrl: (_jeton: string, type: string) => `#doc-${type}` },
   sessionsApiMock: {
     detail: vi.fn(),
@@ -111,6 +117,64 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
+describe("Suivre — Relecture", () => {
+  function statutRelecture() {
+    return statutBase({
+      etat: "relecture",
+      terminee: false,
+      en_cours: false,
+      resultat: {
+        ...resultatBase(),
+        transcription: {
+          copy_id: "copie-1",
+          global_quality: "medium",
+          pages: [
+            {
+              page_number: 1,
+              content: "L8 E = ⟦4x²⟧ + 9\nN7 [ILLISIBLE]",
+              formulas: [],
+              diagrams: [],
+              uncertainties: ["N7 : ligne masquée"],
+              confidence: 0.9,
+            },
+          ],
+        },
+      },
+    })
+  }
+
+  it("surligne les zones incertaines entre crochets au lieu d'un textarea brut", async () => {
+    correctionsApiMock.statut.mockResolvedValue(statutRelecture())
+
+    rendre()
+
+    const zone = await screen.findByText("[4x²]")
+    expect(zone.tagName).toBe("MARK")
+    expect(screen.getAllByText("[illisible]").some((el) => el.tagName === "MARK")).toBe(true)
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument()
+  })
+
+  it("double-clic sur une zone → correction en place, envoyée sans marqueur à la validation", async () => {
+    const user = userEvent.setup()
+    correctionsApiMock.statut.mockResolvedValue(statutRelecture())
+    correctionsApiMock.validerTranscription.mockResolvedValue(statutRelecture())
+
+    rendre()
+
+    await user.dblClick(await screen.findByText("[4x²]"))
+    const champ = screen.getByRole("textbox")
+    await user.clear(champ)
+    await user.type(champ, "4x²")
+    await user.click(screen.getByTitle("Valider la correction"))
+
+    await user.click(screen.getByRole("button", { name: "Valider la transcription" }))
+
+    expect(correctionsApiMock.validerTranscription).toHaveBeenCalledWith("jeton-copie", {
+      1: "L8 E = 4x² + 9\nN7 [ILLISIBLE]",
+    })
+  })
+})
+
 describe("Suivre — Resultats", () => {
   it("n'affiche que les documents réellement générés (plus de lien mort vers « remediation »)", async () => {
     correctionsApiMock.statut.mockResolvedValue(statutBase({ documents: ["rapport"] }))
@@ -118,8 +182,10 @@ describe("Suivre — Resultats", () => {
     rendre()
 
     await screen.findByText("Correction terminée")
-    expect(screen.getByText("Rapport (PDF)")).toBeInTheDocument()
-    expect(screen.queryByText(/Plan de remédiation \(PDF\)/)).not.toBeInTheDocument()
+    expect(screen.getByText("Documents à télécharger")).toBeInTheDocument()
+    expect(screen.getByText("Rapport de correction")).toBeInTheDocument()
+    expect(screen.queryByText(/Sujet de remédiation/)).not.toBeInTheDocument()
+    expect(screen.queryByText("Plan de remédiation")).not.toBeInTheDocument()
   })
 
   it("affiche le diagnostic structuré et le plan provisoire quand un parcours existe déjà", async () => {
@@ -149,9 +215,10 @@ describe("Suivre — Resultats", () => {
 
     rendre()
 
-    await waitFor(() => expect(screen.getByText("Diagnostic structuré & plan de remédiation")).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText("Plan de remédiation")).toBeInTheDocument())
     expect(screen.getByText("D.PROP")).toBeInTheDocument()
     expect(screen.getByText(/Estimation provisoire/)).toBeInTheDocument()
+    expect(screen.getByText("Plan de remédiation provisoire")).toBeInTheDocument()
   })
 
   it("propose le sujet T1 quand il est disponible", async () => {
@@ -162,15 +229,17 @@ describe("Suivre — Resultats", () => {
 
     rendre()
 
-    await waitFor(() => expect(screen.getByText("Sujet de confirmation T1 (PDF)")).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText("Sujet du test de confirmation (T1)")).toBeInTheDocument())
+    expect(screen.getByText("Déposer la copie T1")).toBeInTheDocument()
   })
 
-  it("n'affiche pas l'aperçu du parcours sans session existante", async () => {
+  it("n'affiche pas le plan de remédiation sans session existante", async () => {
     correctionsApiMock.statut.mockResolvedValue(statutBase())
 
     rendre()
 
     await screen.findByText("Correction terminée")
-    expect(screen.queryByText("Diagnostic structuré & plan de remédiation")).not.toBeInTheDocument()
+    expect(screen.queryByText("Plan de remédiation")).not.toBeInTheDocument()
+    expect(screen.queryByText("Documents à télécharger")).not.toBeInTheDocument()
   })
 })

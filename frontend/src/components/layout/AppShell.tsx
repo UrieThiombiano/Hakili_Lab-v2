@@ -3,9 +3,9 @@ import { Sidebar } from "./Sidebar"
 import { Topbar } from "./Topbar"
 import { cn } from "@/lib/utils"
 
-const CLE_REDUITE = "hakili_sidebar_reduite"
+export const CLE_REDUITE = "hakili_sidebar_reduite"
 
-function lireReduite() {
+export function lireReduite() {
   try {
     return localStorage.getItem(CLE_REDUITE) === "1"
   } catch {

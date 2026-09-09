@@ -1,26 +1,50 @@
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { AppShell } from "@/components/layout/AppShell"
 import { Card, CardTitre } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import { EtatErreur, Spinner } from "@/components/ui/Etat"
-import { Stat, StatRow } from "@/components/ui/Stat"
-import { TypeErreurBadge, DiagnosticLisible } from "@/components/ui/Badge"
-import { LienPdf } from "@/components/ui/LienPdf"
+import { Stat } from "@/components/ui/Stat"
+import { TypeErreurBadge, DiagnosticLisible, PalierBadge } from "@/components/ui/Badge"
+import { LigneDocument } from "@/components/ui/LigneDocument"
+import { TranscriptionMarkdown, TranscriptionLegende } from "@/components/ui/TranscriptionMarkdown"
+import { hasOcrMarkers, ancrerIncertitudes } from "@/lib/transcriptionHighlight"
 import { correctionsApi, elevesApi, sessionsApi } from "@/lib/api"
 import { formatHeures } from "@/lib/format"
 import { useToast } from "@/hooks/useToast"
 import { useConfirm } from "@/hooks/useConfirm"
 import { cn } from "@/lib/utils"
-import { ArrowUpRight, CheckCheck, CircleCheck, Pencil, SquareCheck, Trash2, TriangleAlert } from "lucide-react"
+import {
+  ArrowUpRight,
+  CheckCheck,
+  CircleCheck,
+  ClipboardList,
+  FileCheck2,
+  GraduationCap,
+  ListChecks,
+  Pencil,
+  ScanText,
+  SquareCheck,
+  ThumbsUp,
+  Trash2,
+  TriangleAlert,
+  Wrench,
+  type LucideIcon,
+} from "lucide-react"
 
-/** Libellés lisibles pour les types de document persistés — voir
- * `document.type` en base (`rapport`, `sujet_confirmation`...). */
-const LIBELLES_DOCUMENT: Record<string, string> = {
-  rapport: "Rapport (PDF)",
-  remediation: "Sujet de remédiation (PDF)",
-  sujet_confirmation: "Sujet de confirmation T1 (PDF)",
+/** Documents portés par la copie elle-même (`data.documents`, `document.type`
+ * en base) — nom clair + phrase d'explication, pour la section « Documents à
+ * télécharger » regroupée en bas de la page de résultats. */
+const DOC_COPIE: Record<string, { icon: LucideIcon; titre: string; description: string }> = {
+  scan: { icon: ScanText, titre: "Copie de l'élève", description: "Le scan de la copie qui vient d'être corrigée." },
+  rapport: { icon: FileCheck2, titre: "Rapport de correction", description: "Note question par question, réponse attendue et réponse observée." },
+  remediation: { icon: Wrench, titre: "Sujet de remédiation", description: "Exercices ciblés sur les lacunes détectées." },
+  sujet_confirmation: {
+    icon: ClipboardList,
+    titre: "Sujet du test de confirmation (T1)",
+    description: "À faire passer pour confirmer ou écarter chaque hypothèse de lacune.",
+  },
 }
 
 /** Formatage FR compact — les barèmes portent des fractions (1/3 pt…), on ne
@@ -53,10 +77,13 @@ export default function Suivre() {
 
   const eleve = data.resultat?.student_name ?? ""
   const large = data.etat === "relecture" || data.etat === "validation"
+  // La page de résultats occupe toute la largeur disponible (sections
+  // empilées, grilles internes) ; les autres états restent en colonne lisible.
+  const contrainte = data.terminee ? "" : large ? "max-w-5xl" : "max-w-2xl"
 
   return (
     <AppShell titre={eleve ? `Correction — ${eleve}` : "Correction"}>
-      <div className={cn("flex flex-col gap-5", large ? "max-w-5xl" : "max-w-2xl")}>
+      <div className={cn("flex flex-col gap-5", contrainte)}>
         {(data.en_cours || data.etat === "creee") && <Progression etape={data.etape} progression={data.progression} />}
         {data.etat === "echec" && <Echec erreurs={data.erreurs} onSupprimer={() => supprimer.mutate()} />}
         {data.etat === "relecture" && data.resultat && <Relecture jeton={jeton} resultat={data.resultat} onValide={() => queryClient.invalidateQueries({ queryKey: ["correction", jeton] })} />}
@@ -91,7 +118,7 @@ function Progression({ etape, progression }: { etape: string; progression: numbe
         </span>
 
         <div className="relative flex items-center justify-center size-32 rounded-rond bg-surface shadow-haute spectacle-coeur">
-          <img src="/hakili_logo.png" alt="" className="size-16 object-contain" />
+          <img src="/hakili_logo.png" alt="" className="size-16 rounded-full object-cover" />
         </div>
       </div>
 
@@ -123,7 +150,12 @@ function Echec({ erreurs, onSupprimer }: { erreurs: string[]; onSupprimer: () =>
 function Relecture({ jeton, resultat, onValide }: { jeton: string; resultat: NonNullable<import("@/types/api").CorrectionStatut["resultat"]>; onValide: () => void }) {
   const { notifier } = useToast()
   const [pages, setPages] = useState<Record<number, string>>(
-    Object.fromEntries((resultat.transcription?.pages ?? []).map((p) => [p.page_number, p.content])),
+    Object.fromEntries(
+      (resultat.transcription?.pages ?? []).map((p) => [
+        p.page_number,
+        ancrerIncertitudes(p.content, p.uncertainties),
+      ]),
+    ),
   )
   const valider = useMutation({
     mutationFn: () => correctionsApi.validerTranscription(jeton, pages),
@@ -137,9 +169,13 @@ function Relecture({ jeton, resultat, onValide }: { jeton: string; resultat: Non
     <div className="flex flex-col gap-5">
       <Card>
         <CardTitre>Relecture de la transcription</CardTitre>
-        <p className="text-petit text-texte-doux mb-2">Corrigez le texte reconnu si besoin, puis validez pour lancer la correction.</p>
+        <p className="text-petit text-texte-doux mb-2">
+          Les passages où le modèle hésite sont surlignés et affichés entre crochets. Double-cliquez sur une zone pour la
+          corriger, puis validez pour lancer la correction.
+        </p>
         <p className="text-petit text-texte-doux">
-          Les zones marquées <code className="bg-surface-creuse px-1 rounded">[ILLISIBLE]</code> n'ont pas pu être déchiffrées — ce que vous écrivez ici sert de base à la correction.
+          <span className="text-rouge font-medium">[illisible]</span> : rien de fiable n'a pu être déchiffré — ce que
+          vous saisissez sert de base à la correction.
         </p>
       </Card>
 
@@ -166,6 +202,8 @@ function Relecture({ jeton, resultat, onValide }: { jeton: string; resultat: Non
               </p>
             )}
 
+            {hasOcrMarkers(pages[page.page_number] ?? "") && <TranscriptionLegende className="px-4 pt-2" />}
+
             <div className="grid lg:grid-cols-2 gap-px bg-bord mt-3">
               <div className="bg-surface p-3 flex items-start justify-center">
                 <img
@@ -175,11 +213,10 @@ function Relecture({ jeton, resultat, onValide }: { jeton: string; resultat: Non
                   onError={(e) => (e.currentTarget.style.display = "none")}
                 />
               </div>
-              <div className="bg-surface p-3">
-                <textarea
+              <div className="bg-surface p-3 max-h-[480px] overflow-auto">
+                <TranscriptionMarkdown
                   value={pages[page.page_number] ?? ""}
-                  onChange={(e) => setPages((p) => ({ ...p, [page.page_number]: e.target.value }))}
-                  className="w-full h-full min-h-[280px] lg:min-h-[480px] rounded border border-bord-fort p-3 text-petit font-mono resize-y focus:border-bleu focus:outline-none"
+                  onChange={(next) => setPages((p) => ({ ...p, [page.page_number]: next }))}
                 />
               </div>
             </div>
@@ -377,6 +414,39 @@ function noteFinale(q: { teacher_decision: string; teacher_score: number | null;
   return q.score
 }
 
+/** Petite liste colorée — points d'appui / de fragilité du diagnostic. */
+function BlocConstat({ titre, items, icon: Icon, ton }: { titre: string; items: string[]; icon: LucideIcon; ton: "vert" | "orange" }) {
+  if (items.length === 0) return null
+  return (
+    <div className={cn("rounded-lg border p-4", ton === "vert" ? "border-vert-pale bg-vert-pale/40" : "border-orange-pale bg-orange-pale/40")}>
+      <p className={cn("flex items-center gap-1.5 text-petit font-semibold uppercase tracking-wide mb-2", ton === "vert" ? "text-vert" : "text-orange")}>
+        <Icon className="size-3.5" /> {titre}
+      </p>
+      <ul className="flex flex-col gap-1.5">
+        {items.map((it, i) => (
+          <li key={i} className="text-petit text-texte leading-snug">{it}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+
+type DocTelechargeable = {
+  cle: string
+  icon: LucideIcon
+  titre: string
+  description?: string
+  hrefVoir: string
+  hrefTelecharger: string
+  extra?: ReactNode
+}
+
+/** Seuil de couleur du bilan chiffré — mêmes bornes que `ScorePill`. */
+function tonNote(note: number): string {
+  return note >= 10 ? "bg-vert" : note >= 5 ? "bg-orange" : "bg-rouge"
+}
+
 function Resultats({
   jeton,
   resultat,
@@ -392,164 +462,247 @@ function Resultats({
 }) {
   const navigate = useNavigate()
   const { confirmer } = useConfirm()
+
+  // Le parcours (diagnostic structuré + plan) est chargé ici pour être rendu
+  // dans le flux de la page, et pour regrouper ses PDF avec ceux de la copie.
+  const { data: session } = useQuery({
+    queryKey: ["session", jetonSession],
+    queryFn: () => sessionsApi.detail(jetonSession as string),
+    enabled: !!jetonSession,
+  })
+
   const note = resultat.grade?.final_score_on_20
   const questions = resultat.grade?.questions ?? []
   const reussies = questions.filter((q) => noteFinale(q) > 0).length
   const ratees = questions.filter((q) => noteFinale(q) <= 0).length
-  const diagnostic = resultat.diagnostic
+  const diag = resultat.diagnostic
+  const aDiagnostic =
+    !!diag &&
+    (!!diag.academic_profile || diag.strengths.length > 0 || diag.weaknesses.length > 0 || diag.competency_gaps.length > 0 || diag.root_causes.length > 0)
+
+  const plan = session ? (session.plan_provisoire.nb_problemes > 0 ? session.plan_provisoire : session.plan) : null
+  const planProvisoire = !!session && plan === session.plan_provisoire
+
+  const deposerT1 = jetonSession ? (
+    <Link to={`/corrections/confirmation/${jetonSession}`} className="text-petit font-medium text-bleu hover:text-bleu-sombre">
+      Déposer la copie T1
+    </Link>
+  ) : undefined
+
+  // ── Tous les fichiers téléchargeables : copie + parcours, une seule liste ──
+  const docs: DocTelechargeable[] = []
+  for (const type of documents) {
+    const meta = DOC_COPIE[type]
+    if (!meta) continue
+    docs.push({
+      cle: `copie-${type}`,
+      icon: meta.icon,
+      titre: meta.titre,
+      description: meta.description,
+      hrefVoir: elevesApi.documentUrl(jeton, type),
+      hrefTelecharger: elevesApi.documentUrl(jeton, type, true),
+      extra: type === "sujet_confirmation" ? deposerT1 : undefined,
+    })
+  }
+  if (session && jetonSession) {
+    docs.push({
+      cle: "rapport-diagnostique",
+      icon: GraduationCap,
+      titre: "Rapport diagnostique complet",
+      description: "Profil scolaire, lacunes rattachées au programme et causes profondes, en détail.",
+      hrefVoir: sessionsApi.rapportDiagnostiqueUrl(jetonSession),
+      hrefTelecharger: sessionsApi.rapportDiagnostiqueUrl(jetonSession, true),
+    })
+    if (plan && plan.etapes.length > 0) {
+      docs.push({
+        cle: "plan",
+        icon: ListChecks,
+        titre: planProvisoire ? "Plan de remédiation provisoire" : "Plan de remédiation",
+        description: planProvisoire
+          ? "Estimation avant le test de confirmation — non contractuelle."
+          : "Ordre des séances, volume horaire et palier.",
+        hrefVoir: planProvisoire ? sessionsApi.planProvisoireUrl(jetonSession) : sessionsApi.planUrl(jetonSession),
+        hrefTelecharger: planProvisoire ? sessionsApi.planProvisoireUrl(jetonSession, true) : sessionsApi.planUrl(jetonSession, true),
+      })
+    }
+    if (session.sujet_t1_disponible && session.sujet_t1_jeton_copie && !documents.includes("sujet_confirmation")) {
+      docs.push({
+        cle: "sujet-t1",
+        icon: ClipboardList,
+        titre: "Sujet du test de confirmation (T1)",
+        description: "À faire passer pour confirmer ou écarter chaque hypothèse de lacune.",
+        hrefVoir: elevesApi.documentUrl(session.sujet_t1_jeton_copie, "sujet_confirmation"),
+        hrefTelecharger: elevesApi.documentUrl(session.sujet_t1_jeton_copie, "sujet_confirmation", true),
+        extra: deposerT1,
+      })
+    }
+  }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
+      {/* ── 1. Bilan chiffré ──────────────────────────────────────────────── */}
       <Card>
-        <div className="flex items-center justify-between mb-4">
-          <CardTitre className="mb-0">Correction terminée</CardTitre>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="inline-flex items-center gap-1.5 text-petit font-semibold uppercase tracking-wide text-vert">
+              <CircleCheck className="size-4" /> Correction terminée
+            </p>
+            <h2 className="text-h2 font-semibold text-marine mt-1">{resultat.student_name || "Copie corrigée"}</h2>
+          </div>
           <button
             onClick={async () => {
               if (await confirmer({ titre: "Supprimer cette copie ?", message: "Cette action est définitive : le scan et les documents associés seront supprimés.", texteConfirmer: "Supprimer" })) {
                 onSupprimer()
               }
             }}
-            className="text-texte-faible hover:text-rouge"
+            className="shrink-0 text-texte-faible hover:text-rouge"
+            title="Supprimer cette copie"
           >
             <Trash2 className="size-4" />
           </button>
         </div>
 
-        <StatRow>
-          {note != null && <Stat label="Note finale" value={note} unite="/20" />}
-          <Stat label="Réussies" value={reussies} />
-          <Stat label="Ratées" value={ratees} />
-        </StatRow>
-
-        {diagnostic && (diagnostic.academic_profile || diagnostic.competency_gaps.length > 0 || diagnostic.root_causes.length > 0) && (
-          <div className="mt-5 pt-5 border-t border-bord flex flex-col gap-4">
-            {diagnostic.academic_profile && <p className="text-menu">{diagnostic.academic_profile}</p>}
-
-            {diagnostic.competency_gaps.length > 0 && (
-              <div>
-                <p className="text-petit font-semibold text-texte-doux uppercase tracking-wide mb-2">Lacunes ancrées sur le programme officiel</p>
-                <div className="flex flex-col gap-3">
-                  {diagnostic.competency_gaps.map((lacune, i) => (
-                    <div key={i}>
-                      <p className="text-menu font-medium">{lacune.lecon}</p>
-                      <p className="text-petit text-texte-doux">{lacune.classe} · {lacune.chapitre}</p>
-                      <p className="text-petit mt-0.5">{lacune.description}</p>
-                    </div>
-                  ))}
-                </div>
+        <div className="mt-5 flex flex-wrap items-center gap-x-10 gap-y-4">
+          {note != null && (
+            <div className="min-w-[200px] flex-1">
+              <div className="flex items-end gap-1.5">
+                <span className="text-[2.75rem] font-bold leading-none text-marine tabular-nums">{formatNombre(note)}</span>
+                <span className="text-h3 text-texte-doux mb-1.5">/ 20</span>
               </div>
-            )}
-
-            {diagnostic.root_causes.length > 0 && (
-              <div>
-                <p className="text-petit font-semibold text-texte-doux uppercase tracking-wide mb-2">Causes derrière les erreurs visibles</p>
-                <div className="flex flex-col divide-y divide-bord">
-                  {diagnostic.root_causes.map((cause, i) => (
-                    <p key={i} className="py-2 text-petit">
-                      <strong>{cause.visible_error}</strong> — {cause.hidden_cause}
-                    </p>
-                  ))}
-                </div>
+              <div className="mt-2.5 h-2 overflow-hidden rounded-rond bg-surface-creuse">
+                <div className={cn("h-full rounded-rond", tonNote(note))} style={{ width: `${Math.max(0, Math.min(100, (note / 20) * 100))}%` }} />
               </div>
-            )}
+            </div>
+          )}
+          <div className="flex gap-8">
+            <div>
+              <div className="text-chiffre font-bold leading-none text-vert tabular-nums">{reussies}</div>
+              <div className="text-petit text-texte-doux mt-1">Question{reussies > 1 ? "s" : ""} réussie{reussies > 1 ? "s" : ""}</div>
+            </div>
+            <div>
+              <div className="text-chiffre font-bold leading-none text-rouge tabular-nums">{ratees}</div>
+              <div className="text-petit text-texte-doux mt-1">Question{ratees > 1 ? "s" : ""} ratée{ratees > 1 ? "s" : ""}</div>
+            </div>
           </div>
-        )}
-
-        {documents.length > 0 && (
-          <div className="flex flex-wrap gap-4 mt-5 pt-5 border-t border-bord text-menu">
-            {documents.map((type) => (
-              <LienPdf key={type} label={LIBELLES_DOCUMENT[type] ?? type} hrefVoir={elevesApi.documentUrl(jeton, type)} hrefTelecharger={elevesApi.documentUrl(jeton, type, true)} />
-            ))}
-          </div>
-        )}
-        <div className="flex gap-3 mt-4">
-          <Button variant="discret" onClick={() => navigate("/corrections/nouvelle")}>Corriger une autre copie</Button>
         </div>
       </Card>
 
-      {jetonSession && <ApercuParcours jetonSession={jetonSession} />}
-    </div>
-  )
-}
+      {/* ── 2. Diagnostic — contenu textuel ───────────────────────────────── */}
+      {aDiagnostic && diag && (
+        <Card>
+          <CardTitre>Diagnostic</CardTitre>
 
-/** Lacunes détectées (diagnostic structuré) et plan de remédiation
- * provisoire, en aperçu lecture seule — le détail interactif (confirmer,
- * écarter, inscrire) reste sur l'écran « Parcours ». Sans ceci, une
- * correction terminée ne montrait ni les lacunes que le module 4 vient
- * d'écrire, ni le sujet de confirmation (T1) déjà généré à côté. */
-function ApercuParcours({ jetonSession }: { jetonSession: string }) {
-  const { data } = useQuery({
-    queryKey: ["session", jetonSession],
-    queryFn: () => sessionsApi.detail(jetonSession),
-  })
-  if (!data) return null
+          {diag.academic_profile && <p className="max-w-[75ch] text-corps leading-relaxed text-texte">{diag.academic_profile}</p>}
 
-  const plan = data.plan_provisoire.nb_problemes > 0 ? data.plan_provisoire : data.plan
-
-  return (
-    <Card>
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <CardTitre className="mb-0">Diagnostic structuré &amp; plan de remédiation</CardTitre>
-        <div className="flex items-center gap-4 text-petit">
-          <LienPdf label="Rapport diagnostique" hrefVoir={sessionsApi.rapportDiagnostiqueUrl(jetonSession)} hrefTelecharger={sessionsApi.rapportDiagnostiqueUrl(jetonSession, true)} />
-          {plan.etapes.length > 0 && (
-            <LienPdf
-              label={`Plan ${plan === data.plan ? "" : "provisoire "}(PDF)`}
-              hrefVoir={plan === data.plan ? sessionsApi.planUrl(jetonSession) : sessionsApi.planProvisoireUrl(jetonSession)}
-              hrefTelecharger={plan === data.plan ? sessionsApi.planUrl(jetonSession, true) : sessionsApi.planProvisoireUrl(jetonSession, true)}
-            />
+          {(diag.strengths.length > 0 || diag.weaknesses.length > 0) && (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <BlocConstat titre="Points d'appui" items={diag.strengths} icon={ThumbsUp} ton="vert" />
+              <BlocConstat titre="Points de fragilité" items={diag.weaknesses} icon={TriangleAlert} ton="orange" />
+            </div>
           )}
-        </div>
-      </div>
 
-      {plan.etapes.length === 0 ? (
-        <p className="text-petit text-texte-doux">Aucune lacune détectée sur cette copie.</p>
-      ) : (
-        <>
-          {plan === data.plan_provisoire && (
-            <p className="text-petit text-orange mb-3">
-              Estimation provisoire — à confirmer par le test de confirmation (T1) avant toute décision d'inscription.
-            </p>
-          )}
-          <StatRow>
-            <Stat label="Lacunes" value={plan.nb_problemes} />
-            <Stat label="Volume estimé" value={formatHeures(plan.total_heures)} />
-          </StatRow>
-          <div className="flex flex-col divide-y divide-bord mt-4">
-            {plan.etapes.map((etape) => (
-              <div key={`${etape.competence_id}-${etape.type_erreur_id}`} className="py-3">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-menu font-medium">{etape.competence_id}</span>
-                  <TypeErreurBadge code={etape.type_erreur_id} />
-                  <span className="text-petit text-texte-doux font-medium ml-auto">{formatHeures(etape.cout)}</span>
-                </div>
-                <p className="text-petit text-texte-doux mt-0.5">{etape.competence_libelle}</p>
-                <p className="text-petit text-texte mt-1">
-                  <DiagnosticLisible typeErreurId={etape.type_erreur_id} interpretation={etape.signatures[0]?.interpretation ?? ""} />
-                </p>
+          {diag.competency_gaps.length > 0 && (
+            <div className="mt-6">
+              <p className="mb-2.5 text-petit font-semibold uppercase tracking-wide text-texte-doux">Lacunes ancrées sur le programme officiel</p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {diag.competency_gaps.map((lacune, i) => (
+                  <div key={i} className="rounded-lg border border-bord bg-surface-creuse/60 p-3.5">
+                    <p className="text-menu font-medium text-texte">{lacune.lecon}</p>
+                    <p className="mt-0.5 text-petit text-texte-doux">{lacune.classe} · {lacune.chapitre}</p>
+                    {lacune.description && <p className="mt-1.5 text-petit leading-snug text-texte">{lacune.description}</p>}
+                  </div>
+                ))}
               </div>
+            </div>
+          )}
+
+          {diag.root_causes.length > 0 && (
+            <div className="mt-6">
+              <p className="mb-2.5 text-petit font-semibold uppercase tracking-wide text-texte-doux">Causes derrière les erreurs visibles</p>
+              <div className="grid gap-x-8 sm:grid-cols-2">
+                {diag.root_causes.map((cause, i) => (
+                  <p key={i} className="border-t border-bord py-2.5 text-petit leading-snug">
+                    <strong className="text-texte">{cause.visible_error}</strong>
+                    <span className="text-texte-doux"> — {cause.hidden_cause}</span>
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* ── 3. Plan de remédiation — contenu textuel ──────────────────────── */}
+      {session && plan && (
+        <Card>
+          <div className="mb-1 flex flex-wrap items-center justify-between gap-3">
+            <CardTitre className="mb-0">Plan de remédiation</CardTitre>
+            {plan.palier && <PalierBadge palier={plan.palier} />}
+          </div>
+
+          {plan.etapes.length === 0 ? (
+            <p className="mt-2 text-petit text-texte-doux">Aucune lacune détectée sur cette copie — pas de remédiation nécessaire.</p>
+          ) : (
+            <>
+              {planProvisoire && (
+                <p className="mt-1 mb-3 text-petit text-orange">
+                  Estimation provisoire — à confirmer par le test de confirmation (T1) avant toute décision d'inscription.
+                </p>
+              )}
+              <div className="mt-3 flex flex-wrap gap-x-10 gap-y-3">
+                <Stat label="Lacunes" value={plan.nb_problemes} />
+                <Stat label="Volume estimé" value={formatHeures(plan.total_heures)} />
+              </div>
+              <div className="mt-4 grid gap-x-8 sm:grid-cols-2">
+                {plan.etapes.map((etape) => (
+                  <div key={`${etape.competence_id}-${etape.type_erreur_id}`} className="border-t border-bord py-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-menu font-medium text-texte">{etape.competence_id}</span>
+                      <TypeErreurBadge code={etape.type_erreur_id} />
+                      <span className="ml-auto text-petit font-medium text-texte-doux">{formatHeures(etape.cout)}</span>
+                    </div>
+                    <p className="mt-0.5 text-petit text-texte-doux">{etape.competence_libelle}</p>
+                    <p className="mt-1 text-petit leading-snug text-texte">
+                      <DiagnosticLisible typeErreurId={etape.type_erreur_id} interpretation={etape.signatures[0]?.interpretation ?? ""} />
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </Card>
+      )}
+
+      {/* ── 4. Documents à télécharger — regroupés ────────────────────────── */}
+      {docs.length > 0 && (
+        <Card>
+          <CardTitre className="mb-1">Documents à télécharger</CardTitre>
+          <p className="mb-1 text-petit text-texte-doux">Tous les fichiers produits pour cette copie et ce parcours.</p>
+          <div className="grid gap-x-10 sm:grid-cols-2">
+            {docs.map((d) => (
+              <LigneDocument
+                key={d.cle}
+                icon={d.icon}
+                titre={d.titre}
+                description={d.description}
+                hrefVoir={d.hrefVoir}
+                hrefTelecharger={d.hrefTelecharger}
+                extra={d.extra}
+              />
             ))}
           </div>
-        </>
+        </Card>
       )}
 
-      {data.sujet_t1_disponible && data.sujet_t1_jeton_copie && (
-        <div className="mt-5 pt-5 border-t border-bord flex items-center justify-between flex-wrap gap-3">
-          <LienPdf
-            label="Sujet de confirmation T1 (PDF)"
-            className="text-menu"
-            hrefVoir={elevesApi.documentUrl(data.sujet_t1_jeton_copie, "sujet_confirmation")}
-            hrefTelecharger={elevesApi.documentUrl(data.sujet_t1_jeton_copie, "sujet_confirmation", true)}
-          />
-          <Link to={`/corrections/confirmation/${jetonSession}`} className="text-petit text-bleu hover:text-bleu-sombre font-medium">
-            Déposer la copie T1
+      {/* ── Actions ──────────────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-4">
+        <Button variant="discret" onClick={() => navigate("/corrections/nouvelle")}>Corriger une autre copie</Button>
+        {jetonSession && (
+          <Link to={`/sessions/${jetonSession}`} className="inline-flex items-center gap-1 text-petit font-medium text-bleu hover:text-bleu-sombre">
+            Voir le parcours complet <ArrowUpRight className="size-3.5" />
           </Link>
-        </div>
-      )}
-
-      <Link to={`/sessions/${jetonSession}`} className="inline-flex items-center gap-1 text-petit text-bleu hover:text-bleu-sombre font-medium mt-5">
-        Voir le parcours complet <ArrowUpRight className="size-3.5" />
-      </Link>
-    </Card>
+        )}
+      </div>
+    </div>
   )
 }

@@ -23,7 +23,7 @@ from pathlib import Path
 from sqlalchemy.orm import Session as SQLASession
 
 from app.db import SessionLocal
-from app.models import Correction, Probleme
+from app.models import Correction, Evaluation, Probleme
 from app.models.correction import ETATS_EN_COURS
 from app.services import diagnostic_referentiel as diag_ref
 from app.services import diagnostic_suivi as diag_suivi
@@ -343,8 +343,26 @@ def _ecrire_hypotheses_module4(db: SQLASession, correction: Correction, resultat
         correction.copy_id, len(ecriture.crees), evaluation.session_id, ecriture.cout_total,
     )
 
-    if correction.type_evaluation == "T0" and ecriture.crees:
+    # Sujet T1 : on le génère dès qu'un T0 laisse des hypothèses ouvertes non
+    # encore couvertes par un sujet — pas seulement quand ce T0 a créé des
+    # problèmes. Réanalyser la copie d'un élève qui a déjà une session ouverte
+    # (cas courant en test, et en production quand un collègue a déjà lancé un
+    # T0) ne crée rien de neuf (`ecriture.crees` vide, tout est « déjà suivi »)
+    # mais doit quand même produire le sujet si aucun n'existe.
+    if correction.type_evaluation == "T0" and (ecriture.crees or not _session_a_un_sujet_t1(db, evaluation.session_id)):
         _generer_sujet_confirmation(db, correction, evaluation)
+
+
+def _session_a_un_sujet_t1(db: SQLASession, session_id: int) -> bool:
+    """Vrai si un T0 de cette session porte déjà un sujet de confirmation
+    persisté (`Evaluation.sujet_confirmation`) — même critère que
+    `sessions.py::session_detail` pour afficher le lien « Sujet T1 »."""
+    return (
+        db.query(Evaluation.id)
+        .filter(Evaluation.session_id == session_id, Evaluation.type == "T0", Evaluation.sujet_confirmation.isnot(None))
+        .first()
+        is not None
+    )
 
 
 def _confirmer_hypotheses_module4(db: SQLASession, correction: Correction, resultat) -> None:
