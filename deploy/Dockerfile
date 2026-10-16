@@ -48,6 +48,9 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 # strict nécessaire à l'exécution de l'API.
 COPY --chown=hakili src/ /app/src/
 COPY --chown=hakili prompts/ /app/prompts/
+# Gabarits des PDF (rapport, sujet T1, fiches) — absents de l'image jusqu'au
+# 2026-10-16 : la Phase B échouait en production sur rapport_correction.html.j2.
+COPY --chown=hakili templates/ /app/templates/
 COPY --chown=hakili data/ /app/data/
 COPY --chown=hakili backend/ /app/backend/
 
