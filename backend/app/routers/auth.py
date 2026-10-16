@@ -137,7 +137,9 @@ def me(
     roles = roles_valides_de(personne)
     return {
         "acces_libre": acces_libre(),
-        "personne": personne,
+        # Le PIN est un secret : jamais renvoyé au navigateur (il apparaissait
+        # en clair dans la réponse, constaté en recette prod le 2026-10-16).
+        "personne": {k: v for k, v in personne.items() if k != "pin"},
         "casquette": casquette,
         "casquettes_possibles": [{"valeur": r, "libelle": LIBELLES_CASQUETTE.get(r, r)} for r in roles],
     }

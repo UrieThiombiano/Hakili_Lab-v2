@@ -30,14 +30,14 @@ python-multipart>=0.0.9  # upload de fichiers (dépôt de copie, lot)
 openpyxl>=3.1.0        # Lecture .xlsx (import élèves en masse)
 
 # --- Fournisseurs IA ---
-anthropic>=0.40.0
+anthropic>=0.40.0,<1   # 1.x retire des paramètres (temperature…) : correction en échec en prod le 2026-10-16
 # Vérification TLS déléguée au magasin du système (manage.py). Sans lui, un
 # antivirus qui inspecte le HTTPS fait échouer tout appel de modèle sur
 # CERTIFICATE_VERIFY_FAILED : sa racine est dans le magasin de Windows, jamais
 # dans le bundle de certifi qu'embarquent les SDK.
 truststore>=0.9.0
-google-genai>=1.0.0    # SDK unifié — gemini_client.py utilise `from google import genai`
-openai>=1.30.0        # DeepSeek (API compatible OpenAI) + GPT-5 (fallback)
+google-genai>=1.0.0,<3    # SDK unifié — gemini_client.py utilise `from google import genai`
+openai>=1.30.0,<3        # DeepSeek (API compatible OpenAI) + GPT-5 (fallback)
 mistralai>=1.0.0,<2.0.0   # Mistral Small 3.1 — v2.x a changé l'API
 
 # --- Réseau & Robustesse ---

@@ -107,3 +107,19 @@ def test_ouvrir_session_pose_le_cookie_csrf(db):
     # Cookie CSRF pas httpOnly (le frontend doit pouvoir le lire).
     cookie_csrf = next(c for c in en_tetes_set_cookie if c.startswith("csrf_token="))
     assert "httponly" not in cookie_csrf.lower()
+
+
+def test_me_ne_renvoie_jamais_le_pin():
+    """Recette prod du 2026-10-16 : `/api/auth/me` exposait le PIN en clair."""
+    from app.auth.deps import get_personne_courante
+
+    client = _client()
+    app.dependency_overrides[get_personne_courante] = lambda: {
+        "nom": "Test", "prenom": "Admin", "role": "administrateur", "pin": "1234",
+    }
+    r = client.get("/api/auth/me", headers={"X-Forwarded-Proto": "https"})
+    app.dependency_overrides.clear()
+    assert r.status_code == 200
+    assert r.json()["personne"]["nom"] == "Test"
+    assert "pin" not in r.json()["personne"]
+    assert "1234" not in r.text
