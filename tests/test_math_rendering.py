@@ -232,3 +232,14 @@ def test_unites_aires_volumes():
 def test_texte_francais_intact():
     s = "L'élève a correctement identifié la partie entière : 37, et la partie décimale : 907."
     assert _txt(_math_to_html(s)) == s
+
+
+def test_code_de_question_d2_non_transforme_en_exposant():
+    """D1 à D4 sont des codes de question des tests du référentiel :
+    « En D2, … » ne doit pas devenir « En D², … » (recette du 2026-10-16)."""
+    from src.pipeline.math_format import math_to_html
+
+    assert math_to_html("En D2, le quotient est pris à l'envers") == "En D2, le quotient est pris à l'envers"
+    assert math_to_html("questions D1, D3") == "questions D1, D3"
+    assert math_to_html("aire de 64 m2") == "aire de 64 m²"
+    assert math_to_html("rayon2") == "rayon²"

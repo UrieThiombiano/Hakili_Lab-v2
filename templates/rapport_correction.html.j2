@@ -282,10 +282,18 @@
 <!-- Barre statistiques -->
 <div class="stat-bar">
   <span class="stat-good">{{ good_questions|length }} question(s) réussie(s)</span>
+  {% if partial_questions %}
+  &nbsp;&nbsp;|&nbsp;&nbsp;
+  <span style="color:#B9770E; font-weight:bold;">{{ partial_questions|length }} partiellement réussie(s)</span>
+  {% endif %}
   &nbsp;&nbsp;|&nbsp;&nbsp;
   <span class="stat-bad">{{ bad_questions|length }} question(s) échouée(s)</span>
   &nbsp;&nbsp;|&nbsp;&nbsp;
+  {% if POINTS_CORRIGE %}
+  Barème du corrigé&nbsp;: <strong>{{ TOTAL_CORRIGE }}</strong> pts (note ramenée sur {{ TOTAL_POSSIBLE }})
+  {% else %}
   Total barème&nbsp;: <strong>{{ TOTAL_POSSIBLE }}</strong> pts
+  {% endif %}
 </div>
 
 <!-- Tableau bonnes réponses -->
@@ -305,6 +313,31 @@
       <td class="mono bold">{{ q.id }}</td>
       <td class="pts-good">{{ q.score_fmt }}</td>
       <td style="text-align:right; color:#888; font-size:8.5pt;">/ {{ q.max_fmt }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<!-- Tableau réponses partielles : ce qui a manqué -->
+{% if partial_questions %}
+<div class="sec-head" style="border-color:#B9770E; color:#B9770E;">&#9680;&nbsp;&nbsp;Réponses partielles</div>
+<table class="sum">
+  <thead>
+    <tr>
+      <th style="width:14%;">Question</th>
+      <th style="width:14%;">Points obtenus</th>
+      <th style="width:12%; text-align:right;">/ Max</th>
+      <th style="width:60%;">Ce qui a manqué</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for q in partial_questions %}
+    <tr>
+      <td class="mono bold">{{ q.id }}</td>
+      <td style="color:#B9770E; font-weight:bold;">{{ q.score_fmt }}</td>
+      <td style="text-align:right; color:#888; font-size:8.5pt;">/ {{ q.max_fmt }}</td>
+      <td style="font-size:8.5pt;">{{ q.comment }}</td>
     </tr>
     {% endfor %}
   </tbody>
@@ -334,7 +367,7 @@
 </table>
 {% endif %}
 
-{% if not good_questions and not bad_questions %}
+{% if not good_questions and not partial_questions and not bad_questions %}
 <p class="small italic c-gray" style="text-align:center; padding:10pt;">
   Aucune question évaluée.
 </p>

@@ -461,6 +461,33 @@ Limite structurelle assumée : certaines compétences ont un libellé volontaire
 
 ## Journal de bord
 
+### 2026-10-16 (suite) — Recette sur 29 copies réelles (SIAO) : notation alignée sur les barèmes détaillés
+
+Recette de bout en bout (chemin `app.services.taches`, base SQLite isolée, référentiel v1) sur les copies `TESTS_DIAGNOTICS_SIAO`. Chaîne complète OK (25 copies : notes, module 4, sujet T1, PDF). Trois défauts corrigés :
+
+- **Notes gonflées** : les consignes de correction étaient binaires (« 0 ou max_score », « résultat sans démarche → point ») alors que les corrigés v1 notent critère par critère. `grading_prompt.md` gagne une section « Barème détaillé par critère » prioritaire : partie A tout ou rien (casse des lettres QCM ignorée), B/C critère par critère, valeur fausse = critère perdu, conclusion nue / non fondée / contredite = 0, démarche condensée = mêmes points.
+- **Conversion faite par le modèle** (il notait 0,5/2 en écrivant « 1/2 ») : le modèle renvoie désormais `points_obtenus` (points du corrigé) et `validate_grading` convertit, plafonne et ramène sur la grille (`RubricItem.points_corrige` / `score_step`, code `SCORE_HORS_BAREME`).
+- **Lectures inventées** : sur une même transcription, DeepSeek a recopié le corrigé (CISSE 2nde : 18,75 vs 13,25). Correction triplée en parallèle et consolidée par médiane (`consolider_corrections`, `settings.nb_corrections_ia = 3`), divergences signalées `requires_review`. Écart entre deux notations complètes : max 5,5 → ~2 pts/20 hors CISSE ; CISSE reste instable avec DeepSeek (≥ 2 passages sur 3 « corrigent » l'élève), Claude Sonnet 5 lit fidèlement (9 – 11,25 sur 3 passages) mais coûte ~0,07 $ par passage — choix de fournisseur ouvert (Paramètres → Modèles IA).
+- **Transcription** : coupures réseau Gemini (WinError 10054, 5xx, timeouts) désormais réessayées ; repli GPT-5 par lots de 3 pages, 300 s, 2 essais (une copie de 14 pages expirait à 90 s). ZAMPALIGRE et KOANDA, en échec au premier passage, passent.
+
+Tests : `tests/test_notation_bareme_detaille.py` (29). Reste : 8 élèves absents du Sheet, diagnostic lent (~6-8 min/copie).
+
+**Correcteur** : Claude Sonnet 5 retenu par le commanditaire (`GRADING_PROVIDER=claude`, ~0,21 $/copie avec 3 passages) — à poser dans le `.env` du serveur, un choix fait dans Paramètres serait perdu au redéploiement (`data/preferences_modeles.json` n'est pas monté en volume).
+
+**Anciens tests retirés** (décision du commanditaire) : seuls les 7 tests du 2026-10-16 restent au catalogue. Retirés de git : les 6 tests v1 (`bareme_test_*`, `corrige_test_*`, énoncés Word/Markdown de `data/Documents/`), `tests/test_knowledge_2ndeC.py`, `scripts/integrer_corriges.py` (il aurait réécrit `corriges_socle.yaml` depuis l'ancien lot v0). PDF de juillet et d'août et `Referentiel_Urie_v0.xlsx` déplacés hors du dépôt (`HAKILI-V2/anciens_tests_retires_2026-10-16/`). Aucune correction en base ne s'y rapportait. ⚠ Les 16 copies de Terminale SIAO ont été passées sur le sujet long d'août : elles ne sont pas corrigeables avec le nouveau test.
+
+### 2026-10-16 — Batterie allégée : les 7 sujets et corrigés remplacés
+
+Les sujets du 2026-08-12 étaient trop longs : les élèves ne finissaient pas. Une batterie allégée (6 octobre) les remplace, livrée dans `test-evaluation/` avec ses 7 corrigés et le référentiel **`Referentiel_Urie_v1.xlsx`** (12 octobre), retagué sur ces sujets : 282 questions (collège 16 A + 11 B + 3 problèmes × 3 sous-questions = 60 pts ; lycée 20 A + 14 B + 4 problèmes × 3 = 80 pts), 1 041 signatures, 172 options de QCM.
+
+- **Classeur versionné** dans `data/referentiel/` (embarqué dans l'image, importable sur le serveur). `generer_baremes_socle.py` et `importer_referentiel.py` le lisent en premier.
+- **Corrigés transcrits** des PDF enseignant, page par page (valeurs vectorielles, invisibles à l'extraction texte) dans `corriges_socle.yaml` : réponse attendue, démarche + barème détaillé, « si l'élève échoue », pour les 282 questions — constructions comprises. L'ancien contenu (sujets d'août) est remplacé : les codes ont été réattribués. Les 43 bonnes réponses de QCM du classeur ont été recoupées une à une avec les corrigés : toutes concordent.
+- **Générateur** : diviseur calculé par test (total / 20) au lieu de 3 figé, ordre du sujet conservé, format « rédigé » normalisé en `redige`, `si_echoue` et `probleme_parent` émis. Les 7 `bareme_socle_*.yaml` sont **régénérés** (ils étaient reconstruits à la main depuis l'arbitrage H) et totalisent exactement 20.
+- **Import en base** : même diviseur par test, format normalisé, corrigés repris depuis `corriges_socle.yaml`, et **suppression des questions absentes du classeur** (70 côté prod) — refusée si une réponse d'élève en dépend (0 en prod au 2026-10-16).
+- PDF imprimables remplacés dans `data/Documents/` (+ `corriges/`) ; ceux d'août archivés dans `data/Documents/archive/2026-08-12/`.
+
+**Reste à arbitrer (onglet `09_Anomalies` du classeur, priorité 1)** : 4ème P2/P3 (la question 2 redonne la réponse de la question 1), profil par domaine des corrigés ≠ compétence principale des sous-questions, 1ère D P3.3 (comparer 190 à 204 devrait être accepté), Tle D P4.3 (matrice ≠ corrigé), 2nde C G11 (exemple d'argument faux). Le corrigé est transcrit tel quel ; ces points sont signalés dans les `solution` concernés quand ils touchent la notation.
+
 ### 2026-08-29 (suite) — Le sujet T1 n'était plus généré à la réanalyse d'une copie
 
 Signalé par l'utilisateur : « les exos de confirmation de lacunes ne sont plus

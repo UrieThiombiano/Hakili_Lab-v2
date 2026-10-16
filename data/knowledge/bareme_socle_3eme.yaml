@@ -1,35 +1,22 @@
-# Reconstruit manuellement le 2026-08-13 depuis le sujet et le corrige PDF recomposes
-# (data/Documents/, livraison data/New-docs/ du 2026-08-12) — PAS depuis Referentiel_Socle_v0.xlsx,
-# qui n'a pas ete mis a jour (voir docs/harmonisation_donnees.md, arbitrage H).
-# Ne pas relancer scripts/generer_baremes_socle.py sur ce fichier sans avoir d'abord
-# reporte la nouvelle composition (structure a 3 parties) dans le classeur, sous peine
-# d'ecraser ce travail et de revenir a l'ancienne composition a 2 parties.
+# Généré par scripts/generer_baremes_socle.py — ne pas éditer à la main.
+# Source : data/referentiel/Referentiel_Urie_v1.xlsx + data/knowledge/corriges_socle.yaml.
+# Pour corriger une réponse attendue, éditer corriges_socle.yaml puis
+# relancer le script ; pour la structure du test, mettre à jour le classeur.
 
 meta:
   test_id: socle_3eme
   titre: Test diagnostique d'entrée en 3ème
   niveau_test: 3eme
   classe: 3e
-  total_questions: 50
+  total_questions: 36
   total_possible: 20
-  somme_baremes_reelle: 19.99999
+  somme_baremes_reelle: 20.0
   bareme_classeur_total: 60.0
-  structure: 'Partie A 16 pts (16 x 1) - Partie B 22 pts (12 items : 10 x 2 + G7 decompose en 2 x 1) -
-    Partie C 22 pts (2x5 + 2x6, 4 problemes decomposes en 5 a 6 sous-items chacun selon le nombre de termes
-    du bareme imprime)'
-  source: data/Documents/Test_diagnostique_entree_3eme.pdf et data/Documents/corriges/Corrige_test_diagnostique_entree_3eme.pdf
-    (livraison 2026-08-12, corrige valide par un enseignant de mathematiques)
-  genere_par: 'reconstruction manuelle assistee (2026-08-13) — voir docs/harmonisation_donnees.md, arbitrage
-    H. Referentiel_Socle_v0.xlsx n''a PAS ete mis a jour : ce fichier est temporairement la source de
-    verite du bareme socle_3eme, en avance sur le classeur.'
-  note_corriges: 'Reponses et demarches extraites en lisant les pages du corrige PDF (rendues en image,
-    les valeurs numeriques y sont en vectoriel et invisibles a l''extraction texte). DIFFERENCE avec 5e/4e
-    : ce corrige ne donne PAS le domaine de chaque terme de bareme en partie C, seulement un domaine dominant
-    par probleme entier (P1/P2 en G, P3 en L, P4 en F). La decomposition en sous-items reste faite (une
-    competence par sous-item), mais ne peut pas etre verifiee par un recoupement exact comme pour 5e/4e
-    — plusieurs sous-items sont marques ''confiance basse'' dans leur `objet` : code disponible le plus
-    proche du referentiel actuel, a confirmer avec l''enseignant qui a valide le corrige. G7 (partie B)
-    decompose en construction + deduction, meme motif que G5/G7/G9 des niveaux precedents.'
+  source: 'Referentiel_Urie_v1.xlsx (batterie allégée du 2026-10-06) — onglets 04_Questions, 06_Distracteurs,
+    02_Competences ; corrigés : data/knowledge/corriges_socle.yaml'
+  genere_par: scripts/generer_baremes_socle.py
+  note_corriges: 5 QCM avec bonne réponse (classeur) ; 31 questions corrigées depuis le corrigé PDF enseignant
+    ; 0 sans corrigé.
 questions:
 - code: N1
   partie: A
@@ -39,11 +26,11 @@ questions:
   competence: N.ENS
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Ecrire, parmi quatre nombres, celui qui appartient a Z
-  reponse_attendue: -20/4 (= -5)
+  objet: Ecrire lequel de -20/4 ; 5/6 ; 3,75 ; 7/2 appartient à ℤ
+  reponse_attendue: -20/4 (qui est égal à -5)
   solution: ''
-  si_echoue: 'Confusion entre l''ecriture d''un nombre et l''ensemble auquel il appartient : un quotient
-    d''entiers peut etre un entier.'
+  si_echoue: 'Confusion entre l''écriture d''un nombre et l''ensemble auquel il appartient : un quotient
+    d''entiers peut être un entier. Livret de remédiation 3ème, module 3.'
 - code: N2
   partie: A
   format: court
@@ -52,11 +39,11 @@ questions:
   competence: N.SCI
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Ecrire un nombre en ecriture scientifique
+  objet: Ecrire 0,0000605 en écriture scientifique
   reponse_attendue: 6,05 × 10⁻⁵
   solution: ''
-  si_echoue: 'Ecriture scientifique : la mantisse doit verifier 1<=a<10, et l''exposant est negatif pour
-    un nombre inferieur a 1.'
+  si_echoue: 'Ecriture scientifique : la mantisse doit vérifier 1 ≤ a < 10, et l''exposant est négatif
+    pour un nombre inférieur à 1. Livret de remédiation 3ème, module 4.'
 - code: N3
   partie: A
   format: qcm
@@ -65,10 +52,31 @@ questions:
   competence: N.APP
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Choisir l'approximation decimale par exces a une precision donnee (QCM)
-  reponse_attendue: b) 7,9
+  objet: Choisir l'approximation décimale par excès à 10⁻¹ près de 47/6 (QCM)
+  reponse_attendue: b
   solution: ''
-  si_echoue: Confusion entre approximation par defaut et approximation par exces.
+  options:
+  - lettre: a
+    texte: 7,8
+    correcte: false
+    type_erreur: CPT
+    erreur: '7,8 est l''approximation par défaut à 10⁻¹ près de 7,833... : défaut et excès sont confondus.'
+  - lettre: b
+    texte: 7,9
+    correcte: true
+  - lettre: c
+    texte: 7,83
+    correcte: false
+    type_erreur: CNS
+    erreur: '7,83 est la troncature au centième : le sens de « à 10⁻¹ près » n''est pas mobilisé.'
+  - lettre: d
+    texte: 7,7
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Aucune erreur directe ne donne 7,7 ; lecture la moins fausse : l''élève retire 0,1 à la troncature
+      7,8 en prenant « par excès » pour « en s''écartant ».'
+  si_echoue: Confusion entre approximation par défaut et approximation par excès. Livret de remédiation
+    3ème, module 1.
 - code: N4
   partie: A
   format: qcm
@@ -77,11 +85,32 @@ questions:
   competence: N.RAT
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Choisir la valeur d'un quotient de nombres relatifs et rationnels (QCM)
-  reponse_attendue: c) -2/3
+  objet: Choisir la valeur du quotient (-7/4) ÷ (21/8) (QCM)
+  reponse_attendue: c
   solution: ''
-  si_echoue: 'Division par une fraction : on multiplie par l''inverse, et la regle des signes s''applique
-    au quotient.'
+  options:
+  - lettre: a
+    texte: -147/32
+    correcte: false
+    type_erreur: CPT
+    erreur: '(-7 × 21)/(4 × 8) = -147/32 : la division est traitée comme une multiplication, sans prendre
+      l''inverse.'
+  - lettre: b
+    texte: -3/2
+    correcte: false
+    type_erreur: CPT
+    erreur: 'L''inverse est pris sur le dividende au lieu du diviseur : (-4/7) × (21/8) = -84/56 = -3/2,
+      règle fausse appliquée de façon cohérente.'
+  - lettre: c
+    texte: -2/3
+    correcte: true
+  - lettre: d
+    texte: 2/3
+    correcte: false
+    type_erreur: PRC
+    erreur: (7/4) × (8/21) = 56/84 = 2/3 est bien calculé mais la règle des signes est oubliée.
+  si_echoue: 'Division par une fraction : on multiplie par l''inverse, et la règle des signes s''applique
+    au quotient. Livret de remédiation 3ème, module 3.'
 - code: L1
   partie: A
   format: court
@@ -90,10 +119,11 @@ questions:
   competence: L.DEV1
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Developper et reduire une expression litterale
+  objet: Développer et réduire (2x + 5)(3x - 1)
   reponse_attendue: 6x² + 13x - 5
   solution: ''
-  si_echoue: 'Double distributivite : un produit oublie ou une erreur de signe.'
+  si_echoue: 'Double distributivité : un produit oublié ou une erreur de signe sur 3x × (-1). Livret de
+    remédiation 3ème, module 5.'
 - code: L2
   partie: A
   format: court
@@ -102,10 +132,11 @@ questions:
   competence: L.FAC1
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Factoriser une expression litterale
+  objet: Factoriser (x - 3)(2x + 1) + (x - 3)(x + 4)
   reponse_attendue: (x - 3)(3x + 5)
   solution: ''
-  si_echoue: 'Factorisation par un facteur commun apparent : le facteur (x-3) n''est pas reconnu.'
+  si_echoue: 'Factorisation par un facteur commun apparent : le facteur (x - 3) n''est pas reconnu. Livret
+    de remédiation 3ème, module 5.'
 - code: L3
   partie: A
   format: court
@@ -114,11 +145,11 @@ questions:
   competence: L.EQ1
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Resoudre une equation du premier degre dans D
+  objet: Résoudre dans ℝ l'équation 7 - 2x = 5x + 28
   reponse_attendue: x = -3
   solution: ''
-  si_echoue: 'Resolution d''une equation du premier degre : regroupement des termes en x d''un cote et
-    des constantes de l''autre.'
+  si_echoue: 'Résolution d''une équation du premier degré : regroupement des termes en x d''un côté et
+    des constantes de l''autre. Livret de remédiation 3ème, module 6.'
 - code: L4
   partie: A
   format: court
@@ -127,10 +158,12 @@ questions:
   competence: L.INEQ1
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Resoudre une inequation du premier degre dans D
+  objet: Résoudre dans ℝ l'inéquation -3x + 2 > 11
   reponse_attendue: x < -3
-  solution: ''
-  si_echoue: Le sens de l'inegalite change quand on divise les deux membres par un nombre negatif.
+  solution: 'Barème : 1 pt, tout ou rien. Accepter toute écriture équivalente de l''ensemble des solutions
+    ; la notation par intervalle n''est pas exigible à l''entrée en 3ème.'
+  si_echoue: Le sens de l'inégalité change quand on divise les deux membres par un nombre négatif. Livret
+    de remédiation 3ème, module 6.
 - code: G1
   partie: A
   format: court
@@ -139,10 +172,11 @@ questions:
   competence: G.ABS
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer une distance sur une droite graduee a partir de deux abscisses
+  objet: Calculer la distance CD sur une droite graduée, C d'abscisse -4 et D d'abscisse -11
   reponse_attendue: CD = 7
   solution: ''
-  si_echoue: 'Distance sur une droite graduee : difference des abscisses prise sans valeur absolue.'
+  si_echoue: 'Distance sur une droite graduée : différence des abscisses prise sans valeur absolue, ou
+    soustraction de deux relatifs mal conduite. Livret de remédiation 3ème, modules 12 et 2.'
 - code: G2
   partie: A
   format: qcm
@@ -151,10 +185,30 @@ questions:
   competence: G.VEC
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Simplifier une somme de vecteurs par la relation de Chasles (QCM)
-  reponse_attendue: d) PN (vecteur)
+  objet: Choisir le vecteur égal à la somme vecteur MN + vecteur PM (QCM)
+  reponse_attendue: d
   solution: ''
-  si_echoue: 'Relation de Chasles : la somme ne s''enchaine qu''apres avoir remis les vecteurs dans l''ordre.'
+  options:
+  - lettre: a
+    texte: vecteur NP
+    correcte: false
+    type_erreur: CPT
+    erreur: L'élève relie les deux lettres centrales de l'écriture MN + PM sans réordonner la somme.
+  - lettre: b
+    texte: vecteur MP
+    correcte: false
+    type_erreur: CNS
+    erreur: 'L''élève relie les origines des deux vecteurs : la relation de Chasles n''est pas mobilisée.'
+  - lettre: c
+    texte: vecteur NM
+    correcte: false
+    type_erreur: CNS
+    erreur: 'L''élève relie les extrémités des deux vecteurs : la relation de Chasles n''est pas mobilisée.'
+  - lettre: d
+    texte: vecteur PN
+    correcte: true
+  si_echoue: 'Relation de Chasles : la somme ne s''enchaîne qu''après avoir remis les vecteurs dans l''ordre,
+    l''extrémité du premier devenant l''origine du second. Livret de remédiation 3ème, module 12.'
 - code: G3
   partie: A
   format: court
@@ -163,24 +217,24 @@ questions:
   competence: G.REP
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer les coordonnees du milieu d'un segment dans un repere
+  objet: Donner les coordonnées du milieu K de [EF] avec E(-5 ; 3) et F(1 ; -7)
   reponse_attendue: K(-2 ; -2)
   solution: ''
-  si_echoue: 'Coordonnees du milieu : demi-somme des abscisses et demi-somme des ordonnees, avec des nombres
-    relatifs.'
+  si_echoue: 'Coordonnées du milieu : demi-somme des abscisses et demi-somme des ordonnées, avec des nombres
+    relatifs. Livret de remédiation 3ème, module 12.'
 - code: G4
   partie: A
   format: court
   bareme: 0.333333
   bareme_classeur: 1.0
   competence: G.TRANS
-  competence_secondaire: null
+  competence_secondaire: G.VEC
   domaine: Activites geometriques
-  objet: Determiner l'image d'un point par une translation donnee
+  objet: Donner l'image de B par la translation qui transforme A en D, ABCD parallélogramme
   reponse_attendue: le point C
   solution: ''
-  si_echoue: 'Dans un parallelogramme ABCD, AD=BC : l''image de B par la translation de vecteur AD est
-    donc C.'
+  si_echoue: 'Dans le parallélogramme ABCD, vecteur AD = vecteur BC : l''image de B par la translation
+    de vecteur AD est donc C. Livret de remédiation 3ème, module 12.'
 - code: G5
   partie: A
   format: court
@@ -189,24 +243,45 @@ questions:
   competence: G.PROJ
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer une longueur par le theoreme des milieux
+  objet: Calculer BC sachant que I, J milieux de [AB], [AC] et IJ = 3,6 cm
   reponse_attendue: BC = 7,2 cm
   solution: ''
-  si_echoue: 'Theoreme des milieux : le segment joignant les milieux mesure la moitie du troisieme cote,
-    relation employee dans le sens inverse.'
+  si_echoue: 'Théorème des milieux : le segment joignant les milieux mesure la moitié du troisième côté,
+    relation employée ici dans le sens inverse. Livret de remédiation 3ème, module 10.'
 - code: G6
   partie: A
   format: qcm
   bareme: 0.333333
   bareme_classeur: 1.0
-  competence: G.SOL1
+  competence: G.POLY
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer le volume d'une pyramide reguliere (QCM)
-  reponse_attendue: c) 120 cm³
+  objet: Choisir le volume d'une pyramide de hauteur 10 cm à base carrée de 6 cm (QCM)
+  reponse_attendue: c
   solution: ''
+  options:
+  - lettre: a
+    texte: 360 cm³
+    correcte: false
+    type_erreur: CNS
+    erreur: '36 × 10 = 360 : la formule du prisme est utilisée, le facteur 1/3 du volume de la pyramide
+      n''est pas disponible.'
+  - lettre: b
+    texte: 80 cm³
+    correcte: false
+    type_erreur: CPT
+    erreur: '(1/3) × 24 × 10 = 80 : l''aire de la base est remplacée par son périmètre 4 × 6 = 24.'
+  - lettre: c
+    texte: 120 cm³
+    correcte: true
+  - lettre: d
+    texte: 60 cm³
+    correcte: false
+    type_erreur: CPT
+    erreur: '6 × 10 = 60 : le côté est pris pour l''aire de la base et le tiers est oublié (deux erreurs
+      cumulées).'
   si_echoue: 'Volume d''une pyramide : le tiers du produit de l''aire de base par la hauteur, facteur
-    1/3 oublie.'
+    1/3 oublié. Livret de remédiation 3ème, module 11.'
 - code: D1
   partie: A
   format: court
@@ -214,11 +289,11 @@ questions:
   bareme_classeur: 1.0
   competence: D.STAT1
   competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: Calculer la moyenne d'une serie statistique
+  domaine: Donnees, proportionnalite, statistique
+  objet: Calculer la moyenne de la série de notes 7 ; 12 ; 9 ; 16 ; 11
   reponse_attendue: '11'
   solution: ''
-  si_echoue: 'Moyenne d''une serie : somme des valeurs divisee par leur nombre.'
+  si_echoue: 'Moyenne d''une série : somme des valeurs divisée par leur nombre.'
 - code: D2
   partie: A
   format: qcm
@@ -226,12 +301,32 @@ questions:
   bareme_classeur: 1.0
   competence: M.ECH
   competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: Calculer une longueur reelle a partir d'une echelle (QCM)
-  reponse_attendue: a) 140 m
+  domaine: Mesures et grandeurs
+  objet: Choisir la longueur réelle d'un champ de 7 cm sur un plan au 1/2 000 (QCM)
+  reponse_attendue: a
   solution: ''
-  si_echoue: 'Echelle : la longueur reelle s''obtient en multipliant la longueur du plan par le denominateur,
-    puis en convertissant les centimetres en metres.'
+  options:
+  - lettre: a
+    texte: 140 m
+    correcte: true
+  - lettre: b
+    texte: 14 m
+    correcte: false
+    type_erreur: PRC
+    erreur: 7 × 2 000 = 14 000 cm est juste, puis 14 000 est divisé par 1 000 au lieu de 100.
+  - lettre: c
+    texte: 1 400 m
+    correcte: false
+    type_erreur: CNS
+    erreur: '14 000 cm sont divisés par 10 : la relation 1 m = 100 cm n''est pas disponible.'
+  - lettre: d
+    texte: 1,4 m
+    correcte: false
+    type_erreur: CPT
+    erreur: '14 000 cm sont divisés par 10 000 : le facteur de conversion des aires est appliqué à une
+      longueur.'
+  si_echoue: 'Echelle : la longueur réelle s''obtient en multipliant la longueur du plan par le dénominateur,
+    puis en convertissant les centimètres en mètres. Livret de remédiation 3ème, module 7.'
 - code: N5
   partie: B
   format: redige
@@ -240,12 +335,14 @@ questions:
   competence: N.SCI
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Calculer un produit en ecriture scientifique et comparer le resultat a un seuil
-  reponse_attendue: 1,4 × 10⁶ operations, l'affirmation est vraie
-  solution: 3,5×10⁸×4×10⁻³=(3,5×4)×10⁸⁻³=14×10⁵=1,4×10⁶, soit 1 400 000 operations ; 1 400 000 > 1 000
-    000.
-  si_echoue: 'Produit de deux nombres en ecriture scientifique : les exposants s''ajoutent et la mantisse
-    doit etre ramenee entre 1 et 10.'
+  objet: Diviser 2,4 × 10⁹ L par 8 × 10⁵ L (barrage de Bagré), juger « plus de 10 000 parcelles »
+  reponse_attendue: 3 × 10³ = 3 000 parcelles < 10 000 ; Rasmane a tort
+  solution: '(2,4 × 10⁹)/(8 × 10⁵) = (2,4/8) × 10⁹⁻⁵ = 0,3 × 10⁴ = 3 × 10³. Barème : 1 pt pour le quotient
+    des mantisses et la différence des exposants, le résultat ramené en écriture scientifique ; 1 pt pour
+    la comparaison à 10 000 et la réponse donnée à Rasmane. Le résultat laissé sous la forme 0,3 × 10⁴
+    coûte le premier point, jamais le second.'
+  si_echoue: 'Quotient de deux nombres en écriture scientifique : les exposants se soustraient et la mantisse
+    doit être ramenée entre 1 et 10. Livret de remédiation 3ème, module 4.'
 - code: N6
   partie: B
   format: redige
@@ -254,12 +351,14 @@ questions:
   competence: N.RAT
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Calculer une expression avec fractions et determiner un facteur multiplicatif
-  reponse_attendue: A = 5/12 ; le nombre cherche est 12/5
-  solution: 5/6×2/5=10/30=1/3 (priorite de la multiplication) ; A=3/4-1/3=9/12-4/12=5/12 ; le nombre cherche
-    est l'inverse de A, soit 12/5, car 5/12×12/5=1.
-  si_echoue: Priorite de la multiplication sur la soustraction dans un calcul de fractions, et inverse
-    d'une fraction.
+  objet: Trouver b tel que (5/12) × b = -1/3 en fraction irréductible, le comparer à -1
+  reponse_attendue: b = -4/5 = -0,8 > -1 ; b n'est pas inférieur à -1
+  solution: 'b = (-1/3) : (5/12) = (-1/3) × (12/5) = -12/15 = -4/5. Barème : 1 pt pour b = -4/5 obtenu
+    en multipliant par l''inverse, forme irréductible comprise ; 1 pt pour la comparaison justifiée à
+    -1. Un résultat laissé sous la forme -12/15 coûte un demi-point sur le premier point. Erreur propagée
+    : une valeur de b fausse mais correctement comparée à -1 garde le second point.'
+  si_echoue: Recherche d'un facteur manquant dans un produit de rationnels, puis comparaison de deux nombres
+    relatifs. Livret de remédiation 3ème, modules 3 et 2.
 - code: N7
   partie: B
   format: redige
@@ -268,25 +367,31 @@ questions:
   competence: N.APP
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Donner un ordre de grandeur par majoration et juger si un budget suffit
-  reponse_attendue: ordre de grandeur 100 000 FCFA, la somme dont dispose Fatimata suffit
-  solution: 'On remplace chaque nombre par un nombre plus grand : 18<20 et 4750<5000, donc le prix total
-    est inferieur a 20×5000=100000 FCFA ; 100000<120000.'
-  si_echoue: 'Ordre de grandeur par majoration : encadrer avant de calculer pour decider sans poser l''operation.'
+  objet: Majorer le prix de 18 sacs de ciment à 4 750 FCFA, décider si 120 000 FCFA suffisent
+  reponse_attendue: prix < 20 × 5 000 = 100 000 FCFA < 120 000 ; la somme suffit
+  solution: 'On majore : 18 < 20 et 4 750 < 5 000, le prix total est inférieur à 100 000 FCFA. Barème
+    : 1 pt pour l''ordre de grandeur obtenu en majorant les deux nombres (100 000 FCFA) ; 1 pt pour la
+    comparaison à 120 000 FCFA et la conclusion. Toute autre majoration correcte (ex. 20 × 4 800 = 96
+    000) vaut le premier point. Le prix exact 85 500 FCFA n''est pas exigé.'
+  si_echoue: 'Ordre de grandeur par majoration : encadrer avant de calculer pour décider sans poser l''opération.
+    Livret de remédiation 3ème, module 1.'
 - code: L5
   partie: B
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
   competence: L.IDR
-  competence_secondaire: null
+  competence_secondaire: L.DEV1
   domaine: Calcul litteral et algebre
-  objet: Developper et reduire une expression avec identites remarquables, juger une affirmation
-  reponse_attendue: E = 20x - 50, l'affirmation de Wendlassida est fausse
-  solution: (2x-5)(2x+5)=4x²-25 et (2x-5)²=4x²-20x+25 ; E=4x²-25-(4x²-20x+25)=20x-50 ; E(0)=-50 et E(5)=50,
-    valeurs differentes.
-  si_echoue: Identites remarquables et signe du moins devant une parenthese, puis valeur numerique d'une
-    expression reduite.
+  objet: Développer et réduire E = (2x - 5)(2x + 5) - (2x - 5)², juger l'affirmation E = -20x
+  reponse_attendue: E = 20x - 50 ; l'affirmation E = -20x est fausse
+  solution: '(2x - 5)(2x + 5) = 4x² - 25 et (2x - 5)² = 4x² - 20x + 25 ; E = 4x² - 25 - 4x² + 20x - 25
+    = 20x - 50. Barème : 1 pt pour les deux développements (identités remarquables jusqu''au bout) ; 1
+    pt pour la réduction E = 20x - 50, signe moins distribué, et le rejet de l''affirmation. Un élève
+    qui écrit correctement les deux développements puis se trompe en retirant la parenthèse garde le premier
+    point et perd le second.'
+  si_echoue: Identités remarquables, puis signe du moins devant une parenthèse qui doit être distribué
+    à tous les termes. Livret de remédiation 3ème, module 5.
 - code: L6
   partie: B
   format: redige
@@ -295,50 +400,49 @@ questions:
   competence: L.FAC1
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Ecrire une aire sous forme litterale puis la factoriser completement
-  reponse_attendue: aire totale = 4x² + 2x = 2x(2x + 1)
-  solution: Aire du rectangle x(3x+2)=3x²+2x ; aire du carre x² ; aire totale=3x²+2x+x²=4x²+2x=2x(2x+1).
-  si_echoue: 'Passage d''une situation a une expression litterale, puis factorisation menee jusqu''au
-    bout : le facteur commun est 2x.'
+  objet: Factoriser A = 4x² + 2x (jardin de Réo), juger « A vaut 60 m² pour x = 5 »
+  reponse_attendue: A = 2x(2x + 1) ; pour x = 5, A = 110 m² et non 60, Hamidou a tort
+  solution: 'A = 4x² + 2x = 2x(2x + 1) ; x = 5 : 2 × 5 × 11 = 110. Barème : 1 pt pour la factorisation
+    complète 2x(2x + 1) ; 1 pt pour 110 et le rejet de l''affirmation. Une factorisation incomplète, x(4x
+    + 2) ou 2(2x² + x), vaut un demi-point sur le premier point. Erreur propagée : une factorisation fausse
+    correctement évaluée en 5 garde le second point.'
+  si_echoue: Factorisation menée jusqu'au bout, le facteur commun étant 2x, puis valeur numérique d'une
+    expression littérale. Livret de remédiation 3ème, module 5.
 - code: L7
   partie: B
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
   competence: L.MISE
-  competence_secondaire: null
+  competence_secondaire: L.EQ1
   domaine: Calcul litteral et algebre
-  objet: Traduire une situation par une equation, la resoudre, et donner deux effectifs
-  reponse_attendue: x = 16 (Boukary), Adama en possede 42
-  solution: Adama possede 3x-6 pintades ; l'equation s'ecrit x+(3x-6)=58 ; 4x-6=58, 4x=64, x=16 ; Adama
-    possede 3×16-6=42.
-  si_echoue: 'Traduction d''un enonce par une equation : le triple diminue de 6 s''ecrit 3x-6.'
-- code: G7a
+  objet: 'Mettre en équation et résoudre : x pintades, le triple diminué de 6, total 58'
+  reponse_attendue: x + (3x - 6) = 58 ; x = 16
+  solution: 'Adama possède 3x - 6 pintades : 4x - 6 = 58, 4x = 64, x = 16. Barème : 1 pt pour l''équation
+    x + 3x - 6 = 58 (« le triple, diminué de 6 » écrit 3x - 6) ; 1 pt pour x = 16. Erreur propagée : une
+    équation fausse résolue correctement garde le second point. La vérification 16 + 42 = 58 n''est pas
+    exigée.'
+  si_echoue: 'Traduction d''un énoncé par une équation : « le triple, diminué de 6 » s''écrit 3x - 6,
+    et non 3(x - 6). Livret de remédiation 3ème, module 6.'
+- code: G7
   partie: B
   format: construction
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 0.666667
+  bareme_classeur: 2.0
   competence: G.VEC
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: '[G7, construction] Construire un triangle connaissant ses trois longueurs'
-  reponse_attendue: ''
-  solution: Tracer [BC]=6cm ; tracer l'arc de centre B et de rayon 4cm, puis l'arc de centre C et de rayon
-    5cm ; leur intersection donne A.
-  si_echoue: Construction d'un triangle aux mesures donnees, au compas.
-- code: G7b
-  partie: B
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.VEC
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[G7, deduction] Construire un point par somme vectorielle et nommer le quadrilatere obtenu'
-  reponse_attendue: ABCD est un parallelogramme
-  solution: 'BD=BA+BC : D est le quatrieme sommet du parallelogramme construit sur BA et BC ; AD=BC donc
-    AB=DC, ce qui caracterise un parallelogramme.'
-  si_echoue: Somme de deux vecteurs de meme origine, regle du parallelogramme.
+  objet: Construire D tel que vecteur CD = vecteur AB (AB = 5 cm), juger si [AD] et [BC] ont même milieu
+  reponse_attendue: D placé en reportant AB à partir de C ; ABDC est un parallélogramme, ses diagonales
+    [AD] et [BC] ont même milieu, Talato a raison
+  solution: 'Vecteur CD = vecteur AB : D s''obtient en reportant direction, sens et longueur 5 cm à partir
+    de C. ABDC parallélogramme, diagonales [AD] et [BC] se coupent en leur milieu. Barème : 1 pt pour
+    D placé par report de AB à partir de C, à 2 mm près, traits de construction ou codage visibles (D
+    correct sans trait garde le point) ; 1 pt pour « Talato a raison » justifié par le parallélogramme
+    ABDC et la propriété des diagonales. « Elle a raison » vérifié seulement à la règle vaut un demi-point.
+    Accepter la justification vectorielle ou par les côtés [AB] et [CD] parallèles et de même longueur.'
+  si_echoue: Egalité de deux vecteurs et report d'un vecteur à partir d'un point, puis reconnaissance
+    du parallélogramme et propriété de ses diagonales. Livret de remédiation 3ème, modules 12 et 9.
 - code: G8
   partie: B
   format: redige
@@ -347,40 +451,46 @@ questions:
   competence: G.PROJ
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer une longueur par le theoreme des milieux, juger une affirmation et donner le parallelisme
-  reponse_attendue: ST = 13 cm, Kadidiatou a tort ; (UV) et (ST) sont paralleles
-  solution: 'U et V sont les milieux de [RS] et [RT] : d''apres le theoreme des milieux, UV=ST/2, donc
-    ST=2×UV=2×6,5=13cm ; les droites (UV) et (ST) sont paralleles.'
-  si_echoue: 'Theoreme des milieux employe a l''envers : ST est le double de UV, et les deux droites sont
-    paralleles.'
+  objet: Juger « périmètre de RUV = 6 cm » quand U, V milieux de [RS], [RT] et périmètre RST = 24 cm
+  reponse_attendue: 'périmètre de RUV = 24 : 2 = 12 cm ; Kadidiatou a tort'
+  solution: 'RU = RS/2, RV = RT/2 (milieux) et UV = ST/2 (théorème des milieux) : périmètre de RUV = moitié
+    de 24 = 12 cm. Barème : 1 pt pour avoir établi que les trois côtés de RUV sont les moitiés de ceux
+    de RST ; 1 pt pour 12 cm et le rejet explicite. Un élève qui ne divise que [ST] par 2 perd le premier
+    point. La seule égalité UV = ST/2 vaut un demi-point. Erreur propagée : un périmètre faux correctement
+    comparé à 6 cm garde le second point.'
+  si_echoue: Théorème des milieux et définition du milieu combinés sur les trois côtés, puis effet d'une
+    division par 2 de chaque côté sur le périmètre. Livret de remédiation 3ème, module 10.
 - code: F1
   partie: B
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
   competence: F.APP
-  competence_secondaire: null
-  domaine: Applications
-  objet: Completer un tableau d'images par une application affine, puis determiner un antecedent
-  reponse_attendue: 'tableau : u(-3)=10, u(0)=4, u(3)=-2, u(5)=-6 ; antecedent de -8 est x=6'
-  solution: 'u(-3)=4-2×(-3)=10 ; u(0)=4 ; u(x)=-2 donne 4-2x=-2, x=3 ; u(5)=4-10=-6 ; antecedent de -8
-    : 4-2x=-8, -2x=-12, x=6.'
-  si_echoue: 'Image et antecedent : l''image se calcule en remplacant, l''antecedent se cherche en resolvant
-    une equation.'
+  competence_secondaire: L.EQ1
+  domaine: Fonctions et applications
+  objet: 'Compléter le tableau de u(x) = 4 - 2x : image de -3 et antécédent de -8'
+  reponse_attendue: u(-3) = 10 ; l'antécédent de -8 est 6
+  solution: 'u(-3) = 4 - 2 × (-3) = 10 ; 4 - 2x = -8 donne x = 6. Barème : 1 pt pour l''image u(-3) =
+    10 ; 1 pt pour l''antécédent x = 6 obtenu en résolvant 4 - 2x = -8. Les deux cases justes sans calcul
+    indiqué coûtent un demi-point sur chacun des deux points.'
+  si_echoue: 'Image et antécédent : l''image se calcule en remplaçant x, l''antécédent se cherche en résolvant
+    une équation. Livret de remédiation 3ème, module 6.'
 - code: D3
   partie: B
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
   competence: D.STAT1
-  competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: Determiner un effectif manquant a partir d'une moyenne, puis calculer une frequence
-  reponse_attendue: effectif manquant 7, effectif total 16, frequence de la note 9 = 25 %
-  solution: 'Effectif total 9+n, somme des notes 85+13n ; moyenne 11 : (85+13n)/(9+n)=11, soit 2n=14,
-    n=7 ; effectif total 16 ; frequence=4/16=0,25=25%.'
-  si_echoue: Recherche d'un effectif a partir d'une moyenne donnee, puis frequence rapportee a l'effectif
-    total.
+  competence_secondaire: L.EQ1
+  domaine: Donnees, proportionnalite, statistique
+  objet: Trouver l'effectif de la note 13 (somme des notes 176), le comparer au quart de l'effectif
+  reponse_attendue: n = 7 ; 7 > 4 (quart de 16), la note 13 a été obtenue par plus du quart des élèves
+  solution: 'Notes connues : 5 × 3 + 9 × 4 + 17 × 2 = 85 ; 85 + 13n = 176, 13n = 91, n = 7. Effectif total
+    16, quart 4, 7 > 4. Barème : 1 pt pour 85 + 13n = 176 et n = 7 (par essais vérifiés : point gardé)
+    ; 1 pt pour le quart de l''effectif total, 4, comparé à 7, et la conclusion. Erreur propagée : un
+    effectif faux correctement comparé au quart de son propre total garde le second point.'
+  si_echoue: Recherche d'un effectif à partir de la somme des notes, raisonnement conduit à l'envers,
+    puis comparaison d'un effectif au quart de l'effectif total.
 - code: D4
   partie: B
   format: redige
@@ -388,316 +498,152 @@ questions:
   bareme_classeur: 2.0
   competence: D.POUR
   competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: Calculer un prix d'achat a partir d'un benefice en pourcentage, juger une affirmation
-  reponse_attendue: prix d'achat 17 500 FCFA, l'affirmation de Salif est fausse
-  solution: 'Benefice=20% du prix d''achat donc prix de vente=120% du prix d''achat ; prix d''achat=21000÷1,2=17500
-    FCFA, benefice=3500 FCFA ; rapporte au prix de vente : 3500/21000=1/6≈16,67%, different de 20%.'
-  si_echoue: 'Un pourcentage se rapporte toujours a une base : ici le benefice se calcule sur le prix
-    d''achat.'
-- code: P1a
+  domaine: Donnees, proportionnalite, statistique
+  objet: Trouver le prix d'achat d'un sac de niébé vendu 21 000 FCFA avec 20 % de bénéfice, juger Salif
+  reponse_attendue: prix d'achat 17 500 FCFA ; bénéfice 3 500 FCFA ≠ 4 200 FCFA, l'affirmation de Salif
+    est fausse
+  solution: 'Prix de vente = 120 % du prix d''achat : 21 000 : 1,2 = 17 500 FCFA ; bénéfice 3 500 FCFA.
+    20 % de 21 000 = 4 200 ≠ 3 500. Barème : 1 pt pour le prix d''achat 17 500 FCFA (pourcentage sur le
+    prix d''achat) ; 1 pt pour la comparaison 3 500 vs 4 200 et le rejet. 17 500 par essais vérifiés garde
+    le premier point.'
+  si_echoue: 'Un pourcentage se rapporte toujours à une base : ici le bénéfice se calcule sur le prix
+    d''achat, et non sur le prix de vente. Livret de remédiation 3ème, module 7.'
+- code: P1.1
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.SOL1
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: G.POLY
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: '[P1, sous-question 1/5] Calculer le volume total d''un pave droit'
-  reponse_attendue: 9 m³
-  solution: ''
-  si_echoue: Volume d'un pave droit, conversion des metres cubes en litres et division donnant une duree.
+  objet: Calculer le volume d'une citerne en pavé droit de 3 m × 2 m × 1,5 m (Saponé)
+  reponse_attendue: V = 3 × 2 × 1,5 = 9 m³
+  solution: 'Barème (2 pts) : 1 pt pour le produit des trois dimensions, 1 pt pour le résultat 9 m³ avec
+    son unité. La distance de 400 m est une donnée inutile : son emploi n''est pas compté comme une erreur,
+    son repérage ne rapporte aucun point.'
+  si_echoue: Volume d'un pavé droit. Livret de remédiation 3ème, module 11.
   probleme_parent: P1
-- code: P1b
+- code: P1.2
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: M.ECH
-  competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: '[P1, sous-question 2/5] Calculer le volume d''eau contenu (3/4 de la capacite) et le convertir
-    en litres [confiance basse — code disponible le plus proche, a confirmer]'
-  reponse_attendue: 6,75 m³ = 6 750 L
-  solution: ''
-  si_echoue: Volume d'un pave droit, conversion des metres cubes en litres et division donnant une duree.
-  probleme_parent: P1
-- code: P1c
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 0.666667
+  bareme_classeur: 2.0
   competence: N.RAT
-  competence_secondaire: null
+  competence_secondaire: D.PROP
   domaine: Activites numeriques
-  objet: '[P1, sous-question 3/5] Calculer une consommation quotidienne (produit d''un effectif par une
-    quantite unitaire) [confiance basse — code disponible le plus proche, a confirmer]'
-  reponse_attendue: 2 250 L par jour
-  solution: ''
-  si_echoue: Volume d'un pave droit, conversion des metres cubes en litres et division donnant une duree.
+  objet: Calculer en litres les trois quarts d'une citerne de 9 m³
+  reponse_attendue: 3/4 × 9 = 6,75 m³ = 6 750 L
+  solution: 'Barème (2 pts) : 1 pt pour les trois quarts de 9 m³, 1 pt pour la conversion en litres (1
+    m³ = 1 000 L) ; un seul des deux points si une étape manque.'
+  si_echoue: Fraction d'une quantité, conversion des mètres cubes en litres. Livret de remédiation 3ème,
+    module 7.
   probleme_parent: P1
-- code: P1d
+- code: P1.3
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.RAT
+  bareme: 1.0
+  bareme_classeur: 3.0
+  competence: D.PROP
   competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P1, sous-question 4/5] Diviser pour trouver un nombre de jours entiers'
-  reponse_attendue: 3 jours (6 750 ÷ 2 250)
-  solution: ''
-  si_echoue: Volume d'un pave droit, conversion des metres cubes en litres et division donnant une duree.
+  domaine: Donnees, proportionnalite, statistique
+  objet: 'Conclure sur le nombre de jours : 6 750 L pour 15 familles à 150 L par jour'
+  reponse_attendue: '15 × 150 = 2 250 L par jour ; 6 750 : 2 250 = 3 jours'
+  solution: 'Conclusion attendue : « La réserve de la citerne suffit au village pendant 3 jours entiers.
+    » Barème (3 pts) : 1 pt pour la consommation quotidienne 2 250 L, 1 pt pour la division 6 750 : 2
+    250, 1 pt pour la phrase de conclusion. Erreur propagée : une consommation fausse correctement divisée
+    garde le point de la division.'
+  si_echoue: Division donnant une durée. Livret de remédiation 3ème, modules 11 et 7.
   probleme_parent: P1
-- code: P1e
+- code: P2.1
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: D.POUR
-  competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: '[P1, sous-question 5/5] Rediger la conclusion sur l''autonomie en jours entiers de la reserve
-    [confiance basse — code disponible le plus proche, a confirmer]'
-  reponse_attendue: la reserve d'eau suffit au village pendant 3 jours entiers
-  solution: ''
-  si_echoue: Volume d'un pave droit, conversion des metres cubes en litres et division donnant une duree.
-  probleme_parent: P1
-- code: P2a
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 0.666667
+  bareme_classeur: 2.0
   competence: G.REP
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: '[P2, sous-question 1/5] Calculer les coordonnees du milieu d''un segment dans un repere'
+  objet: Calculer les coordonnées du milieu M de [AC] avec A(-4 ; 1) et C(4 ; -5) (Ziniaré)
   reponse_attendue: M(0 ; -2)
-  solution: ''
-  si_echoue: Reperage, translation et egalite de vecteurs dans un repere, puis echelle d'un plan.
+  solution: 'M((-4 + 4)/2 ; (1 + (-5))/2) = M(0 ; -2). Barème (2 pts) : 1 pt pour la demi-somme des abscisses,
+    1 pt pour la demi-somme des ordonnées ; une seule des deux coordonnées juste vaut un seul point.'
+  si_echoue: Coordonnées d'un milieu. Livret de remédiation 3ème, module 12.
   probleme_parent: P2
-- code: P2b
+- code: P2.2
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 0.666667
+  bareme_classeur: 2.0
   competence: G.TRANS
-  competence_secondaire: null
+  competence_secondaire: G.REP
   domaine: Activites geometriques
-  objet: '[P2, sous-question 2/5] Determiner les coordonnees de l''image d''un point par une translation'
-  reponse_attendue: D(-2 ; -7)
-  solution: ''
-  si_echoue: Reperage, translation et egalite de vecteurs dans un repere, puis echelle d'un plan.
+  objet: Trouver D, image de M(0 ; -2) par la translation qui transforme B(2 ; 3) en A(-4 ; 1)
+  reponse_attendue: vecteur BA (-6 ; -2) ; D(-6 ; -4)
+  solution: 'Vecteur BA : (-4 - 2 ; 1 - 3) = (-6 ; -2) ; D(0 - 6 ; -2 - 2) = (-6 ; -4). Barème (2 pts)
+    : 1 pt pour le vecteur BA et ses coordonnées, 1 pt pour les coordonnées de D. Un élève qui place D
+    en ajoutant BA à M sans écrire les coordonnées du vecteur garde les deux points.'
+  si_echoue: Image d'un point par une translation dans un repère. Livret de remédiation 3ème, module 12.
   probleme_parent: P2
-- code: P2c
+- code: P2.3
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.VEC
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P2, sous-question 3/5] Verifier une egalite vectorielle par le calcul de coordonnees'
-  reponse_attendue: AB(6;2) = DC(6;2), egalite verifiee
-  solution: ''
-  si_echoue: Reperage, translation et egalite de vecteurs dans un repere, puis echelle d'un plan.
-  probleme_parent: P2
-- code: P2d
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 1.0
+  bareme_classeur: 3.0
   competence: M.ECH
   competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: '[P2, sous-question 4/5] Calculer une longueur reelle a partir d''un plan a l''echelle'
-  reponse_attendue: AC = 10 m
-  solution: ''
-  si_echoue: Reperage, translation et egalite de vecteurs dans un repere, puis echelle d'un plan.
+  domaine: Mesures et grandeurs
+  objet: 'Conclure si une corde de 9 m suffit : [AC] mesure 5 cm sur un plan au 1/200'
+  reponse_attendue: AC = 5 × 200 = 1 000 cm = 10 m > 9 m ; la corde de 9 m ne suffit pas
+  solution: 'Conclusion attendue : « La distance réelle entre les piquets A et C vaut 10 m : une corde
+    de 9 m ne suffit pas pour les relier. » Barème (3 pts) : 1 pt pour la lecture de l''échelle (1 cm
+    pour 200 cm), 1 pt pour la longueur réelle 10 m conversion comprise, 1 pt pour la conclusion comparant
+    10 m à 9 m.'
+  si_echoue: Passage d'une longueur sur un plan à la longueur réelle. Livret de remédiation 3ème, module
+    7.
   probleme_parent: P2
-- code: P2e
+- code: P3.1
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: M.ECH
-  competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: '[P2, sous-question 5/5] Rediger la conclusion sur la suffisance d''une longueur donnee [confiance
-    basse — code disponible le plus proche, a confirmer]'
-  reponse_attendue: une corde de 9 m ne suffit pas, il faut 10 m
-  solution: ''
-  si_echoue: Reperage, translation et egalite de vecteurs dans un repere, puis echelle d'un plan.
-  probleme_parent: P2
-- code: P3a
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: L.MISE
-  competence_secondaire: null
-  domaine: Calcul litteral et algebre
-  objet: '[P3, sous-question 1/6] Ecrire la somme recueillie en fonction du nombre d''inscrits'
-  reponse_attendue: 1 500n FCFA
-  solution: ''
-  si_echoue: Mise en inequation d'une contrainte de budget, resolution et lecture du resultat, puis reperage
-    d'une donnee manquante.
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: F.APP
+  competence_secondaire: L.EQ1
+  domaine: Fonctions et applications
+  objet: Déterminer l'antécédent de 80 000 par s(n) = 1 600n (voyage Ouahigouya, Bobo-Dioulasso)
+  reponse_attendue: 1 600n = 80 000 ; n = 50
+  solution: 'Barème (2 pts) : 1 pt pour avoir ramené la recherche de l''antécédent à l''équation 1 600n
+    = 80 000, 1 pt pour n = 50.'
+  si_echoue: Recherche d'un antécédent par résolution d'une équation. Livret de remédiation 3ème, module
+    6.
   probleme_parent: P3
-- code: P3b
+- code: P3.2
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: L.MISE
-  competence_secondaire: null
-  domaine: Calcul litteral et algebre
-  objet: '[P3, sous-question 2/6] Ecrire l''inequation traduisant une contrainte de budget minimal'
-  reponse_attendue: 1 500n ≥ 84 000
-  solution: ''
-  si_echoue: Mise en inequation d'une contrainte de budget, resolution et lecture du resultat, puis reperage
-    d'une donnee manquante.
-  probleme_parent: P3
-- code: P3c
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 1.0
+  bareme_classeur: 3.0
   competence: L.INEQ1
-  competence_secondaire: null
+  competence_secondaire: L.MISE
   domaine: Calcul litteral et algebre
-  objet: '[P3, sous-question 3/6] Resoudre l''inequation obtenue'
-  reponse_attendue: n ≥ 56
-  solution: ''
-  si_echoue: Mise en inequation d'une contrainte de budget, resolution et lecture du resultat, puis reperage
-    d'une donnee manquante.
+  objet: 'Ecrire et résoudre une inéquation : la somme 1 600n couvre au moins les 84 000 FCFA du car'
+  reponse_attendue: 1 600n ≥ 84 000 ; n ≥ 52,5
+  solution: 'Barème (3 pts) : 1 pt pour l''inéquation 1 600n ≥ 84 000 avec le symbole ≥, 1 pt pour la
+    division des deux membres par 1 600 (nombre positif), 1 pt pour n ≥ 52,5.'
+  si_echoue: Mise en inéquation d'une contrainte de budget. Livret de remédiation 3ème, module 6.
   probleme_parent: P3
-- code: P3d
+- code: P3.3
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: L.INEQ1
-  competence_secondaire: null
-  domaine: Calcul litteral et algebre
-  objet: '[P3, sous-question 4/6] Interpreter la solution en nombre minimal d''inscrits'
-  reponse_attendue: 56 eleves au minimum
-  solution: ''
-  si_echoue: Mise en inequation d'une contrainte de budget, resolution et lecture du resultat, puis reperage
-    d'une donnee manquante.
+  bareme: 1.0
+  bareme_classeur: 3.0
+  competence: N.ENS
+  competence_secondaire: L.INEQ1
+  domaine: Activites numeriques
+  objet: Conclure si 50 élèves suffisent, sachant n ≥ 52,5 et n entier naturel
+  reponse_attendue: au moins 53 élèves ; 50 ne suffisent pas, le directeur a tort
+  solution: 'Le nombre d''élèves est un entier naturel et n ≥ 52,5 : le plus petit entier qui convient
+    est 53. Conclusion : « Il faut au moins 53 élèves inscrits pour couvrir la location du car : le directeur
+    a tort, 50 élèves ne suffisent pas. » Barème (3 pts) : 1 pt pour le passage au plus petit entier naturel,
+    53 ; 1 pt pour le rejet motivé de l''affirmation du directeur ; 1 pt pour la phrase de conclusion.
+    « 52 élèves » (arrondi par défaut) coûte le point du passage à l''entier mais garde les deux autres
+    si le raisonnement est écrit.'
+  si_echoue: Lecture du résultat en nombre entier d'élèves. Livret de remédiation 3ème, module 6.
   probleme_parent: P3
-- code: P3e
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: D.POUR
-  competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: '[P3, sous-question 5/6] Identifier une donnee manquante empechant un second calcul de budget
-    [confiance basse — code disponible le plus proche, a confirmer]'
-  reponse_attendue: le prix d'un repas manque
-  solution: ''
-  si_echoue: Mise en inequation d'une contrainte de budget, resolution et lecture du resultat, puis reperage
-    d'une donnee manquante.
-  probleme_parent: P3
-- code: P3f
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: L.MISE
-  competence_secondaire: null
-  domaine: Calcul litteral et algebre
-  objet: '[P3, sous-question 6/6] Rediger la conclusion sur le nombre d''eleves a inscrire'
-  reponse_attendue: il faut inscrire au moins 56 eleves pour que le voyage ait lieu
-  solution: ''
-  si_echoue: Mise en inequation d'une contrainte de budget, resolution et lecture du resultat, puis reperage
-    d'une donnee manquante.
-  probleme_parent: P3
-- code: P4a
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: F.APP
-  competence_secondaire: null
-  domaine: Applications
-  objet: '[P4, sous-question 1/6] Calculer et comparer deux prix pour un meme nombre de sacs'
-  reponse_attendue: 60 000 FCFA chez les deux boutiques, prix egaux
-  solution: ''
-  si_echoue: Comparaison de deux tarifs dont l'un comporte des frais fixes, et recherche d'un antecedent
-    par resolution d'une equation.
-  probleme_parent: P4
-- code: P4b
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: L.EQ1
-  competence_secondaire: null
-  domaine: Calcul litteral et algebre
-  objet: '[P4, sous-question 2/6] Resoudre une equation pour trouver un antecedent par une application
-    affine'
-  reponse_attendue: x = 12
-  solution: ''
-  si_echoue: Comparaison de deux tarifs dont l'un comporte des frais fixes, et recherche d'un antecedent
-    par resolution d'une equation.
-  probleme_parent: P4
-- code: P4c
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: D.POUR
-  competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: '[P4, sous-question 3/6] Calculer un contre-exemple chiffre au-dela d''un seuil donne [confiance
-    basse — code disponible le plus proche, a confirmer]'
-  reponse_attendue: 'pour 13 sacs : 64 500 FCFA (Nafissatou) < 65 000 FCFA (Ousseni)'
-  solution: ''
-  si_echoue: Comparaison de deux tarifs dont l'un comporte des frais fixes, et recherche d'un antecedent
-    par resolution d'une equation.
-  probleme_parent: P4
-- code: P4d
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: D.POUR
-  competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: '[P4, sous-question 4/6] Rejeter une affirmation par un contre-exemple, en justifiant [confiance
-    basse — code disponible le plus proche, a confirmer]'
-  reponse_attendue: Ousseni a tort, son offre n'est la moins chere que jusqu'a 11 sacs
-  solution: ''
-  si_echoue: Comparaison de deux tarifs dont l'un comporte des frais fixes, et recherche d'un antecedent
-    par resolution d'une equation.
-  probleme_parent: P4
-- code: P4e
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: F.APP
-  competence_secondaire: null
-  domaine: Applications
-  objet: '[P4, sous-question 5/6] Calculer et comparer deux prix pour un autre nombre de sacs donne'
-  reponse_attendue: 96 000 FCFA (Nafissatou) contre 100 000 FCFA (Ousseni), pour 20 sacs
-  solution: ''
-  si_echoue: Comparaison de deux tarifs dont l'un comporte des frais fixes, et recherche d'un antecedent
-    par resolution d'une equation.
-  probleme_parent: P4
-- code: P4f
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: F.APP
-  competence_secondaire: null
-  domaine: Applications
-  objet: '[P4, sous-question 6/6] Rediger la conclusion en designant l''offre la moins chere'
-  reponse_attendue: la boutique de Nafissatou est la moins chere pour 20 sacs
-  solution: ''
-  si_echoue: Comparaison de deux tarifs dont l'un comporte des frais fixes, et recherche d'un antecedent
-    par resolution d'une equation.
-  probleme_parent: P4

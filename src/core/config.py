@@ -52,6 +52,11 @@ class Settings(BaseSettings):
 
     # Seuils pipeline
     confidence_review_threshold: float = 0.75
+    # Corrections IA indépendantes par copie (barèmes détaillés des tests du
+    # référentiel), consolidées par médiane question par question : un passage
+    # qui recopie le corrigé au lieu de lire la copie est mis en minorité
+    # (recette du 2026-10-16 : 13,25 vs 18,75 sur la même transcription).
+    nb_corrections_ia: int = 3
 
     # Stockage
     runs_dir: str = "./runs"

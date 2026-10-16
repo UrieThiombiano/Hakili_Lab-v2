@@ -153,3 +153,57 @@ def test_import_idempotent(db, tmp_path):
     assert db.query(TypeErreur).count() == 2
     assert db.query(Prerequis).count() == 1
     assert db.query(Question).count() == 2
+
+
+def test_import_bareme_sur_20_selon_le_total_du_test(db, tmp_path):
+    """Collège sur 60, lycée sur 80 : le diviseur se déduit du total du test,
+    il n'est pas figé à 3. Ici le test 6eme vaut 1 + 3 = 4 points."""
+    importer(db, _classeur_valide(tmp_path), corriges={})
+
+    q1 = db.query(Question).filter_by(code_question="Q1").one()
+    q2 = db.query(Question).filter_by(code_question="Q2").one()
+    assert float(q1.bareme) + float(q2.bareme) == pytest.approx(20.0)
+    assert float(q2.bareme) == pytest.approx(15.0)
+
+
+def test_import_format_accentue_normalise(db, tmp_path):
+    """Le classeur v1 écrit « rédigé » ; la base attend `redige`."""
+    chemin = _classeur(
+        tmp_path,
+        {
+            "01_Types_erreur": [["CPT", "Conceptuelle", "d", "s", "e", 0.7, "OUI"]],
+            "02_Competences": [["A", "Activites numeriques", "A", "d", "6eme", "", "NON", "", 4, ""]],
+            "04_Questions": [["6eme", "Q1", "B", 2, "rédigé", "", "A", "", "objet"]],
+        },
+    )
+    importer(db, chemin, corriges={})
+    assert db.query(Question).one().format == "redige"
+
+
+def test_import_reprend_les_corriges_transcrits(db, tmp_path):
+    corriges = {"6eme": {"Q2": {"reponse_attendue": "a² + 2ab + b²", "solution": "Barème : 3 pts"}}}
+    importer(db, _classeur_valide(tmp_path), corriges=corriges)
+
+    q2 = db.query(Question).filter_by(code_question="Q2").one()
+    assert q2.reponse_attendue == "a² + 2ab + b²"
+    assert q2.solution == "Barème : 3 pts"
+    # QCM : la bonne lettre vient toujours du classeur, pas du fichier de corrigés.
+    assert db.query(Question).filter_by(code_question="Q1").one().reponse_attendue == "a"
+
+
+def test_import_retire_les_questions_des_anciens_sujets(db, tmp_path):
+    """Sujet refait : une question absente du nouveau classeur est supprimée,
+    avec ses signatures et options (cascade)."""
+    importer(db, _classeur_valide(tmp_path), corriges={})
+    ancienne = Question(
+        niveau_test="6eme", code_question="P4.1", partie="C", format="redige",
+        bareme=1, bareme_classeur=3, competence_id="A", objet="ancien problème",
+    )
+    db.add(ancienne)
+    db.commit()
+
+    rapport = importer(db, _classeur_valide(tmp_path), corriges={})
+
+    assert rapport.n_questions_retirees == 1
+    assert db.query(Question).filter_by(code_question="P4.1").first() is None
+    assert db.query(Question).count() == 2

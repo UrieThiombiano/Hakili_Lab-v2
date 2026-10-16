@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-"""CLI — importe `Referentiel_Socle_v0.xlsx` dans la base du nouveau
-backend. Port de `manage.py importer_referentiel` (Django), même options :
+"""CLI — importe le classeur référentiel (`Referentiel_Urie_v1.xlsx`) et les
+corrigés transcrits (`data/knowledge/corriges_socle.yaml`) dans la base du
+nouveau backend. Port de `manage.py importer_referentiel` (Django), mêmes options :
 
     python scripts/importer_referentiel.py
     python scripts/importer_referentiel.py --classeur /chemin/Referentiel.xlsx
@@ -17,11 +18,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.db import SessionLocal  # noqa: E402
 from app.services.import_referentiel import ErreurImport, importer  # noqa: E402
 
-# Le classeur vit à la racine du dépôt de travail (au-dessus de `Hakili_Lab/`),
-# même convention que `referentiel/management/commands/importer_referentiel.py`.
+# Le classeur v1 est versionné dans `data/referentiel/` : il est ainsi embarqué
+# dans l'image Docker et importable sur le serveur sans copie manuelle.
+# Repli : racine du dépôt de travail (au-dessus de `Hakili_Lab/`), ancienne convention.
+_CLASSEUR = "Referentiel_Urie_v1.xlsx"
 _CANDIDATS = [
-    Path(__file__).resolve().parents[3] / "Referentiel_Socle_v0.xlsx",
-    Path(__file__).resolve().parents[2] / "Referentiel_Socle_v0.xlsx",
+    Path(__file__).resolve().parents[2] / "data" / "referentiel" / _CLASSEUR,
+    Path(__file__).resolve().parents[3] / _CLASSEUR,
+    Path(__file__).resolve().parents[2] / _CLASSEUR,
 ]
 
 
@@ -35,7 +39,7 @@ def _resoudre_classeur(fourni: str) -> Path:
         if candidat.exists():
             return candidat
     raise SystemExit(
-        "Referentiel_Socle_v0.xlsx introuvable. Cherché dans :\n  "
+        f"{_CLASSEUR} introuvable. Cherché dans :\n  "
         + "\n  ".join(str(c) for c in _CANDIDATS)
         + "\nPréciser le chemin avec --classeur."
     )
@@ -71,6 +75,7 @@ def main() -> None:
             ("Coûts de remédiation", rapport.n_couts),
             ("  dont estimés (lycée)", rapport.n_couts_estimes),
             ("Questions", rapport.n_questions),
+            ("  retirées (anciens sujets)", rapport.n_questions_retirees),
             ("Signatures d'erreur", rapport.n_signatures),
             ("Options de QCM", rapport.n_options),
         ]:
@@ -80,9 +85,8 @@ def main() -> None:
         print(f"  Import terminé. {rapport.n_qcm_avec_reponse} QCM avec bonne réponse.")
         if rapport.n_sans_corrige:
             print(
-                f"  {rapport.n_sans_corrige} questions sans corrigé — le classeur n'en "
-                "contient pas pour les formats autres que QCM (arbitrage B de "
-                "docs/harmonisation_donnees.md)."
+                f"  {rapport.n_sans_corrige} questions sans corrigé — absentes de "
+                "data/knowledge/corriges_socle.yaml."
             )
     finally:
         db.close()

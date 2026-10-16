@@ -1,24 +1,33 @@
 """Port de `referentiel/management/commands/importer_referentiel.py` —
-importe `Referentiel_Socle_v0.xlsx` dans les tables SQLAlchemy. Même
+importe le classeur référentiel (`Referentiel_Urie_v1.xlsx` depuis la
+batterie allégée du 2026-10-06) dans les tables SQLAlchemy. Même
 algorithme, même stratégie d'écriture, même contrôle d'intégrité **avant**
 toute écriture (un code inconnu fait échouer tout l'import, rien n'est écrit
 à moitié). Voir le fichier d'origine pour la justification complète de
 chaque choix ; ce module ne répète que ce que le code doit faire.
 
-Deux stratégies d'écriture, reprises telles quelles :
+Deux stratégies d'écriture :
 - `TypeErreur`, `Competence`, `Question` sont mises à jour, jamais
-  supprimées (le suivi des élèves pointe dessus).
+  remplacées en bloc (le suivi des élèves pointe dessus). Exception : une
+  `Question` absente du classeur (sujet refait) est supprimée, sauf si une
+  réponse d'élève la référence — l'import échoue alors plutôt que de casser
+  l'historique.
 - `Prerequis`, `CoutRemediation`, `SignatureErreur`, `OptionQcm` sont
   remplacées en bloc (rien ne pointe vers elles).
+
+Les réponses attendues des questions non-QCM viennent des corrigés
+transcrits (`data/knowledge/corriges_socle.yaml`) : le classeur n'en porte pas.
 """
 from __future__ import annotations
 
+import unicodedata
 from dataclasses import dataclass, field
 from decimal import Decimal
 from pathlib import Path
 
 import openpyxl
-from sqlalchemy import delete, select
+import yaml
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session as SQLASession
 
 from app.models import (
@@ -27,6 +36,7 @@ from app.models import (
     OptionQcm,
     Prerequis,
     Question,
+    Reponse,
     SignatureErreur,
     TypeErreur,
 )
@@ -41,7 +51,11 @@ _ONGLETS = (
     "08_Cout_remediation",
 )
 
-_DIVISEUR_BAREME = Decimal(3)
+# Barème stocké sur 20 (D-CEO-26). Le classeur note sur 60 au collège et sur
+# 80 au lycée : le diviseur se calcule par test (total / 20), il n'est pas figé.
+_NOTE_SUR = Decimal(20)
+
+_CORRIGES_YAML = Path(__file__).resolve().parents[3] / "data" / "knowledge" / "corriges_socle.yaml"
 
 
 class ErreurImport(ValueError):
@@ -50,6 +64,20 @@ class ErreurImport(ValueError):
 
 def _texte(valeur) -> str:
     return "" if valeur is None else str(valeur).strip()
+
+
+def _format(valeur) -> str:
+    """« rédigé » dans le classeur v1 → `redige`, la valeur des choices."""
+    texte = unicodedata.normalize("NFD", _texte(valeur).lower())
+    return "".join(c for c in texte if unicodedata.category(c) != "Mn")
+
+
+def charger_corriges(chemin: Path = _CORRIGES_YAML) -> dict:
+    """{niveau: {code: {reponse_attendue, solution, …}}} — vide si absent."""
+    if not chemin.exists():
+        return {}
+    donnees = yaml.safe_load(chemin.read_text(encoding="utf-8")) or {}
+    return donnees.get("corriges", {}) or {}
 
 
 def _oui(valeur) -> bool:
@@ -76,6 +104,7 @@ class RapportImport:
     n_couts: int = 0
     n_couts_estimes: int = 0
     n_questions: int = 0
+    n_questions_retirees: int = 0
     n_signatures: int = 0
     n_options: int = 0
     n_qcm_avec_reponse: int = 0
@@ -233,12 +262,17 @@ def _importer_couts(db: SQLASession, lignes: list) -> tuple[int, int]:
     return officiels, len(objets) - officiels
 
 
-def _importer_questions(db: SQLASession, lignes: list) -> int:
+def _importer_questions(db: SQLASession, lignes: list, corriges: dict) -> tuple[int, int]:
+    lignes = [r for r in lignes if _texte(r[0]) and _texte(r[1])]
+    totaux: dict[str, Decimal] = {}
+    for r in lignes:
+        totaux[_texte(r[0])] = totaux.get(_texte(r[0]), Decimal(0)) + (_decimal(r[3]) or Decimal(0))
+
     n = 0
+    vues: set[tuple[str, str]] = set()
     for r in lignes:
         niveau, code = _texte(r[0]), _texte(r[1])
-        if not (niveau and code):
-            continue
+        vues.add((niveau, code))
         bareme_classeur = _decimal(r[3]) or Decimal(0)
         secondaire = _texte(r[7]) or None
 
@@ -247,16 +281,35 @@ def _importer_questions(db: SQLASession, lignes: list) -> int:
             obj = Question(niveau_test=niveau, code_question=code)
             db.add(obj)
         obj.partie = _texte(r[2])
-        obj.format = _texte(r[4])
-        obj.bareme = bareme_classeur / _DIVISEUR_BAREME
+        obj.format = _format(r[4])
+        obj.bareme = bareme_classeur * _NOTE_SUR / totaux[niveau]
         obj.bareme_classeur = bareme_classeur
         obj.code_local = _texte(r[5])
         obj.competence_id = _texte(r[6])
         obj.competence_secondaire_id = secondaire
         obj.objet = _texte(r[8])
+        # Corrigé transcrit du PDF enseignant. Pour un QCM, la bonne lettre est
+        # réécrite ensuite depuis 06_Distracteurs (`_importer_options`).
+        corrige = (corriges.get(niveau) or {}).get(code) or {}
+        obj.reponse_attendue = _texte(corrige.get("reponse_attendue"))
+        obj.solution = _texte(corrige.get("solution"))
         n += 1
     db.flush()
-    return n
+
+    # Questions des sujets précédents, absentes du classeur : leur code a pu
+    # être réattribué, les garder ferait cohabiter deux batteries.
+    retirees = [q for q in db.execute(select(Question)).scalars().all() if (q.niveau_test, q.code_question) not in vues]
+    if retirees:
+        ids = [q.id for q in retirees]
+        utilisees = db.execute(select(func.count()).select_from(Reponse).where(Reponse.question_id.in_(ids))).scalar_one()
+        if utilisees:
+            raise ErreurImport(
+                f"{len(retirees)} question(s) absente(s) du classeur, dont {utilisees} réponse(s) d'élève "
+                "en dépendent : import annulé pour ne pas casser l'historique."
+            )
+        db.execute(delete(Question).where(Question.id.in_(ids)))
+        db.flush()
+    return n, len(retirees)
 
 
 def _importer_signatures(db: SQLASession, lignes: list) -> int:
@@ -332,11 +385,14 @@ def _importer_options(db: SQLASession, lignes: list) -> tuple[int, int]:
     return len(objets), len(bonnes)
 
 
-def importer(db: SQLASession, chemin: Path, *, a_blanc: bool = False) -> RapportImport:
+def importer(db: SQLASession, chemin: Path, *, a_blanc: bool = False, corriges: dict | None = None) -> RapportImport:
     """Importe le classeur dans la base. Transaction unique : une erreur
-    d'intégrité annule tout, comme côté Django (`transaction.atomic`)."""
+    d'intégrité annule tout, comme côté Django (`transaction.atomic`).
+    `corriges` par défaut : `data/knowledge/corriges_socle.yaml`."""
     onglets = lire_onglets(chemin)
     verifier_integrite(onglets)
+    if corriges is None:
+        corriges = charger_corriges()
 
     rapport = RapportImport(a_blanc=a_blanc, lignes_lues={nom: len(lignes) for nom, lignes in onglets.items()})
     if a_blanc:
@@ -346,7 +402,7 @@ def importer(db: SQLASession, chemin: Path, *, a_blanc: bool = False) -> Rapport
         rapport.n_types = _importer_types_erreur(db, onglets["01_Types_erreur"])
         rapport.n_competences, rapport.n_prerequis = _importer_competences(db, onglets["02_Competences"])
         rapport.n_couts, rapport.n_couts_estimes = _importer_couts(db, onglets["08_Cout_remediation"])
-        rapport.n_questions = _importer_questions(db, onglets["04_Questions"])
+        rapport.n_questions, rapport.n_questions_retirees = _importer_questions(db, onglets["04_Questions"], corriges)
         rapport.n_signatures = _importer_signatures(db, onglets["05_Grille_diagnostic"])
         rapport.n_options, rapport.n_qcm_avec_reponse = _importer_options(db, onglets["06_Distracteurs"])
     except Exception:

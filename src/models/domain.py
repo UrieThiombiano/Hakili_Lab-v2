@@ -36,6 +36,12 @@ class RubricItem(BaseModel):
     label: str
     max_score: float = 1.0        # Points de la question (ex : 0.25, 0.5, 1.0, 2.0)
     parent_id: str | None = None  # Non-None si sous-question
+    # Tests du référentiel (barèmes socle) : points de la question dans le
+    # corrigé enseignant (ex : 2 sur 60), et pas de note admis sur l'échelle
+    # max_score — max_score lui-même pour un tout-ou-rien (partie A), un
+    # demi-point du corrigé sinon. None = barème binaire historique.
+    points_corrige: float | None = None
+    score_step: float | None = None
 
 
 class Rubric(BaseModel):
@@ -48,12 +54,17 @@ class Rubric(BaseModel):
 
 class QuestionGrade(BaseModel):
     rubric_item_id: str
-    score: float                  # proposition IA : 0 ou max_score
+    score: float                  # proposition IA : 0, max_score, ou multiple de score_step
     confidence: float = Field(ge=0.0, le=1.0)
     comment: str
     observed_answer: str          # ce que l'élève a écrit ("—" si absent/illisible)
     correct_answer: str = ""      # bonne réponse (corrigé officiel ou calculée par l'IA)
     requires_review: bool
+    # Barème détaillé (item avec points_corrige) : points DU CORRIGÉ obtenus,
+    # ex. 1 sur 2. Le modèle compte des critères ; la conversion vers
+    # max_score est faite par validate_grading, pas par le modèle — il s'y
+    # trompait (0,5/2 au lieu de 1/2 en recette du 2026-10-16).
+    points_obtenus: float | None = None
     # ── Validation enseignant ──────────────────────────────────────────────────
     teacher_decision: TeacherDecision = TeacherDecision.pending
     teacher_score: float | None = None  # note saisie par l'enseignant si refus

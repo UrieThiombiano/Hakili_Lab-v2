@@ -126,6 +126,10 @@ _GRADING_TOOL: dict[str, Any] = {
                         "comment": {"type": "string"},
                         "observed_answer": {"type": "string"},
                         "requires_review": {"type": "boolean"},
+                        "points_obtenus": {
+                            "type": ["number", "null"],
+                            "description": "Seulement si le RubricItem porte points_corrige : points du corrigé obtenus (multiple de 0.5).",
+                        },
                     },
                     "required": ["rubric_item_id", "score", "confidence", "comment",
                                  "observed_answer", "requires_review"],
@@ -618,11 +622,13 @@ class ClaudeClient:
                 if q.teacher_score is not None and q.teacher_decision.value == "refused"
                 else q.score
             )
-            if effective == 0:
+            if effective < 1:
+                # Échec (0) ou réussite partielle (taux < 1, ex. démarche
+                # absente) : le détail est transmis pour que le diagnostic
+                # puisse nommer ce qui a manqué.
                 all_question_details.append({
                     "question_id": q.rubric_item_id,
-                    "score": 0,
-                    "max_score": q.score if q.score > 0 else 1,  # points disponibles
+                    "score": round(effective, 2),
                     "correct_answer": q.correct_answer or "—",
                     "observed_answer": q.observed_answer,
                     "comment_ia": q.comment,

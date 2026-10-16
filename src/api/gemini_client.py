@@ -140,7 +140,8 @@ _GRADING_SCHEMA = """
   "questions": [
     {
       "rubric_item_id": "<string — id EXACT du RubricItem du barème>",
-      "score": <0 si incorrect, ou valeur exacte de max_score si correct>,
+      "score": <0 si incorrect, ou valeur exacte de max_score si correct (items à barème détaillé : recalculé par le système depuis points_obtenus)>,
+      "points_obtenus": <UNIQUEMENT si le RubricItem porte points_corrige : points DU CORRIGÉ obtenus, critère par critère (ex. 1 sur 2, 2.5 sur 3), multiple de 0.5 ; sinon null>,
       "confidence": <float 0.0-1.0>,
       "comment": "<1 phrase bienveillante pour l'enseignant>",
       "observed_answer": "<ce que l'élève a écrit, résumé en 1 ligne — '—' si absent>",
@@ -204,12 +205,25 @@ def _parse_structured(raw: str, model_cls: type) -> ClaudeResponse:
 
 # ── Retry 429 ────────────────────────────────────────────────────────────────
 
+# Erreurs passagères observées en recette (2026-10-16, copies SIAO) : une
+# coupure réseau en cours d'appel (« WinError 10054 … fermée par l'hôte
+# distant ») faisait échouer toute la copie, puis le repli GPT-5 expirait.
+_TRANSITOIRES_GEMINI = (
+    "429", "resource_exhausted", "quota",
+    "500", "502", "503", "504", "unavailable", "internal", "overloaded", "deadline",
+    "timed out", "timeout", "10054", "10060", "connection reset", "connection aborted",
+    "remote end closed", "server disconnected", "remotedisconnected", "connecterror", "readerror",
+)
+
+
 def _is_retryable_gemini(exc: BaseException) -> bool:
-    msg = str(exc)
+    msg = f"{type(exc).__name__} {exc}".lower()
     # Quota journalier épuisé : inutile de réessayer, aller directement au fallback
-    if "PerDay" in msg or "PerDayPer" in msg:
+    if "perday" in msg:
         return False
-    return "429" in msg or "RESOURCE_EXHAUSTED" in msg or "quota" in msg.lower()
+    if isinstance(exc, (ConnectionError, TimeoutError)):
+        return True
+    return any(motif in msg for motif in _TRANSITOIRES_GEMINI)
 
 
 _retry_gemini = retry(
@@ -493,7 +507,7 @@ class GeminiTranscriptionClient:
         except Exception as e:
             if _is_retryable_gemini(e):
                 logger.warning(
-                    "Gemini 429 (copy_id=%s, offset=%d) — tenacity va réessayer : %s",
+                    "Gemini erreur passagère (copy_id=%s, offset=%d) — nouvel essai : %s",
                     copy_id, page_offset, e,
                 )
                 raise  # laisse tenacity gérer le retry

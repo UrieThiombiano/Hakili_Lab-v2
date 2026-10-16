@@ -49,7 +49,10 @@ _SUB = re.compile(r'\b([A-Za-z])_([A-Za-z0-9]{1,2})\b')
 # domaine (unités d'aire/volume, rayon/diamètre au carré) contrairement à un exposant
 # générique sur une lettre isolée (ex: u2 pourrait être un indice de suite u_n).
 _UNIT_POW = re.compile(r'\b([cdk]?m)(2|3)\b')
-_GEOM_POW = re.compile(r'\b(Rayon|rayon|Diam[eè]tre|diam[eè]tre|R|D)(2|3)\b')
+# Pas de « R » ni de « D » seuls : D1 à D4 sont des codes de question
+# (organisation de données) dans tous les tests du référentiel — « En D2, … »
+# devenait « En D², … » dans les rapports (recette du 2026-10-16).
+_GEOM_POW = re.compile(r'\b(Rayon|rayon|Diam[eè]tre|diam[eè]tre)(2|3)\b')
 _SUP_DIGIT = {"2": "²", "3": "³"}
 
 # Commandes LaTeX résiduelles (défense en profondeur — les prompts imposent

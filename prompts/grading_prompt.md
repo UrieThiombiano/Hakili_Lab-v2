@@ -13,6 +13,30 @@ Le corrigé officiel te dit *quel concept ou quelle valeur* est attendu. Il ne t
 
 ---
 
+## ⚠ Barème détaillé par critère — prioritaire quand il existe
+
+Certains items du BARÈME portent `points_corrige` et `score_step` (tests diagnostiques Hakili), et leur entrée dans le corrigé officiel contient un **« Barème : … »** qui répartit les points entre plusieurs critères (une opération posée, un résultat intermédiaire, une justification, une phrase de conclusion…). Pour ces items, **ce barème prime sur toutes les règles générales de ce document** :
+
+1. **Si `score_step` = `max_score`** (partie A, automatismes) : tout ou rien — `score = max_score` si le **résultat écrit** est juste, sinon `0`. Une méthode juste avec un résultat faux (erreur de signe, de calcul, de recopie) vaut **0** en partie A. QCM : la lettre se compare **sans tenir compte de la casse** (« A » = « a) »).
+2. **Sinon, note critère par critère, en points du corrigé.** Parcours chaque critère du barème du corrigé et additionne les points **du corrigé** que l'élève obtient. Écris ce total dans **`points_obtenus`** (entre 0 et `points_corrige`, multiple de 0,5 ; demi-points seulement si le barème les prévoit). **Ne convertis rien** : le système calcule `score` à partir de `points_obtenus` (mets `score = 0` si tu hésites, il sera recalculé).
+   *Exemple :* question à 2 points au corrigé ; l'élève obtient le critère « division posée » (1 pt) mais pas la conclusion → `points_obtenus = 1` (un point entier, **pas** 0,5 : `points_obtenus` compte des points, ce n'est pas une proportion), et le `comment` commence par « 1 pt sur 2 : … ». Les deux doivent concorder.
+   Pour les items de partie A (`score_step` = `max_score`), renseigne aussi `points_obtenus` : `0` ou `points_corrige`.
+3. **Un critère qui porte sur une valeur exige cette valeur.** « 1 pt pour AB = 10 unités », « 1 pt pour le résultat 2,75 L » : acquis seulement si l'élève a **écrit** cette valeur (ou une valeur équivalente, ou la valeur cohérente avec une erreur faite plus haut — erreur propagée). Une valeur fausse ne l'obtient **jamais**, même avec une méthode juste. « Démarche correcte mais erreur de calcul » donne les critères de démarche, **pas** ceux du résultat. Si ton commentaire constate une erreur (« l'élève écrit 5x + 9 », « AB = 48 par erreur »), le critère correspondant n'est pas acquis : la note doit le refléter.
+3 bis. **Le résultat seul ne vaut que ce que le barème lui attribue.** Un critère qui demande une démarche (opération écrite, calcul intermédiaire, valeur intermédiaire, propriété invoquée, comparaison chiffrée) n'est acquis **que si cette démarche est visible dans la transcription**. Une réponse finale juste sans aucune démarche n'obtient que le ou les critères portant sur ce résultat.
+4. **Une conclusion doit s'appuyer sur un calcul visible.** Le critère de conclusion (« phrase de conclusion », « réponse à X », « il a tort ») n'est acquis que si la conclusion découle d'une valeur ou d'un calcul **écrit par l'élève** — juste, ou faux mais exploité correctement (erreur propagée). Ne rapportent **rien** :
+   - une conclusion nue (« oui », « il a raison », « non ») sans aucun calcul qui la fonde — elle se devine une fois sur deux ;
+   - une conclusion appuyée sur une valeur sortie de nulle part (aucun calcul ne la produit) ;
+   - une conclusion **contredite par les propres valeurs de l'élève** (il trouve 560 m² > 550 m², puis écrit « Sibiri a tort »).
+   Un critère qui associe une valeur et une conclusion (« 1 pt pour la différence 536 m² et la conclusion ») exige les deux.
+5. **Démarche condensée ou différente = mêmes points.** Si l'élève atteint le bon résultat par une démarche correcte et visible, même condensée en une ligne ou organisée autrement (`6 h 40 + 2 h 30 + 25 min = 9 h 35` au lieu de passer par 9 h 10), il obtient les points des critères que cette démarche couvre : n'exige pas une étape intermédiaire que sa démarche rend inutile. Ce n'est pas le cas d'un résultat écrit **sans aucune** opération (règle 3).
+6. **Applique les règles écrites dans le barème** : « erreur propagée » (un calcul juste mené sur une valeur fausse obtenue plus haut garde ses points), « démarche équivalente acceptée », « ne vaut pas le point », « vaut 0,5 pt ».
+7. **Une donnée recopiée de l'énoncé n'est pas une démarche** : si l'énoncé d'une question suivante redonne une valeur, l'élève qui la recopie n'obtient pas les critères de calcul de cette valeur.
+8. `comment` : commence par « k pt sur n : » puis indique les critères obtenus et manqués, en une phrase (« 1 pt sur 2 : division juste, mais le plateau incomplet n'est pas compté »).
+
+Les règles générales ci-dessous (types de question, équivalences de notation, constructions) servent toujours à **décider si un critère est rempli** — mais c'est le barème qui dit **combien il rapporte**.
+
+---
+
 ## Étape 0 — Classifier le type de question (AVANT toute comparaison)
 
 Avant de regarder la réponse de l'élève, identifie le type de question :
@@ -30,7 +54,7 @@ Exemples : "Tracer deux droites parallèles", "Placer le milieu I de [EF]", "Con
 → **Critère d'attribution du point : la description de la figure (champ `diagrams` de la transcription) montre-t-elle l'objet demandé avec les propriétés attendues ?** Voir le protocole détaillé à l'Étape 3.
 
 **TYPE QCM / CHOIX** — la question propose des options et l'élève en marque une (entourée, cochée, soulignée).
-→ **Critère d'attribution du point : l'option marquée est-elle la bonne ?** Accepte indifféremment la lettre ("b") ou la valeur correspondante ("339,33") — le corrigé indique souvent les deux. Si la transcription signale **plusieurs options marquées** sans choix final clair : `score = 0`. Si aucune option marquée : traiter comme absence de réponse.
+→ **Critère d'attribution du point : l'option marquée est-elle la bonne ?** Accepte indifféremment la lettre, en majuscule ou minuscule ("b", "B", "b)"), ou la valeur correspondante ("339,33") — le corrigé indique souvent les deux. Si la transcription signale **plusieurs options marquées** sans choix final clair : `score = 0`. Si aucune option marquée : traiter comme absence de réponse.
 
 ---
 
@@ -108,7 +132,8 @@ Principes d'expert :
 - **N'invente jamais le contenu d'une figure.** Ne conclus à l'absence de réponse (`observed_answer = "—"`, confidence 1.0) que si ni `content` ni `diagrams` ne mentionnent quoi que ce soit pour cette question.
 
 ### Étape 4 — Décider et rédiger
-- `score = max_score` si l'élève a démontré la bonne compréhension ou trouvé la bonne valeur.
+- **Item avec barème détaillé** (`points_corrige` renseigné) : `points_obtenus` = somme des critères obtenus, en points du corrigé (voir « Barème détaillé par critère »).
+- Sinon : `score = max_score` si l'élève a démontré la bonne compréhension ou trouvé la bonne valeur.
 - `score = 0` si l'élève a tort, n'a pas répondu, ou si la forme précise est explicitement requise et non respectée.
 - `comment` : 1 phrase courte, bienveillante, pour l'enseignant. Si faux, indique brièvement ce qu'il fallait trouver.
 
@@ -142,6 +167,8 @@ Les lignes « Construction » priment sur la règle « ≥ 0.90 » : une figure 
 
 ## Adaptation au niveau scolaire
 
+Ces règles ne s'appliquent **qu'aux items sans barème détaillé**. Quand le corrigé détaille un barème par critère, c'est lui qui dit si la démarche est exigée — quel que soit le niveau.
+
 - **6e–5e** : Forme maladroite mais résultat correct → accorde le point.
 - **4e–3e** : Résultat correct sans démarche → point accordé sauf si la question dit "montrer" ou "justifier".
 - **2nde–Terminale** : "Démontrer" ou "justifier" → le résultat seul vaut 0.
@@ -149,7 +176,8 @@ Les lignes « Construction » priment sur la règle « ≥ 0.90 » : une figure 
 ---
 
 ## Contraintes de valeurs
-- `score` : exactement `0` ou la valeur exacte du champ `max_score` du RubricItem. Jamais de valeur intermédiaire.
+- `points_obtenus` : seulement si le RubricItem porte `points_corrige` — points du corrigé obtenus, multiple de 0,5 entre 0 et `points_corrige`. Sinon `null`.
+- `score` : exactement `0` ou la valeur exacte de `max_score` — jamais de valeur intermédiaire. (Items à `points_corrige` : recalculé par le système depuis `points_obtenus`.)
 - `confidence` : voir tableau ci-dessus.
 - `requires_review` : `true` si quelque chose est partiellement visible mais indéchiffrable, ou si une figure existe mais n'est pas décrite de façon exploitable.
 - `comment` : `"Absence de réponse"` si absent/illisible ; sinon 1 phrase courte et bienveillante.

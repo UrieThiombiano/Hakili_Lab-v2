@@ -23,9 +23,12 @@ def _fichier_temporaire(tmp_path, monkeypatch):
 def test_charger_sans_fichier_rend_les_defauts_env():
     prefs = pm.charger()
     assert set(prefs) == set(pm.TACHES)
-    # `.env` de test : VISION_PROVIDER=gemini, GRADING_PROVIDER=deepseek, DIAGNOSTIC_PROVIDER=claude
+    # `.env` de test : VISION_PROVIDER=gemini, DIAGNOSTIC_PROVIDER=claude ; le
+    # correcteur suit GRADING_PROVIDER (claude en production depuis le 2026-10-16).
+    from src.core.config import settings
+
     assert prefs["transcription"]["fournisseur"] == "gemini"
-    assert prefs["correction"]["fournisseur"] == "deepseek"
+    assert prefs["correction"]["fournisseur"] == settings.grading_provider
     assert prefs["analyse"]["fournisseur"] == "claude"
     assert prefs["analyse"]["variante_claude"] == "opus"
 

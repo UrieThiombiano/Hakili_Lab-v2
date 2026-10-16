@@ -25,6 +25,7 @@ Codes d'anomalie (utilisés dans les logs et dans l'UI) :
   LOW_CONFIDENCE             Confiance moyenne de transcription trop faible
   HIGH_ILLISIBLE_RATIO       Trop de zones illisibles dans la transcription
   NO_QUESTIONS               Correction sans aucune question évaluée
+  SCORE_HORS_BAREME          score > max_score ou hors du pas admis → ramené, auto-fixé
   POSSIBLE_COUNT_MISMATCH    total_possible ≠ Σ max_score barème → auto-fixé
   LOW_CONF_REVIEW_FORCED     requires_review forcé sur confiance < 60 % → auto-fixé
   DUPLICATE_QUESTION_IDS     Identifiants de questions en doublon
@@ -45,6 +46,8 @@ Codes d'anomalie (utilisés dans les logs et dans l'UI) :
 from __future__ import annotations
 
 import logging
+import math
+import re
 from dataclasses import dataclass, field
 from typing import Generic, Literal, TypeVar
 
@@ -237,6 +240,10 @@ def validate_transcription(
 # Validateur ② — Correction
 # ══════════════════════════════════════════════════════════════════════════════
 
+# « 1 pt sur 2 : … », « 1,5 pts sur 3 », « 1/2 : … » en tête de commentaire.
+_COMPTE_ANNONCE = re.compile(r"^\s*(\d+(?:[.,]\d+)?)\s*(?:pts?\s*)?(?:sur|/)\s*(\d+(?:[.,]\d+)?)(?![\d.,])")
+
+
 def validate_grading(
     grade: CopyGrade,
     *,
@@ -251,6 +258,7 @@ def validate_grading(
     Normalisations silencieuses (sans warning) :
     - total_score toujours recalculé comme Σ des scores individuels.
     Corrections automatiques (severity="warning", auto_fixed=True) :
+    - score ramené dans [0, max_score] et sur un multiple du pas admis (`score_step`).
     - total_possible aligné sur Σ max_score des items du barème (garantit note/20 atteignable à 20).
     - requires_review forcé à True pour toute question avec confidence < seuil.
 
@@ -285,6 +293,52 @@ def validate_grading(
             ),
         ))
         return _done("Correction", grade, issues)
+
+    # ── Correction auto : score hors barème ───────────────────────────────────
+    # Le modèle peut renvoyer plus que le maximum de la question, ou une valeur
+    # qui n'est pas un multiple du pas admis (barèmes socle : 1/3 de point en
+    # partie A, demi-point du corrigé en B/C). Ramené dans [0, max_score] puis
+    # sur un multiple du pas : le plus proche si l'écart n'est qu'un arrondi du
+    # modèle (0.3333 pour 0.333333), sinon l'inférieur — on n'accorde jamais un
+    # point que le modèle n'a pas donné.
+    if rubric is not None and rubric.items:
+        par_id = {item.id: item for item in rubric.items}
+        ajustes: list[str] = []
+        recalees: list[QuestionGrade] = []
+        for q in questions:
+            item = par_id.get(q.rubric_item_id)
+            score = q.score
+            if item is not None and item.points_corrige and q.points_obtenus is not None:
+                # Le modèle compte les points du corrigé ; la conversion est faite ici.
+                points = q.points_obtenus
+                # Le commentaire annonce le compte (« 1 pt sur 2 : … ») ; s'il
+                # contredit points_obtenus, c'est le plus souvent une proportion
+                # écrite à la place d'un compte (0.5 pour « 1 sur 2 », recette
+                # du 2026-10-16) : le compte explicite du commentaire fait foi.
+                annonce = _COMPTE_ANNONCE.match(q.comment or "")
+                if annonce and abs(float(annonce.group(2).replace(",", ".")) - item.points_corrige) < 1e-6:
+                    points = float(annonce.group(1).replace(",", "."))
+                points = min(max(points, 0.0), item.points_corrige)
+                score = points / item.points_corrige * item.max_score
+            if item is not None:
+                score = min(max(score, 0.0), item.max_score)
+                if item.score_step:
+                    n_pas = max(1, round(item.max_score / item.score_step))
+                    k = score / item.max_score * n_pas
+                    k = round(k) if abs(k - round(k)) < 0.05 else math.floor(k)
+                    score = round(item.max_score * min(k, n_pas) / n_pas, 6)
+            if abs(score - q.score) > 1e-4:
+                ajustes.append(f"{q.rubric_item_id} {q.score:g}→{score:g}")
+            recalees.append(q.model_copy(update={"score": score}) if score != q.score else q)
+        if ajustes:
+            issues.append(ValidationIssue(
+                code="SCORE_HORS_BAREME",
+                severity="warning",
+                message=f"{len(ajustes)} score(s) ramené(s) sur une valeur admise par le barème : {', '.join(ajustes)}.",
+                auto_fixed=True,
+            ))
+        questions = recalees
+        grade = _rebuild_grade(grade, questions=questions)
 
     # ── Normalisation silencieuse : total_score = somme des scores individuels ──
     # Les scores par question sont la vérité ; on recalcule toujours le total
@@ -401,6 +455,47 @@ def validate_grading(
     return _done("Correction", grade, issues)
 
 
+def consolider_corrections(grades: list[CopyGrade], rubric: "Rubric") -> CopyGrade:
+    """Fusionne plusieurs corrections IA indépendantes d'une même copie,
+    chacune déjà passée par `validate_grading` (scores sur la grille du barème).
+
+    Par question : score médian (médiane basse pour un nombre pair — on
+    n'accorde pas un point que la moitié des passages refuse). La question
+    reprend le commentaire et la lecture du passage qui a donné ce score.
+    Si les passages divergent de plus d'un pas, `requires_review` est levé et
+    le commentaire le dit : c'est là que l'enseignant doit regarder.
+    """
+    if len(grades) == 1:
+        return grades[0]
+
+    par_id = {item.id: item for item in rubric.items}
+    questions: list[QuestionGrade] = []
+    for q0 in grades[0].questions:
+        variantes = [
+            next((q for q in g.questions if q.rubric_item_id == q0.rubric_item_id), None) for g in grades
+        ]
+        variantes = sorted((q for q in variantes if q is not None), key=lambda q: q.score)
+        retenue = variantes[(len(variantes) - 1) // 2]
+        item = par_id.get(q0.rubric_item_id)
+        pas = (item.score_step or item.max_score) if item is not None else 1.0
+        ecart = variantes[-1].score - variantes[0].score
+        maj: dict = {}
+        if ecart > pas + 1e-6:
+            notes = " / ".join(f"{q.score:g}" for q in variantes)
+            maj = {
+                "requires_review": True,
+                "confidence": min(retenue.confidence, 0.6),
+                "comment": f"{retenue.comment} [Corrections IA divergentes ({notes}) — à vérifier.]",
+            }
+        questions.append(retenue.model_copy(update=maj) if maj else retenue)
+
+    return _rebuild_grade(
+        grades[0],
+        total_score=sum(q.score for q in questions),
+        questions=questions,
+    )
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Validateur ③ — Diagnostic
 # ══════════════════════════════════════════════════════════════════════════════
@@ -445,7 +540,9 @@ def validate_diagnostic(
         return any(_id_in_text(qid, text) and score_by_id.get(qid, 1.0) == 0 for qid in all_ids)
 
     def _contains_one_question(text: str) -> bool:
-        return any(_id_in_text(qid, text) and score_by_id.get(qid, 0.0) > 0 for qid in all_ids)
+        # Question entièrement réussie (taux 1). Une réussite partielle peut
+        # porter une faiblesse : ce qui a manqué (démarche, justification).
+        return any(_id_in_text(qid, text) and score_by_id.get(qid, 0.0) >= 1 - 1e-6 for qid in all_ids)
 
     # ── Correction auto : forces incohérentes ─────────────────────────────────
     # Ne supprimer une force que si elle mentionne explicitement un ID à score=0.
