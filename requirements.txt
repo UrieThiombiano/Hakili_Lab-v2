@@ -21,7 +21,7 @@ xhtml2pdf>=0.2.14
 # --- Interface web FastAPI + React/Vite (D-CEO-42, Django retiré) ---
 fastapi>=0.115.0
 uvicorn[standard]>=0.32.0
-sqlalchemy>=2.0.0
+sqlalchemy>=2.0.0,<2.1   # 2.1 passe le pilote Postgres par défaut à psycopg 3 (absent) — panne de déploiement du 2026-10-16
 alembic>=1.13.0
 itsdangerous>=2.2.0    # jetons d'URL signés — remplace django.core.signing
 python-multipart>=0.0.9  # upload de fichiers (dépôt de copie, lot)
