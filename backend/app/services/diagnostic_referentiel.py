@@ -261,6 +261,13 @@ def diagnostiquer(db: SQLASession, *, niveau_test: str, reponses: list[ReponseEl
     codes_competences = sorted({code for admis in lot.admis_par_question.values() for code in admis})
     corrections = ""
 
+    # Lectures terminées : la connexion est rendue au pool pendant l'appel
+    # modèle (une à plusieurs minutes), sinon Neon la coupe en cours de route
+    # (2026-10-17). Seulement si rien n'est en attente d'écriture : la
+    # transaction de l'appelant n'est jamais validée à sa place.
+    if not (db.new or db.dirty or db.deleted):
+        db.commit()
+
     for tentative in range(REDEMANDES_MAX + 1):
         reponse_api = client.diagnose_constrained(
             copy_id=copy_id,

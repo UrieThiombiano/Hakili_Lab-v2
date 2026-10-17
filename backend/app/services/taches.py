@@ -270,7 +270,12 @@ def _ancrage_referentiel(db: SQLASession, niveau_test: str):
         return None
 
     def ancrer(codes_questions: list[str]) -> tuple[str, list[dict]]:
-        return (contexte_diagnostic(db, niveau_test, codes_questions), lacunes_competences(db, niveau_test, codes_questions))
+        ancrage = (contexte_diagnostic(db, niveau_test, codes_questions), lacunes_competences(db, niveau_test, codes_questions))
+        # Appelé juste avant le diagnostic (plusieurs minutes) : sans ça, la
+        # transaction de lecture garde la connexion et Neon la coupe
+        # (copie-b50db36edb7f, 2026-10-17).
+        _liberer_connexion(db)
+        return ancrage
 
     return ancrer
 
@@ -495,6 +500,7 @@ def _generer_sujet_confirmation(db: SQLASession, correction: Correction, evaluat
             )
 
         request = ConfirmationRequest(copy_id=correction.copy_id, hypotheses=[_hypothese(p) for p in hypotheses])
+        _liberer_connexion(db)  # génération T1 : plusieurs minutes
         reponse = client.generate_confirmation_subject(request)
         if not reponse.success or reponse.data is None:
             logger.warning("[%s] Module 5 : génération T1 échouée (%s)", correction.copy_id, reponse.error)
