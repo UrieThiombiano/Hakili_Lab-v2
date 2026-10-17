@@ -83,7 +83,12 @@ def _eclater_inline(numero: int, seg: str) -> list[str]:
 
 
 def _is_reference(text: str, m: re.Match) -> bool:
-    return bool(_REF_BEFORE.search(text[: m.start()]))
+    avant = text[: m.start()]
+    # "P(-3 ; 1) et Q(2 ; -4)" : le "1)" ferme une parenthèse de coordonnées,
+    # ce n'est pas un marqueur (sujet T1 du 2026-10-17).
+    if m.group(2) and m.group(0).rstrip().endswith(")") and avant.count("(") > avant.count(")"):
+        return True
+    return bool(_REF_BEFORE.search(avant))
 
 
 def split_numbered_items(text: str) -> tuple[str, list[str]]:

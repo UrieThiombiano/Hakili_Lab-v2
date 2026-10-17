@@ -338,3 +338,12 @@ def test_series_title_sans_type_d_erreur():
     from src.pipeline.pdf_remediation_html import _series_title
     assert _series_title("Vecteurs : egalite et somme × Connaissance non disponible") == "Vecteurs"
     assert _series_title("Pourcentages × Connaissance non disponible") == "Pourcentages"
+
+
+def test_coordonnees_entre_parentheses_ne_sont_pas_des_marqueurs():
+    intro, items = _split_question(
+        "On considère les points P(-3 ; 1) et Q(2 ; -4). Un point R a pour image S(-1 ; 2)."
+        "\n1. Détermine les coordonnées du point R."
+    )
+    assert intro == "On considère les points P(-3 ; 1) et Q(2 ; -4). Un point R a pour image S(-1 ; 2)."
+    assert items == ["Détermine les coordonnées du point R."]

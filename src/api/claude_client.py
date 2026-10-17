@@ -706,10 +706,12 @@ class ClaudeClient:
         import anthropic as _anthropic
         try:
             response = _call_diagnose(modele_diag)
-        except _anthropic.BadRequestError:
+        except _anthropic.BadRequestError as refus:
+            # 400 ne veut pas toujours dire « modèle invalide » : un crédit
+            # épuisé répond aussi 400 — le motif réel est journalisé.
             logger.warning(
-                "[%s] modèle diagnostic '%s' invalide (400) — fallback diagnostic → %s",
-                grades.copy_id, modele_diag, settings.claude_model_heavy,
+                "[%s] diagnostic '%s' refusé (400 : %s) — fallback diagnostic → %s",
+                grades.copy_id, modele_diag, refus, settings.claude_model_heavy,
             )
             try:
                 response = _call_diagnose(settings.claude_model_heavy)
@@ -828,12 +830,12 @@ class ClaudeClient:
 
         try:
             response = _appeler(settings.claude_model_opus)
-        except _anthropic.BadRequestError:
+        except _anthropic.BadRequestError as refus:
             # Même repli que `diagnose()` : un identifiant de modèle invalide ne
             # doit pas priver la copie de son diagnostic.
             logger.warning(
-                "[%s] claude_model_opus '%s' invalide (400) — repli sur %s",
-                copy_id, settings.claude_model_opus, settings.claude_model_heavy,
+                "[%s] claude_model_opus '%s' refusé (400 : %s) — repli sur %s",
+                copy_id, settings.claude_model_opus, refus, settings.claude_model_heavy,
             )
             try:
                 response = _appeler(settings.claude_model_heavy)
