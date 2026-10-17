@@ -121,6 +121,19 @@ _GRADING_TOOL: dict[str, Any] = {
                     "type": "object",
                     "properties": {
                         "rubric_item_id": {"type": "string"},
+                        # Rempli AVANT la note : le modèle raisonnait jusque-là
+                        # dans `comment` et changeait d'avis en cours de phrase,
+                        # après avoir déjà fixé `points_obtenus` (« 1,5 pt sur 2 :
+                        # … donc le second point est acquis », recette du
+                        # 2026-10-17). Non conservé (ignoré par QuestionGrade).
+                        "analyse": {
+                            "type": "string",
+                            "description": (
+                                "Brouillon rédigé AVANT de noter : chaque critère du barème du "
+                                "corrigé, acquis ou non, au vu de la transcription. Deux phrases "
+                                "au plus ; « — » si absence de réponse. Non montré à l'enseignant."
+                            ),
+                        },
                         "score": {"type": "number", "minimum": 0},
                         "confidence": {"type": "number"},
                         "comment": {"type": "string"},
@@ -131,7 +144,7 @@ _GRADING_TOOL: dict[str, Any] = {
                             "description": "Seulement si le RubricItem porte points_corrige : points du corrigé obtenus (multiple de 0.5).",
                         },
                     },
-                    "required": ["rubric_item_id", "score", "confidence", "comment",
+                    "required": ["rubric_item_id", "analyse", "score", "confidence", "comment",
                                  "observed_answer", "requires_review"],
                 },
             },
@@ -574,9 +587,11 @@ class ClaudeClient:
             f"\n\nTRANSCRIPTION:\n{transcription.model_dump_json(indent=2)}"
         )
 
+        # 16000 : le champ `analyse` (un brouillon par question) double à peu
+        # près la sortie — 8192 ne tenait plus sur un barème de 46 items.
         response = self._creer_message(
             model=modele,
-            max_tokens=8192,
+            max_tokens=16000,
             temperature=temperature,
             tools=[_GRADING_TOOL],
             tool_choice={"type": "tool", "name": "save_grading"},

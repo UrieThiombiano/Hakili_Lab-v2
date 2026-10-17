@@ -354,3 +354,23 @@ def test_commentaire_sans_compte_ou_autre_denominateur_ignore():
     q = _qp("N8", 1)
     q.comment = "Calcul 3/4 de 60 juste"
     assert _valider(q).questions[0].score == pytest.approx(0.333333, abs=1e-5)
+
+
+def test_points_obtenus_alignes_sur_la_note_retenue():
+    """Recette 2026-10-17 (L6) : points_obtenus = 0.5 mais « 0 pt sur 2 » —
+    la note retient 0, points_obtenus doit dire la même chose."""
+    q = _qp("N8", 0.5)
+    q.comment = "0 pt sur 2 : factorisation incomplète"
+    g = _valider(q)
+    assert g.questions[0].score == 0.0
+    assert g.questions[0].points_obtenus == 0.0
+
+
+def test_outil_de_correction_demande_l_analyse_avant_la_note():
+    from src.api.claude_client import _GRADING_TOOL
+
+    item = _GRADING_TOOL["input_schema"]["properties"]["questions"]["items"]
+    cles = list(item["properties"])
+    assert "analyse" in item["required"]
+    assert cles.index("analyse") < cles.index("points_obtenus")
+    assert cles.index("analyse") < cles.index("comment")

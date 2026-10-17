@@ -329,7 +329,15 @@ def validate_grading(
                     score = round(item.max_score * min(k, n_pas) / n_pas, 6)
             if abs(score - q.score) > 1e-4:
                 ajustes.append(f"{q.rubric_item_id} {q.score:g}→{score:g}")
-            recalees.append(q.model_copy(update={"score": score}) if score != q.score else q)
+            maj: dict = {"score": score} if score != q.score else {}
+            if item is not None and item.points_corrige and q.points_obtenus is not None:
+                # points_obtenus suit la note retenue : sinon le JSON garde la
+                # valeur brute du modèle (0,5 alors que le commentaire et la
+                # note disent 0, L6 en recette du 2026-10-17).
+                retenus = round(score / item.max_score * item.points_corrige * 2) / 2 if item.max_score else 0.0
+                if abs(retenus - q.points_obtenus) > 1e-6:
+                    maj["points_obtenus"] = retenus
+            recalees.append(q.model_copy(update=maj) if maj else q)
         if ajustes:
             issues.append(ValidationIssue(
                 code="SCORE_HORS_BAREME",

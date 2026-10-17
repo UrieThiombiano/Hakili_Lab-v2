@@ -288,6 +288,11 @@ class ConfirmationHypothesis(BaseModel):
     competence_code: str | None = None
     niveau: str | None = None
     reference_pedagogique: str | None = None
+    # Énoncé de la (des) question(s) T0 qui ont fait naître l'hypothèse. Le
+    # libellé de compétence est souvent bien plus large que l'erreur observée
+    # (« Polygones et sections de solides » pour un volume de pyramide raté) :
+    # sans lui, T1 testait une autre notion (recette du 2026-10-17).
+    question_t0: str | None = None
 
 
 class ConfirmationRequest(BaseModel):

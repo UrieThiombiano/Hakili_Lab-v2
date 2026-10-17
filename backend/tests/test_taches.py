@@ -13,6 +13,7 @@ import pytest
 
 from app.models import Correction, Evaluation, Session
 from app.services import diagnostic_suivi as diag_suivi
+from app.services import taches
 from app.services.diagnostic_suivi import ResultatEcriture
 
 
@@ -96,3 +97,12 @@ def test_ne_regenere_pas_si_un_sujet_t1_existe_deja(db, _module4_mocke):
     taches._ecrire_hypotheses_module4(db, correction, _resultat_correction())
 
     assert _module4_mocke == []
+
+
+def test_libelles_questions_du_test_t0():
+    """Le générateur T1 reçoit l'énoncé de la question ratée, pas seulement
+    l'intitulé de compétence (G6 = volume de pyramide, recette du 2026-10-17)."""
+    libelles = taches._libelles_questions("socle_3eme")
+    assert "N1" in libelles and "-20/4" in libelles["N1"]
+    assert taches._libelles_questions("") == {}
+    assert taches._libelles_questions("test_inexistant") == {}

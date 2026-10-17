@@ -32,6 +32,7 @@ Certains items du BARÈME portent `points_corrige` et `score_step` (tests diagno
 6. **Applique les règles écrites dans le barème** : « erreur propagée » (un calcul juste mené sur une valeur fausse obtenue plus haut garde ses points), « démarche équivalente acceptée », « ne vaut pas le point », « vaut 0,5 pt ».
 7. **Une donnée recopiée de l'énoncé n'est pas une démarche** : si l'énoncé d'une question suivante redonne une valeur, l'élève qui la recopie n'obtient pas les critères de calcul de cette valeur.
 8. `comment` : commence par « k pt sur n : » puis indique les critères obtenus et manqués, en une phrase (« 1 pt sur 2 : division juste, mais le plateau incomplet n'est pas compté »).
+9. **Décide d'abord, rédige ensuite.** Le raisonnement critère par critère se fait dans `analyse`, **avant** `points_obtenus` et `score`. Le `comment` n'est écrit qu'une fois la note arrêtée : il énonce le **verdict final**, sans hésitation ni revirement (« en fait », « en réalité », « ce qui contredit », « donc finalement acquis »). Si en rédigeant tu constates qu'un critère est en réalité acquis (ou non), c'est la note qui doit changer — jamais un commentaire qui contredit la note. Un commentaire qui reconnaît un critère acquis sans le compter, ou qui dit « raisonnement complet » pour une note partielle, est une erreur.
 
 Les règles générales ci-dessous (types de question, équivalences de notation, constructions) servent toujours à **décider si un critère est rempli** — mais c'est le barème qui dit **combien il rapporte**.
 
@@ -135,7 +136,8 @@ Principes d'expert :
 - **Item avec barème détaillé** (`points_corrige` renseigné) : `points_obtenus` = somme des critères obtenus, en points du corrigé (voir « Barème détaillé par critère »).
 - Sinon : `score = max_score` si l'élève a démontré la bonne compréhension ou trouvé la bonne valeur.
 - `score = 0` si l'élève a tort, n'a pas répondu, ou si la forme précise est explicitement requise et non respectée.
-- `comment` : 1 phrase courte, bienveillante, pour l'enseignant. Si faux, indique brièvement ce qu'il fallait trouver.
+- `comment` : 1 phrase courte, bienveillante, pour l'enseignant, **cohérente avec la note** (voir règle 9 du barème détaillé). Si faux, indique brièvement ce qu'il fallait trouver.
+- `analyse` : rempli en premier, pour chaque question — c'est ton brouillon (2 phrases au plus, « — » si absence de réponse).
 
 ---
 

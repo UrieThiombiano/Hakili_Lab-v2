@@ -15,6 +15,7 @@ partagée avec celle de la requête qui a lancé le thread).
 from __future__ import annotations
 
 import logging
+import re
 import threading
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -421,6 +422,20 @@ def _trancher_verification_module5(db: SQLASession, correction: Correction, resu
     )
 
 
+def _libelles_questions(bareme_id: str) -> dict[str, str]:
+    """Libellé de chaque question du test T0 (`N1` → « Ecrire lequel de … »),
+    pour dire au générateur T1 sur quelle question précise l'erreur est née."""
+    if not bareme_id:
+        return {}
+    try:
+        from src.knowledge.test_registry import get_registry
+
+        test = get_registry().get_test(bareme_id)
+    except Exception:  # best-effort, comme tout le module 5
+        return {}
+    return {item.id: item.label for item in test.rubric.items} if test else {}
+
+
 def _generer_sujet_confirmation(db: SQLASession, correction: Correction, evaluation) -> None:
     """Point d'injection module 5 : génère le sujet T1 à partir des
     hypothèses encore ouvertes, et l'attache à la copie T0 qui les a
@@ -446,10 +461,16 @@ def _generer_sujet_confirmation(db: SQLASession, correction: Correction, evaluat
 
         niveau = _niveau_test(correction.bareme_id)
         retriever = get_remediation_retriever()
+        libelles = _libelles_questions(correction.bareme_id)
 
         def _hypothese(p: Probleme) -> ConfirmationHypothesis:
             chunk = retriever.get_by_competence(p.competence.code, niveau) if niveau else None
+            codes = re.findall(r"\[([^\]]+)\]", p.justification or "")
+            question_t0 = " ; ".join(
+                f"{code} — {libelles[code]}" for code in codes if code in libelles
+            )
             return ConfirmationHypothesis(
+                question_t0=question_t0 or None,
                 competence_label=p.competence.libelle,
                 type_erreur_label=p.type_erreur.libelle,
                 justification=p.justification,
