@@ -129,9 +129,11 @@ _GRADING_TOOL: dict[str, Any] = {
                         "analyse": {
                             "type": "string",
                             "description": (
-                                "Brouillon rédigé AVANT de noter : chaque critère du barème du "
-                                "corrigé, acquis ou non, au vu de la transcription. Deux phrases "
-                                "au plus ; « — » si absence de réponse. Non montré à l'enseignant."
+                                "Brouillon rédigé AVANT de noter, pour les items notés critère par "
+                                "critère (score_step < max_score) : chaque critère du barème du "
+                                "corrigé, acquis ou non, au vu de la transcription. Deux phrases au "
+                                "plus. « — » pour un item tout-ou-rien (partie A, QCM) ou une "
+                                "absence de réponse. Non montré à l'enseignant."
                             ),
                         },
                         "score": {"type": "number", "minimum": 0},

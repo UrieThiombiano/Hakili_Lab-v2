@@ -137,7 +137,7 @@ Principes d'expert :
 - Sinon : `score = max_score` si l'élève a démontré la bonne compréhension ou trouvé la bonne valeur.
 - `score = 0` si l'élève a tort, n'a pas répondu, ou si la forme précise est explicitement requise et non respectée.
 - `comment` : 1 phrase courte, bienveillante, pour l'enseignant, **cohérente avec la note** (voir règle 9 du barème détaillé). Si faux, indique brièvement ce qu'il fallait trouver.
-- `analyse` : rempli en premier, pour chaque question — c'est ton brouillon (2 phrases au plus, « — » si absence de réponse).
+- `analyse` : rempli en premier — c'est ton brouillon critère par critère (2 phrases au plus) pour les items notés par critères ; « — » pour un item tout-ou-rien (partie A, QCM) ou une absence de réponse.
 
 ---
 
