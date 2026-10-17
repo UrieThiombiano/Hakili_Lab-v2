@@ -51,9 +51,8 @@ for i in $(seq 1 15); do
     if curl -sf "http://127.0.0.1:${PORT}/api/sante" >/dev/null; then
         echo "  API en ligne sur 127.0.0.1:${PORT} — OK"
         echo "== Fait =="
-        echo "Premier déploiement seulement : ajouter le bloc Caddy"
-        echo "(deploy/caddy_snippet.txt) au Caddyfile partagé, puis"
-        echo "  sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy"
+        echo "Premier déploiement seulement (admin) : installer le vhost nginx"
+        echo "deploy/nginx_maya.hakililab.com puis certbot — voir deploy/README.md, étape 2."
         exit 0
     fi
     sleep 2

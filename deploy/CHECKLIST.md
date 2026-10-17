@@ -102,27 +102,19 @@ bash deploy/deploy.sh main        # ou: bash deploy/deploy.sh fastapi-react
 
 ---
 
-## 4. Caddy — une seule fois
+## 4. nginx + certificat — une seule fois (admin, sudo)
+
+Le proxy du serveur est nginx (pas Caddy). Conteneur sur `127.0.0.1:8017`.
 
 ```bash
-sudo nano /etc/caddy/Caddyfile
+sudo cp ~urie/hakili-lab/deploy/nginx_maya.hakililab.com /etc/nginx/sites-available/maya.hakililab.com
+sudo ln -s /etc/nginx/sites-available/maya.hakililab.com /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx     # reload, PAS restart
+sudo certbot --nginx -d maya.hakililab.com
+sudo nginx -t && sudo systemctl reload nginx
 ```
 
-Coller à la fin (domaine remplacé) :
-
-```
-<sous-domaine> {
-    reverse_proxy localhost:8011
-    encode zstd gzip
-}
-```
-
-```bash
-sudo caddy validate --config /etc/caddy/Caddyfile
-sudo systemctl reload caddy        # reload, PAS restart
-```
-
-- [ ] `sudo systemctl status caddy` → `active (running)`
+- [ ] `curl -s https://maya.hakililab.com/api/sante` → `{"ok":true}`
 
 ---
 
@@ -159,5 +151,5 @@ bash deploy/deploy.sh
 ```bash
 docker ps                        # le conteneur « hakili » tourne ?
 docker logs hakili --tail 50     # erreurs de démarrage (souvent .env incomplet)
-sudo journalctl -u caddy -f      # problème HTTPS / domaine
+sudo tail -f /var/log/nginx/error.log   # problème HTTPS / domaine
 ```

@@ -28,7 +28,7 @@ CORS, pas de second conteneur, pas de nginx.
 | `Dockerfile` | Image de l'app complète (API + frontend buildé). Contexte de build = racine du dépôt. |
 | `entrypoint.sh` | Démarrage du conteneur : `alembic upgrade head` puis `uvicorn` (2 workers). |
 | `deploy.sh` | Script de déploiement / mise à jour : `git pull` → build frontend → build image → relance du conteneur → contrôle santé. |
-| `caddy_snippet.txt` | Bloc à coller dans le Caddyfile partagé (reverse proxy + HTTPS). |
+| `nginx_maya.hakililab.com` | Vhost nginx du domaine (reverse proxy vers `127.0.0.1:8017`) — HTTPS ajouté par `certbot --nginx`. Voir étape 2. |
 | `bascule_neon.md` | Procédure unique d'adoption du schéma Neon existant par Alembic (étape 0). |
 
 Deux fichiers restent **à la racine du dépôt**, à leur emplacement imposé :
@@ -172,26 +172,38 @@ Le script build le frontend, build l'image, démarre le conteneur `hakili` sur
 
 ---
 
-## Étape 2 — Bloc Caddy (première fois seulement)
+## Étape 2 — Vhost nginx + certificat (première fois seulement, admin)
+
+> **Correction du 2026-10-17 :** le proxy du serveur est **nginx** (paquet
+> système, un fichier par sous-domaine dans `/etc/nginx/sites-available/`,
+> certificats Let's Encrypt par `certbot --nginx`), **pas Caddy** comme le
+> supposaient les sections précédentes de ce guide. Le conteneur écoute sur
+> **`127.0.0.1:8017`** (`HAKILI_PORT=8017`, 8011 et 8016 étant pris).
 
 Un enregistrement DNS `A` doit déjà pointer le domaine vers `167.233.234.219`
-(`dig correction.hakililab.com`).
+(`dig maya.hakililab.com` — fait).
 
 ```bash
-sudo nano /etc/caddy/Caddyfile
-# coller le contenu de deploy/caddy_snippet.txt, domaine remplacé
-sudo caddy validate --config /etc/caddy/Caddyfile
-sudo systemctl reload caddy
+sudo cp ~urie/hakili-lab/deploy/nginx_maya.hakililab.com /etc/nginx/sites-available/maya.hakililab.com
+sudo ln -s /etc/nginx/sites-available/maya.hakililab.com /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+sudo certbot --nginx -d maya.hakililab.com     # bloc 443 + redirection 80 -> 443
+sudo nginx -t && sudo systemctl reload nginx
 ```
 
-Caddy obtient et renouvelle seul le certificat HTTPS (Let's Encrypt).
+`certbot` renouvelle ensuite le certificat seul (timer systemd déjà en place
+pour les autres sous-domaines). Ne jamais modifier le vhost d'une autre app.
+
+Deux réglages du vhost sont indispensables : `proxy_set_header
+X-Forwarded-Proto $scheme` (sans lui l'application redirige en boucle vers
+HTTPS) et `client_max_body_size 200m` (dépôt de scans, défaut nginx : 1 Mo).
 
 ---
 
 ## Étape 3 — Vérification
 
 ```bash
-curl -s https://correction.hakililab.com/api/sante
+curl -s https://maya.hakililab.com/api/sante
 # {"ok": true}
 ```
 
