@@ -47,6 +47,16 @@ _LIBELLES_ETAPE = {
 }
 
 
+def _liberer_connexion(db: SQLASession) -> None:
+    """Termine la transaction de lecture avant les appels IA : sans ça, la
+    connexion reste empruntée pendant toute la correction (plusieurs minutes
+    depuis le champ `analyse`), Neon la coupe, et l'écriture finale échoue
+    (« SSL connection has been closed unexpectedly », copie-6ec656923aeb,
+    2026-10-17) — la copie reste figée en « correction ». Rendue au pool, la
+    connexion est revalidée par `pool_pre_ping` au moment d'écrire."""
+    db.commit()
+
+
 def _rapporteur(correction_id: int):
     """Callback `on_progress` du pipeline → progression en base."""
 
@@ -110,6 +120,7 @@ def _executer_transcription(correction_id: int, chemins: list[Path], rubric, tes
     db = SessionLocal()
     try:
         correction = db.get(Correction, correction_id)
+        _liberer_connexion(db)
         try:
             resultat = run_transcription(
                 copy_id=correction.copy_id,
@@ -162,6 +173,7 @@ def _executer_correction(correction_id: int) -> None:
     db = SessionLocal()
     try:
         correction = db.get(Correction, correction_id)
+        _liberer_connexion(db)
         try:
             resultat = run_grading(result=deserialiser(correction.resultat), on_progress=_rapporteur(correction_id))
         except Exception as exc:  # noqa: BLE001
@@ -205,6 +217,7 @@ def _executer_phase_a_complete(correction_id: int, chemins: list[Path], rubric, 
     db = SessionLocal()
     try:
         correction = db.get(Correction, correction_id)
+        _liberer_connexion(db)
         try:
             resultat = run_phase_a(
                 copy_id=correction.copy_id,
@@ -273,6 +286,7 @@ def _executer_diagnostic(correction_id: int) -> None:
     db = SessionLocal()
     try:
         correction = db.get(Correction, correction_id)
+        _liberer_connexion(db)
         try:
             resultat = run_phase_b(
                 result=deserialiser(correction.resultat),
