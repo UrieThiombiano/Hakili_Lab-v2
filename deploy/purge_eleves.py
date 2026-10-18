@@ -21,6 +21,7 @@ import sys
 from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
+from uuid import UUID
 
 if Path("/app/backend").is_dir():
     _RACINE = Path("/app")
@@ -61,6 +62,8 @@ def _serialiser(v):
         return v.isoformat()
     if isinstance(v, Decimal):
         return float(v)
+    if isinstance(v, UUID):  # Postgres ; SQLite les rend déjà en texte
+        return str(v)
     return v
 
 
@@ -77,7 +80,8 @@ def sauvegarder() -> None:
         for t in _tables_presentes():
             lignes = c.execute(text(f"SELECT * FROM {t}")).mappings().all()
             sortie[t] = [{k: _serialiser(v) for k, v in l.items()} for l in lignes]
-    json.dump(sortie, sys.stdout, ensure_ascii=False)
+    # default=str : filet pour tout autre type propre au pilote (inet, etc.).
+    json.dump(sortie, sys.stdout, ensure_ascii=False, default=str)
 
 
 def purger() -> None:
