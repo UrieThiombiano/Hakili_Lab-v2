@@ -132,7 +132,7 @@ function VuePersonnel() {
 
       <p className="text-petit text-texte-doux">
         {data.lignes.length} personne{data.lignes.length > 1 ? "s" : ""} dans le Google Sheet. Le centre est
-        informatif : depuis que Maïya fonctionne comme centre d'encadrement, toute personne autorisée accède à
+        informatif : depuis que Maya fonctionne comme centre d'encadrement, toute personne autorisée accède à
         tous les élèves.
       </p>
     </div>

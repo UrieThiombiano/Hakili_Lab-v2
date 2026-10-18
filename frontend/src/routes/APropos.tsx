@@ -96,7 +96,7 @@ export default function APropos() {
         >
           <div className="absolute inset-0 bg-gradient-to-r from-marine via-marine/85 lg:via-marine/60 to-marine/10" />
           <div className="relative h-full flex flex-col justify-center gap-5 px-6 sm:px-10 lg:px-14 max-w-2xl">
-            <span className="text-petit font-semibold uppercase tracking-[0.16em] text-white/70">Maïya</span>
+            <span className="text-petit font-semibold uppercase tracking-[0.16em] text-white/70">Maya</span>
             <h2 className="text-[2rem] leading-[1.15] sm:text-[2.5rem] sm:leading-[1.12] font-bold text-white">
               Chaque lacune, confirmée avant d'être travaillée.
             </h2>
@@ -112,7 +112,7 @@ export default function APropos() {
           <Card className="flex items-center">
             <p className="text-lead text-texte leading-relaxed">
               Beaucoup de dispositifs de soutien scolaire vendent des heures de cours sans savoir précisément ce qui
-              manque à l'élève. Maïya fait l'inverse : chaque heure de remédiation proposée correspond à une
+              manque à l'élève. Maya fait l'inverse : chaque heure de remédiation proposée correspond à une
               difficulté identifiée, puis <strong className="font-semibold">confirmée</strong> — jamais devinée.
             </p>
           </Card>

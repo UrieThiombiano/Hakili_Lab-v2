@@ -46,11 +46,11 @@ export function Sidebar({
       >
         <div className={cn("flex items-center px-5", reduite ? "justify-center px-0" : "justify-between")}>
           {reduite ? (
-            <img src="/hakili_logo.png" alt="Maïya" className="size-9 rounded-full object-cover bg-white" />
+            <img src="/hakili_logo.png" alt="Maya" className="size-9 rounded-full object-cover bg-white" />
           ) : (
             <span className="flex items-center gap-2.5 min-w-0">
-              <img src="/hakili_logo.png" alt="Maïya" className="size-9 rounded-full object-cover bg-white shrink-0" />
-              <span className="text-h3 font-bold tracking-tight leading-tight truncate">Prof. Maïya</span>
+              <img src="/hakili_logo.png" alt="Maya" className="size-9 rounded-full object-cover bg-white shrink-0" />
+              <span className="text-h3 font-bold tracking-tight leading-tight truncate">Prof. Maya</span>
             </span>
           )}
           <button onClick={fermer} className="lg:hidden text-white/70 hover:text-white">
