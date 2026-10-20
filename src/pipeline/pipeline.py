@@ -63,6 +63,7 @@ from src.models.domain import (
     TeacherDecision,
     TranscriptionResult,
 )
+from src.pipeline.ancrage_incertitudes import ancrer_incertitudes
 from src.pipeline.depot import depot
 from src.pipeline.ingestion import ingest_images, ingest_pdf
 from src.pipeline.orchestrator import (
@@ -590,7 +591,9 @@ def _run_transcription(
     if not vt.valid:
         result.errors.append(f"Transcription invalide : {vt.summary}")
         return result
-    result.transcription = vt.data
+    # Les doutes listés par le modèle sans `⟦…⟧` dans le texte deviennent des
+    # zones surlignées, corrigeables au double-clic en relecture.
+    result.transcription = ancrer_incertitudes(vt.data)
 
     # Point d'injection 5 — classe réelle extraite de l'en-tête transcrit
     # (écrase le placeholder posé au point 1).

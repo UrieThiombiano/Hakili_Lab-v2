@@ -433,7 +433,10 @@ class GeminiTranscriptionClient:
             f"{self._transcription_prompt}\n\ncopy_id : {copy_id}{page_hint}\n\n"
             "Retourne UNIQUEMENT un objet JSON valide sans aucune balise markdown, "
             "avec cette structure exacte (une entrée dans `pages` par image fournie) :\n"
-            f"{schema_example}"
+            f"{schema_example}\n\n"
+            "Rappel : chaque passage douteux est entouré de ⟦…⟧ dans `content`, et chaque "
+            "entrée de `uncertainties` suit le format "
+            "\"<passage copié depuis content>\" : <raison en français>."
         )
 
         # Contenu = [texte, image1, image2, ...]

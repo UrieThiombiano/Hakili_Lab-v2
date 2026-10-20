@@ -30,6 +30,38 @@ describe("TranscriptionMarkdown", () => {
     expect(onChange).toHaveBeenCalledWith("a ⟦b⟧ c D")
   })
 
+  it("double-clic sur une ligne → édition de la ligne seule, Entrée remonte la page entière", async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<TranscriptionMarkdown value={"L1 x = 4\nF = (3x - 5)(3x + 5)\nL3 y = 2"} onChange={onChange} />)
+
+    await user.dblClick(screen.getByText("F = (3x - 5)(3x + 5)"))
+    const champ = screen.getByRole("textbox")
+    expect(champ).toHaveValue("F = (3x - 5)(3x + 5)")
+    await user.clear(champ)
+    await user.type(champ, "F = (9x - 5)(9x + 5){Enter}")
+
+    expect(onChange).toHaveBeenCalledWith("L1 x = 4\nF = (9x - 5)(9x + 5)\nL3 y = 2")
+  })
+
+  it("l'édition de ligne retire les chevrons mais garde [ILLISIBLE]", async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<TranscriptionMarkdown value={"N2 ⟦6⟧√5 et [ILLISIBLE]"} onChange={onChange} />)
+
+    await user.dblClick(screen.getByText(/N2/))
+    expect(screen.getByRole("textbox")).toHaveValue("N2 6√5 et [ILLISIBLE]")
+  })
+
+  it("double-clic sur une zone n'ouvre pas l'édition de la ligne", async () => {
+    const user = userEvent.setup()
+    render(<TranscriptionMarkdown value={"a ⟦b⟧ c"} onChange={() => {}} />)
+
+    await user.dblClick(screen.getByText("[b]"))
+    expect(screen.getAllByRole("textbox")).toHaveLength(1)
+    expect(screen.getByRole("textbox")).toHaveValue("b")
+  })
+
   it("Échap annule sans rien remonter", async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
