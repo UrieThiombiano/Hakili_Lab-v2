@@ -25,7 +25,10 @@ export function useRevealOnScroll<T extends HTMLElement>() {
           observer.disconnect()
         }
       },
-      { threshold: 0.12, rootMargin: "0px 0px -10% 0px" },
+      // Seuil 0 (le premier pixel suffit), pas une fraction de la carte : une
+      // carte plus haute que ~8 écrans (la liste du personnel, 88 lignes)
+      // n'atteignait jamais 12 % visible et restait invisible pour toujours.
+      { threshold: 0, rootMargin: "0px 0px -10% 0px" },
     )
     observer.observe(el)
     return () => observer.disconnect()

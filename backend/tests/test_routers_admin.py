@@ -70,6 +70,8 @@ def test_personnel_trie_comptes_en_defaut_en_premier(monkeypatch):
     assert corps["probleme"] == 2
     # comptes en défaut (regresse puis stagne) avant le compte actif (progresse)
     assert [l["etat"] for l in corps["lignes"]] == ["regresse", "stagne", "progresse"]
+    # Le PIN ne quitte jamais le serveur.
+    assert all("pin" not in l["personne"] for l in corps["lignes"])
     app.dependency_overrides.clear()
 
 

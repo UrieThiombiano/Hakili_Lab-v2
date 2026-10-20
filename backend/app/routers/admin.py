@@ -61,7 +61,8 @@ def personnel(_: dict = Depends(admin_requis)) -> PersonnelReponse:
         centres = sorted({c for c, _ in personne.get("affectations", []) if c}) or ["—"]
         lignes.append(
             PersonnelLigne(
-                personne=personne,
+                # Jamais le PIN : la ligne part telle quelle vers le navigateur.
+                personne={k: v for k, v in personne.items() if k != "pin"},
                 roles=", ".join(roles) or "—",
                 centres=", ".join(centres),
                 etat=etat,
