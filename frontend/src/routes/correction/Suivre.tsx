@@ -14,6 +14,7 @@ import { correctionsApi, elevesApi, sessionsApi } from "@/lib/api"
 import { formatHeures } from "@/lib/format"
 import { useToast } from "@/hooks/useToast"
 import { useConfirm } from "@/hooks/useConfirm"
+import { useSupprimerDocument } from "@/hooks/useSupprimerDocument"
 import { cn } from "@/lib/utils"
 import {
   ArrowUpRight,
@@ -87,7 +88,14 @@ export default function Suivre() {
         {(data.en_cours || data.etat === "creee") && <Progression etape={data.etape} progression={data.progression} />}
         {data.etat === "echec" && <Echec erreurs={data.erreurs} onSupprimer={() => supprimer.mutate()} />}
         {data.etat === "relecture" && data.resultat && <Relecture jeton={jeton} resultat={data.resultat} onValide={() => queryClient.invalidateQueries({ queryKey: ["correction", jeton] })} />}
-        {data.etat === "validation" && data.resultat && <Validation jeton={jeton} resultat={data.resultat} onValide={() => queryClient.invalidateQueries({ queryKey: ["correction", jeton] })} />}
+        {data.etat === "validation" && data.resultat && (
+          <Validation
+            jeton={jeton}
+            resultat={data.resultat}
+            seuilSansT1={data.seuil_sans_t1}
+            onValide={() => queryClient.invalidateQueries({ queryKey: ["correction", jeton] })}
+          />
+        )}
         {data.terminee && data.resultat && (
           <Resultats
             jeton={jeton}
@@ -171,7 +179,8 @@ function Relecture({ jeton, resultat, onValide }: { jeton: string; resultat: Non
         <CardTitre>Relecture de la transcription</CardTitre>
         <p className="text-petit text-texte-doux mb-2">
           Les passages où le modèle hésite sont surlignés et affichés entre crochets. Double-cliquez sur une zone pour la
-          corriger, puis validez pour lancer la correction.
+          corriger — ou sur n'importe quelle ligne si la transcription diffère de la copie — puis validez pour lancer
+          la correction.
         </p>
         <p className="text-petit text-texte-doux">
           <span className="text-rouge font-medium">[illisible]</span> : rien de fiable n'a pu être déchiffré — ce que
@@ -255,22 +264,53 @@ function scoreCourant(q: { rubric_item_id: string; score: number }, decisions: R
   return q.score
 }
 
-function Validation({ jeton, resultat, onValide }: { jeton: string; resultat: NonNullable<import("@/types/api").CorrectionStatut["resultat"]>; onValide: () => void }) {
+function Validation({
+  jeton,
+  resultat,
+  seuilSansT1,
+  onValide,
+}: {
+  jeton: string
+  resultat: NonNullable<import("@/types/api").CorrectionStatut["resultat"]>
+  seuilSansT1: number | null
+  onValide: () => void
+}) {
   const { notifier } = useToast()
+  const { confirmer } = useConfirm()
   const [decisions, setDecisions] = useState<Record<string, { decision: string; note?: string | null }>>({})
-
-  const valider = useMutation({
-    mutationFn: () => correctionsApi.validerNotes(jeton, decisions),
-    onSuccess: () => {
-      notifier("Notes validées — diagnostic en cours.")
-      onValide()
-    },
-  })
 
   const bareme = Object.fromEntries((resultat.rubric?.items ?? []).map((i) => [i.id, i]))
   const questions = resultat.grade?.questions ?? []
   const totalPossible = resultat.rubric?.total_points ?? Object.values(bareme).reduce((s, i) => s + i.max_score, 0)
   const noteActuelle = questions.reduce((s, q) => s + scoreCourant(q, decisions), 0)
+  // Même conversion que `CopyGrade.compute_final_score()` côté serveur
+  // (dénominateur `total_possible`, arrondi au quart de point).
+  const denominateur = resultat.grade?.total_possible || totalPossible
+  const noteSur20 = denominateur > 0 ? Math.round((noteActuelle / denominateur) * 20 * 4) / 4 : null
+  // D-CEO-46 : sous le seuil, pas de test T1 — l'élève passe directement en remédiation.
+  const remediationDirecte = seuilSansT1 != null && noteSur20 != null && noteSur20 < seuilSansT1
+
+  const valider = useMutation({
+    mutationFn: () => correctionsApi.validerNotes(jeton, decisions),
+    onSuccess: () => {
+      notifier(remediationDirecte ? "Note < 10 : l'élève passe directement à la remédiation !" : "Notes validées — diagnostic en cours.")
+      onValide()
+    },
+  })
+
+  async function validerNotes() {
+    if (
+      remediationDirecte &&
+      !(await confirmer({
+        titre: "Note < 10 : remédiation directe",
+        message: `Note ${formatNombre(noteSur20 ?? 0)}/20 : l'élève passe directement à la remédiation, sans test de confirmation (T1).`,
+        texteConfirmer: "Continuer",
+      }))
+    ) {
+      return
+    }
+    valider.mutate()
+  }
   const totalARevoir = questions.filter((q) => q.requires_review).length
   const aRevoirRestant = questions.filter((q) => q.requires_review && !decisions[q.rubric_item_id]).length
 
@@ -398,7 +438,7 @@ function Validation({ jeton, resultat, onValide }: { jeton: string; resultat: No
         <span className="text-menu font-semibold text-marine tabular-nums mr-auto sm:mr-0">
           {formatNombre(noteActuelle)} <span className="text-texte-doux font-normal">/ {formatNombre(totalPossible)} pts</span>
         </span>
-        <Button chargement={valider.isPending} onClick={() => valider.mutate()}>
+        <Button chargement={valider.isPending} onClick={validerNotes}>
           Valider les notes
         </Button>
       </div>
@@ -440,6 +480,9 @@ type DocTelechargeable = {
   hrefVoir: string
   hrefTelecharger: string
   extra?: ReactNode
+  /** Documents stockés sur le serveur seulement — pas le plan ni le rapport
+   * diagnostique, générés à la demande et jamais conservés. */
+  onSupprimer?: () => void
 }
 
 /** Seuil de couleur du bilan chiffré — mêmes bornes que `ScorePill`. */
@@ -489,6 +532,8 @@ function Resultats({
     </Link>
   ) : undefined
 
+  const supprimerDocument = useSupprimerDocument([["correction", jeton], ["session", jetonSession]])
+
   // ── Tous les fichiers téléchargeables : copie + parcours, une seule liste ──
   const docs: DocTelechargeable[] = []
   for (const type of documents) {
@@ -502,6 +547,7 @@ function Resultats({
       hrefVoir: elevesApi.documentUrl(jeton, type),
       hrefTelecharger: elevesApi.documentUrl(jeton, type, true),
       extra: type === "sujet_confirmation" ? deposerT1 : undefined,
+      onSupprimer: () => supprimerDocument(jeton, type, meta.titre),
     })
   }
   if (session && jetonSession) {
@@ -526,6 +572,7 @@ function Resultats({
       })
     }
     if (session.sujet_t1_disponible && session.sujet_t1_jeton_copie && !documents.includes("sujet_confirmation")) {
+      const jetonT1 = session.sujet_t1_jeton_copie
       docs.push({
         cle: "sujet-t1",
         icon: ClipboardList,
@@ -534,6 +581,7 @@ function Resultats({
         hrefVoir: elevesApi.documentUrl(session.sujet_t1_jeton_copie, "sujet_confirmation"),
         hrefTelecharger: elevesApi.documentUrl(session.sujet_t1_jeton_copie, "sujet_confirmation", true),
         extra: deposerT1,
+        onSupprimer: () => supprimerDocument(jetonT1, "sujet_confirmation", "Sujet du test de confirmation (T1)"),
       })
     }
   }
@@ -688,6 +736,7 @@ function Resultats({
                 hrefVoir={d.hrefVoir}
                 hrefTelecharger={d.hrefTelecharger}
                 extra={d.extra}
+                onSupprimer={d.onSupprimer}
               />
             ))}
           </div>

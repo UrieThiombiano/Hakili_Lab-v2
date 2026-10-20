@@ -126,6 +126,38 @@ class ResultatConfirmation:
     ecartes: list[Probleme] = field(default_factory=list)
 
 
+#: Note /20 au T0 sous laquelle le test de confirmation est sauté (D-CEO-46) :
+#: les lacunes sont assez nombreuses pour que T1 n'apporte rien — les
+#: hypothèses sont confirmées d'office et le plan est définitif dès le T0.
+SEUIL_CONFIRMATION_T1 = 10.0
+
+
+def t1_dispense(note_sur_20: float | None) -> bool:
+    """Vrai si un T0 noté `note_sur_20` se passe du test de confirmation.
+    Note inconnue → pas de dispense : on garde le circuit T1 par défaut."""
+    return note_sur_20 is not None and note_sur_20 < SEUIL_CONFIRMATION_T1
+
+
+def confirmer_sans_t1(db: SQLASession, evaluation: Evaluation, note_sur_20: float) -> ResultatConfirmation:
+    """Tranche toutes les hypothèses ouvertes de la session sans test T1, pour
+    un T0 sous `SEUIL_CONFIRMATION_T1`. Chaque transition est rattachée au T0.
+    `ATT` est écarté (jamais de remédiation pour une étourderie)."""
+    resultat = ResultatConfirmation()
+
+    if evaluation.session.corpus_reference:
+        return resultat
+
+    hypotheses = db.query(Probleme).filter(Probleme.session_id == evaluation.session_id, Probleme.etat == "hypothese").all()
+    for probleme in hypotheses:
+        if probleme.type_erreur_id == "ATT":
+            etats.changer_etat(db, probleme, "ecarte", evaluation=evaluation)
+            resultat.ecartes.append(probleme)
+        else:
+            etats.changer_etat(db, probleme, "confirme", evaluation=evaluation)
+            resultat.confirmes.append(probleme)
+    return resultat
+
+
 def _reussite_par_numero(grade: CopyGrade) -> dict[int, bool]:
     """Réussite par numéro d'exercice (`rubric_item_id`), décision enseignant
     prioritaire sur le score automatique — partagé entre `confirmer_depuis_correction`

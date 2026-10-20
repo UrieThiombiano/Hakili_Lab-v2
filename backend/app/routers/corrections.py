@@ -30,6 +30,7 @@ from app.schemas import (
 )
 from app.services import taches
 from app.services.corrections import correction_autorisee, dossier_depot, enregistrer_fichier, valider_fichier
+from app.services.diagnostic_suivi import SEUIL_CONFIRMATION_T1
 from src.core.config import settings
 from src.integrations.google_sheets import GoogleSheetsError
 from src.models.domain import Rubric, RubricItem
@@ -67,6 +68,11 @@ def _statut(db: SQLASession, correction: Correction) -> CorrectionStatut:
         resultat=correction.resultat,
         documents=documents,
         jeton_session=jeton(str(session.id)) if session else None,
+        seuil_sans_t1=(
+            SEUIL_CONFIRMATION_T1
+            if correction.type_evaluation == "T0" and (correction.bareme_id or "").startswith("socle_")
+            else None
+        ),
     )
 
 

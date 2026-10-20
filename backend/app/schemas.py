@@ -220,6 +220,11 @@ class CorrectionStatut(BaseModel):
     #: d'afficher le plan provisoire et le rapport diagnostique sans
     #: attendre que l'enseignant aille chercher l'écran « Parcours ».
     jeton_session: str | None = None
+    #: Note /20 sous laquelle cette copie passe directement en remédiation,
+    #: sans test T1 (D-CEO-46) — `None` si la règle ne la concerne pas (pas
+    #: un T0 d'un test du référentiel). Sert à prévenir l'enseignant à la
+    #: validation des notes.
+    seuil_sans_t1: float | None = None
 
 
 class TranscriptionRequete(BaseModel):

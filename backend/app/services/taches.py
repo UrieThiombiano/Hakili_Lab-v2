@@ -363,6 +363,13 @@ def _ecrire_hypotheses_module4(db: SQLASession, correction: Correction, resultat
         correction.copy_id, len(ecriture.crees), evaluation.session_id, ecriture.cout_total,
     )
 
+    # Note T0 < 10/20 (D-CEO-46) : pas de test de confirmation — les
+    # hypothèses sont confirmées d'office, le plan est définitif dès le T0.
+    note = getattr(resultat.grade, "final_score_on_20", None)
+    if correction.type_evaluation == "T0" and diag_suivi.t1_dispense(note):
+        _confirmer_sans_t1(db, correction, evaluation, note)
+        return
+
     # Sujet T1 : on le génère dès qu'un T0 laisse des hypothèses ouvertes non
     # encore couvertes par un sujet — pas seulement quand ce T0 a créé des
     # problèmes. Réanalyser la copie d'un élève qui a déjà une session ouverte
@@ -382,6 +389,24 @@ def _session_a_un_sujet_t1(db: SQLASession, session_id: int) -> bool:
         .filter(Evaluation.session_id == session_id, Evaluation.type == "T0", Evaluation.sujet_confirmation.isnot(None))
         .first()
         is not None
+    )
+
+
+def _confirmer_sans_t1(db: SQLASession, correction: Correction, evaluation, note: float) -> None:
+    """Confirmation d'office des hypothèses d'un T0 sous la barre des 10/20.
+    Best-effort, comme le reste du module 5 : en cas d'échec les hypothèses
+    restent ouvertes et l'enseignant peut trancher à la main."""
+    try:
+        ecriture = diag_suivi.confirmer_sans_t1(db, evaluation, note)
+        db.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.rollback()
+        logger.warning("[%s] Note < 10 : confirmation sans T1 impossible (%s)", correction.copy_id, exc)
+        return
+
+    logger.info(
+        "[%s] Note T0 %.2f/20 — pas de T1 : %d confirmé(s), %d écarté(s) sur la session %s.",
+        correction.copy_id, note, len(ecriture.confirmes), len(ecriture.ecartes), evaluation.session_id,
     )
 
 

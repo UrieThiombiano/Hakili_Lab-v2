@@ -287,6 +287,8 @@ export interface CorrectionStatut {
   documents: string[]
   /** Jeton du parcours (session) de l'élève, si un existe déjà. */
   jeton_session: string | null
+  /** Note /20 sous laquelle l'élève passe directement en remédiation, sans T1 (D-CEO-46) — null si la règle ne s'applique pas. */
+  seuil_sans_t1: number | null
 }
 
 export interface CorrectionResume {

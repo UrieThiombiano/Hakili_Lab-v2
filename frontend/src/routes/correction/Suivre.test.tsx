@@ -16,9 +16,10 @@ const { correctionsApiMock, elevesApiMock, sessionsApiMock } = vi.hoisted(() => 
     statut: vi.fn(),
     supprimer: vi.fn(),
     validerTranscription: vi.fn(),
+    validerNotes: vi.fn(),
     pageImageUrl: (_jeton: string, page: number) => `#page-${page}`,
   },
-  elevesApiMock: { documentUrl: (_jeton: string, type: string) => `#doc-${type}` },
+  elevesApiMock: { documentUrl: (_jeton: string, type: string) => `#doc-${type}`, supprimerDocument: vi.fn() },
   sessionsApiMock: {
     detail: vi.fn(),
     planUrl: () => "#plan",
@@ -61,6 +62,7 @@ function statutBase(overrides: Partial<CorrectionStatut> = {}): CorrectionStatut
     resultat: resultatBase(),
     documents: [],
     jeton_session: null,
+    seuil_sans_t1: null,
     ...overrides,
   }
 }
@@ -241,5 +243,101 @@ describe("Suivre — Resultats", () => {
     await screen.findByText("Correction terminée")
     expect(screen.queryByText("Plan de remédiation")).not.toBeInTheDocument()
     expect(screen.queryByText("Documents à télécharger")).not.toBeInTheDocument()
+  })
+})
+
+describe("Suivre — Validation des notes (D-CEO-46)", () => {
+  function statutValidation(score: number, seuil: number | null) {
+    const question = {
+      rubric_item_id: "Q1",
+      score,
+      confidence: 0.9,
+      comment: "",
+      observed_answer: "",
+      correct_answer: "",
+      requires_review: false,
+      teacher_decision: "pending" as const,
+      teacher_score: null,
+    }
+    return statutBase({
+      etat: "validation",
+      terminee: false,
+      seuil_sans_t1: seuil,
+      resultat: {
+        ...resultatBase(),
+        grade: { copy_id: "copie-1", total_score: score, total_possible: 20, questions: [question], final_score: null, final_score_on_20: null },
+      },
+    })
+  }
+
+  it("note < 10 : demande confirmation avant de valider, puis toast de remédiation directe", async () => {
+    const user = userEvent.setup()
+    correctionsApiMock.statut.mockResolvedValue(statutValidation(8, 10))
+    correctionsApiMock.validerNotes.mockResolvedValue(statutValidation(8, 10))
+
+    rendre()
+
+    await user.click(await screen.findByRole("button", { name: "Valider les notes" }))
+    expect(screen.getByRole("alertdialog")).toHaveTextContent("l'élève passe directement à la remédiation")
+    expect(correctionsApiMock.validerNotes).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole("button", { name: "Continuer" }))
+    await waitFor(() => expect(correctionsApiMock.validerNotes).toHaveBeenCalled())
+    expect(await screen.findByText("Note < 10 : l'élève passe directement à la remédiation !")).toBeInTheDocument()
+  })
+
+  it("note < 10 : annuler la confirmation ne valide rien", async () => {
+    const user = userEvent.setup()
+    correctionsApiMock.statut.mockResolvedValue(statutValidation(8, 10))
+
+    rendre()
+
+    await user.click(await screen.findByRole("button", { name: "Valider les notes" }))
+    await user.click(screen.getByRole("button", { name: "Annuler" }))
+    expect(correctionsApiMock.validerNotes).not.toHaveBeenCalled()
+  })
+
+  it("note ≥ 10 ou règle non applicable : validation directe, sans confirmation", async () => {
+    const user = userEvent.setup()
+    correctionsApiMock.statut.mockResolvedValue(statutValidation(12, 10))
+    correctionsApiMock.validerNotes.mockResolvedValue(statutValidation(12, 10))
+
+    rendre()
+
+    await user.click(await screen.findByRole("button", { name: "Valider les notes" }))
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument()
+    await waitFor(() => expect(correctionsApiMock.validerNotes).toHaveBeenCalled())
+  })
+})
+
+describe("Suivre — Suppression d'un document", () => {
+  it("corbeille sur un document stocké → confirmation, puis suppression sur le serveur", async () => {
+    const user = userEvent.setup()
+    correctionsApiMock.statut.mockResolvedValue(statutBase({ documents: ["scan", "rapport"] }))
+    elevesApiMock.supprimerDocument.mockResolvedValue({ ok: true })
+
+    rendre()
+
+    await user.click(await screen.findByRole("button", { name: "Supprimer Rapport de correction" }))
+    expect(screen.getByRole("alertdialog")).toHaveTextContent("définitivement supprimé du serveur")
+    await user.click(screen.getByRole("button", { name: "Supprimer" }))
+
+    await waitFor(() => expect(elevesApiMock.supprimerDocument).toHaveBeenCalledWith("jeton-copie", "rapport"))
+    expect(await screen.findByText("Document supprimé.")).toBeInTheDocument()
+  })
+
+  it("annuler ne supprime rien ; le plan et le rapport diagnostique n'ont pas de corbeille", async () => {
+    const user = userEvent.setup()
+    correctionsApiMock.statut.mockResolvedValue(statutBase({ documents: ["scan"], jeton_session: "jeton-session" }))
+    sessionsApiMock.detail.mockResolvedValue(sessionBase())
+
+    rendre()
+
+    await screen.findByText("Rapport diagnostique complet")
+    expect(screen.queryByRole("button", { name: "Supprimer Rapport diagnostique complet" })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: "Supprimer Copie de l'élève" }))
+    await user.click(screen.getByRole("button", { name: "Annuler" }))
+    expect(elevesApiMock.supprimerDocument).not.toHaveBeenCalled()
   })
 })

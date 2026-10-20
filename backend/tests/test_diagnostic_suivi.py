@@ -247,3 +247,31 @@ def test_trancher_verification_respecte_le_garde_fou_corpus(db, referentiel_mini
     assert resultat.resolus == resultat.non_resolus == []
     db.refresh(probleme)
     assert probleme.etat == "en_remediation"
+
+
+# ── Note T0 < 10/20 : pas de T1, confirmation d'office (D-CEO-46) ────────────
+
+
+def test_t1_dispense_sous_10_seulement():
+    assert diag_suivi.t1_dispense(9.75) is True
+    assert diag_suivi.t1_dispense(10.0) is False
+    assert diag_suivi.t1_dispense(14.0) is False
+    assert diag_suivi.t1_dispense(None) is False
+
+
+def test_confirmer_sans_t1_confirme_tout_et_ecarte_att(db, referentiel_minimal):
+    evaluation = diag_suivi.preparer_evaluation(db, identifiant_hakili="eleve-x", type_evaluation="T0", copy_id="c1")
+    cpt = Probleme(session_id=evaluation.session_id, competence_id="B", type_erreur_id="CPT", etat="hypothese")
+    att = Probleme(session_id=evaluation.session_id, competence_id="B", type_erreur_id="ATT", etat="hypothese")
+    db.add_all([cpt, att])
+    db.commit()
+
+    resultat = diag_suivi.confirmer_sans_t1(db, evaluation, 7.5)
+    db.commit()
+
+    assert resultat.confirmes == [cpt]
+    assert resultat.ecartes == [att]
+    db.refresh(cpt)
+    db.refresh(att)
+    assert cpt.etat == "confirme"
+    assert att.etat == "ecarte"

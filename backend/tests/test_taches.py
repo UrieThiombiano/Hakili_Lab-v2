@@ -106,3 +106,42 @@ def test_libelles_questions_du_test_t0():
     assert "N1" in libelles and "-20/4" in libelles["N1"]
     assert taches._libelles_questions("") == {}
     assert taches._libelles_questions("test_inexistant") == {}
+
+
+# ── Note T0 < 10/20 : pas de sujet T1 (D-CEO-46) ─────────────────────────────
+
+
+def _resultat_note(note: float):
+    class _Grade:
+        final_score_on_20 = note
+
+    class _R:
+        grade = _Grade()
+        rubric = object()
+        errors: list = []
+    return _R()
+
+
+def test_sous_10_pas_de_sujet_t1_mais_confirmation_d_office(db, _module4_mocke, monkeypatch):
+    from app.services import taches
+
+    confirmations: list = []
+    monkeypatch.setattr(
+        taches.diag_suivi, "confirmer_sans_t1",
+        lambda db, ev, note: confirmations.append(note) or diag_suivi.ResultatConfirmation(),
+    )
+
+    taches._ecrire_hypotheses_module4(db, _correction(db), _resultat_note(9.5))
+
+    assert _module4_mocke == []
+    assert confirmations == [9.5]
+
+
+def test_a_10_et_plus_le_sujet_t1_est_genere(db, _module4_mocke, monkeypatch):
+    from app.services import taches
+
+    monkeypatch.setattr(taches.diag_suivi, "confirmer_sans_t1", lambda *a: pytest.fail("pas de confirmation d'office à 10/20"))
+
+    taches._ecrire_hypotheses_module4(db, _correction(db), _resultat_note(10.0))
+
+    assert len(_module4_mocke) == 1

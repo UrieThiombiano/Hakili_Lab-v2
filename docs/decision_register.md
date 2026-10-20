@@ -846,6 +846,14 @@ Références mises à jour : `backend/app/main.py`, `CLAUDE.md`, `README.md`, `d
 
 **Non exécuté :** toujours aucun déploiement contre le vrai serveur (accès SSH du commanditaire) ni bascule Neon (`deploy/bascule_neon.md`). Build local revérifié : `npm run build` + `docker build -f deploy/Dockerfile` + `docker run` → `/api/sante` OK.
 
+### D-CEO-46 — Pas de test de confirmation T1 sous 10/20 au T0 *(nouveau 2026-10-20)*
+
+Demande de l'utilisateur : quand la note validée du T0 est **strictement inférieure à 10/20**, ni plan provisoire ni sujet de confirmation. Les hypothèses du diagnostic sont **confirmées d'office** (transition `hypothese → confirme` rattachée au T0) et le plan de remédiation est **définitif dès le T0**. `ATT` est écarté, comme au T1 : une étourderie ne donne jamais lieu à remédiation. Sorties pour cet élève : la copie corrigée (rapport), les lacunes identifiées (rapport diagnostique), le plan de remédiation.
+
+À 10/20 et au-dessus, rien ne change : le sujet T1 est généré et départage les hypothèses (§T1 de `docs/cycle_de_suivi.md`).
+
+Implémentation : `SEUIL_CONFIRMATION_T1`, `t1_dispense()` et `confirmer_sans_t1()` dans `backend/app/services/diagnostic_suivi.py`, branchés dans `taches._ecrire_hypotheses_module4` à la place de la génération du sujet T1. Note inconnue (pas de `final_score_on_20`) → circuit T1 par défaut. Le frontend n'a pas changé : sans hypothèse ouverte ni sujet T1, il affiche déjà le plan définitif et aucun lien T1.
+
 ---
 
 ## Tableau de synthèse
