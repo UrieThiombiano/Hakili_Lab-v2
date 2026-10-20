@@ -95,3 +95,60 @@ def test_eleve_detail_avec_copie():
     assert corps["nb_copies"] == 1
     assert corps["entrees"][0]["copy_id"] == "C1"
     app.dependency_overrides.clear()
+
+
+def test_supprimer_document_retire_la_ligne_et_les_fichiers(tmp_path, monkeypatch):
+    from app.auth.tokens import jeton
+    from app.models import Correction, Document
+    from src.core.config import settings
+
+    monkeypatch.setattr(settings, "runs_dir", str(tmp_path))
+    dossier = tmp_path / "C1"
+    (dossier / "depot").mkdir(parents=True)
+    (dossier / "depot" / "copie.pdf").write_bytes(b"%PDF scan")
+    rapport = dossier / "rapport.pdf"
+    rapport.write_bytes(b"%PDF rapport")
+
+    client, SessionLocal = _client_avec_base()
+    db = SessionLocal()
+    db.add(Copie(copy_id="C1", identifiant_hakili="eleve-1", classe="6eA", annee_scolaire="2025-2026", date_soumission=date(2026, 1, 1), notes_finales=12))
+    db.add(Document(copy_id="C1", type="scan", fichier=b"%PDF scan"))
+    db.add(Document(copy_id="C1", type="rapport", fichier=b"%PDF rapport"))
+    db.add(Correction(copy_id="C1", identifiant_hakili="eleve-1", bareme_id="socle_6eme", resultat={"pdf_path": str(rapport)}))
+    db.commit()
+
+    r = client.delete(f"/api/eleves/documents/{jeton('C1')}/rapport")
+    assert r.status_code == 200, r.text
+    assert not rapport.exists()
+    restants = [d.type for d in SessionLocal().query(Document).filter(Document.copy_id == "C1")]
+    assert restants == ["scan"]
+    assert SessionLocal().get(Copie, "C1") is not None  # la copie et sa note restent
+
+    r = client.delete(f"/api/eleves/documents/{jeton('C1')}/scan")
+    assert r.status_code == 200, r.text
+    assert not (dossier / "depot").exists()
+
+    r = client.delete(f"/api/eleves/documents/{jeton('C1')}/scan")
+    assert r.status_code == 404
+    app.dependency_overrides.clear()
+
+
+def test_supprimer_document_ignore_un_chemin_hors_du_dossier_de_la_copie(tmp_path, monkeypatch):
+    from app.auth.tokens import jeton
+    from app.models import Correction, Document
+    from src.core.config import settings
+
+    monkeypatch.setattr(settings, "runs_dir", str(tmp_path / "runs"))
+    ailleurs = tmp_path / "ailleurs.pdf"
+    ailleurs.write_bytes(b"x")
+
+    client, SessionLocal = _client_avec_base()
+    db = SessionLocal()
+    db.add(Copie(copy_id="C1", identifiant_hakili="eleve-1", classe="6eA", annee_scolaire="2025-2026", date_soumission=date(2026, 1, 1)))
+    db.add(Document(copy_id="C1", type="rapport", fichier=b"x"))
+    db.add(Correction(copy_id="C1", identifiant_hakili="eleve-1", bareme_id="socle_6eme", resultat={"pdf_path": str(ailleurs)}))
+    db.commit()
+
+    assert client.delete(f"/api/eleves/documents/{jeton('C1')}/rapport").status_code == 200
+    assert ailleurs.exists()
+    app.dependency_overrides.clear()

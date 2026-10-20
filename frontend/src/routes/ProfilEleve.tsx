@@ -12,6 +12,7 @@ import { elevesApi } from "@/lib/api"
 import { formatDate } from "@/lib/format"
 import { useToast } from "@/hooks/useToast"
 import { useConfirm } from "@/hooks/useConfirm"
+import { useSupprimerDocument } from "@/hooks/useSupprimerDocument"
 
 export default function ProfilEleve() {
   const { jeton = "" } = useParams()
@@ -24,6 +25,8 @@ export default function ProfilEleve() {
     queryKey: ["eleve", jeton],
     queryFn: () => elevesApi.detail(jeton),
   })
+
+  const supprimerDocument = useSupprimerDocument([["eleve", jeton]])
 
   const supprimer = useMutation({
     mutationFn: (jetonCopie: string) => elevesApi.supprimerCopie(jetonCopie),
@@ -91,6 +94,13 @@ export default function ProfilEleve() {
                           <a href={elevesApi.documentUrl(entree.jeton, doc.type, true)} className="text-bleu hover:text-bleu-sombre">
                             Télécharger
                           </a>
+                          <button
+                            type="button"
+                            onClick={() => supprimerDocument(entree.jeton, doc.type, doc.libelle)}
+                            className="text-texte-faible hover:text-rouge"
+                          >
+                            Supprimer
+                          </button>
                         </span>
                       ))}
                     </div>

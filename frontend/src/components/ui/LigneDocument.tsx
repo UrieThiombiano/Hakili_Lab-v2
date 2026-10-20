@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { Download, Eye, FileText, type LucideIcon } from "lucide-react"
+import { Download, Eye, FileText, Trash2, type LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 /** Une ligne de fichier téléchargeable : icône, nom clair, courte description,
@@ -16,6 +16,7 @@ export function LigneDocument({
   hrefVoir,
   hrefTelecharger,
   extra,
+  onSupprimer,
   className,
 }: {
   icon?: LucideIcon
@@ -25,6 +26,8 @@ export function LigneDocument({
   hrefTelecharger?: string
   /** Action supplémentaire (ex. « Déposer la copie ») — passe sous les boutons. */
   extra?: ReactNode
+  /** Document stocké sur le serveur : affiche une corbeille (la confirmation est à la charge de l'appelant). */
+  onSupprimer?: () => void
   className?: string
 }) {
   return (
@@ -54,6 +57,17 @@ export function LigneDocument({
           >
             <Download className="size-3.5" /> Télécharger
           </a>
+        )}
+        {onSupprimer && (
+          <button
+            type="button"
+            onClick={onSupprimer}
+            title={`Supprimer « ${titre} » du serveur`}
+            aria-label={`Supprimer ${titre}`}
+            className="inline-flex size-8 items-center justify-center rounded-md border border-bord text-texte-faible transition-colors hover:border-rouge/40 hover:bg-rouge-pale hover:text-rouge"
+          >
+            <Trash2 className="size-3.5" />
+          </button>
         )}
       </div>
       {extra && <div className="w-full sm:ml-2 sm:w-auto">{extra}</div>}

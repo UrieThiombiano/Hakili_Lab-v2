@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event"
 import { MemoryRouter, Route, Routes } from "react-router-dom"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ToastProvider } from "@/hooks/useToast"
+import { ConfirmProvider } from "@/hooks/useConfirm"
 import type { SessionDetailReponse } from "@/types/api"
 
 // `AppShell` tire `useAuth` (Sidebar/Topbar) — hors sujet ici : SessionDetail
@@ -64,11 +65,13 @@ function rendre() {
   return render(
     <QueryClientProvider client={client}>
       <ToastProvider>
+        <ConfirmProvider>
         <MemoryRouter initialEntries={["/sessions/jeton-session"]}>
           <Routes>
             <Route path="/sessions/:jeton" element={<SessionDetail />} />
           </Routes>
         </MemoryRouter>
+        </ConfirmProvider>
       </ToastProvider>
     </QueryClientProvider>,
   )

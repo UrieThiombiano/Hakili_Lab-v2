@@ -10,6 +10,7 @@ import { LigneDocument } from "@/components/ui/LigneDocument"
 import { elevesApi, sessionsApi } from "@/lib/api"
 import { formatDate, formatHeures } from "@/lib/format"
 import { useToast } from "@/hooks/useToast"
+import { useSupprimerDocument } from "@/hooks/useSupprimerDocument"
 import {
   ArrowUpRight,
   CircleCheck,
@@ -117,6 +118,7 @@ export default function SessionDetail() {
   })
 
   const invalider = () => queryClient.invalidateQueries({ queryKey: ["session", jeton] })
+  const supprimerDocument = useSupprimerDocument([["session", jeton]])
 
   const trancher = useMutation({
     mutationFn: ({ type, id, decision }: { type: string; id: number; decision: string }) => sessionsApi.trancher(jeton, type, { [id]: decision }),
@@ -512,6 +514,7 @@ export default function SessionDetail() {
                   description="Le dernier sujet T1 généré pour cet élève."
                   hrefVoir={elevesApi.documentUrl(data.sujet_t1_jeton_copie, "sujet_confirmation")}
                   hrefTelecharger={elevesApi.documentUrl(data.sujet_t1_jeton_copie, "sujet_confirmation", true)}
+                  onSupprimer={() => supprimerDocument(data.sujet_t1_jeton_copie as string, "sujet_confirmation", "Sujet du test de confirmation (T1)")}
                   extra={
                     <Link to={`/corrections/confirmation/${jeton}`} className="text-petit font-medium text-bleu hover:text-bleu-sombre">
                       Déposer la copie T1

@@ -120,6 +120,7 @@ export const elevesApi = {
   documentUrl: (jetonCopie: string, docType: string, telecharger = false) =>
     `${BASE}/eleves/documents/${jetonCopie}/${docType}${telecharger ? "?telecharger=true" : ""}`,
   supprimerCopie: (jetonCopie: string) => del<{ ok: boolean }>(`/eleves/copies/${jetonCopie}`),
+  supprimerDocument: (jetonCopie: string, docType: string) => del<{ ok: boolean }>(`/eleves/documents/${jetonCopie}/${docType}`),
 }
 
 // ── Sessions / parcours ──────────────────────────────────────────────────

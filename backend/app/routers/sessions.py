@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session as SQLASession
 from app.auth.deps import utilisateur_requis
 from app.auth.tokens import jeton, valeur_depuis_jeton
 from app.db import get_session
-from app.models import Evaluation, FicheRemediation, Probleme, Session, SignatureErreur
+from app.models import Document, Evaluation, FicheRemediation, Probleme, Session, SignatureErreur
 from app.schemas import (
     EtapePlanSchema,
     FicheRemediationCorrection,
@@ -125,7 +125,12 @@ def session_detail(
     # Lien direct vers le PDF du sujet T1 (document "sujet_confirmation" de
     # la copie T0 qui l'a généré) — sans lui, l'enseignant voit « Déposer la
     # copie T1 » sans jamais avoir pu obtenir le sujet à faire passer.
-    sujet_t1_jeton_copie = jeton(sujet_t0.copy_id) if sujet_t0 else None
+    # Seulement si le PDF existe encore : l'enseignant peut l'avoir supprimé
+    # (les exercices restent dans `sujet_confirmation`, le dépôt T1 marche).
+    pdf_t1_present = bool(sujet_t0) and (
+        db.query(Document.id).filter(Document.copy_id == sujet_t0.copy_id, Document.type == "sujet_confirmation").first() is not None
+    )
+    sujet_t1_jeton_copie = jeton(sujet_t0.copy_id) if pdf_t1_present else None
 
     return SessionDetailReponse(
         id=session.id,

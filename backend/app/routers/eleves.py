@@ -210,6 +210,58 @@ def document(
     )
 
 
+def _fichiers_du_document(copy_id: str, doc_type: str, correction: Correction | None) -> list[Path]:
+    """Copies disque d'un document dans `runs/<copy_id>/` — à retirer avec la
+    ligne `document`, sinon le fichier reste sur le serveur après suppression."""
+    dossier = Path(settings.runs_dir) / copy_id
+    if doc_type == "scan":
+        return [dossier / "depot", dossier / "pages"]
+    if doc_type == "sujet_confirmation":
+        return [dossier / "sujet_confirmation.pdf"]
+    cle = {"rapport": "pdf_path", "remediation": "remediation_pdf_path"}.get(doc_type)
+    chemin = ((correction.resultat if correction else None) or {}).get(cle or "")
+    # Seulement un fichier rangé sous le dossier de cette copie — jamais un
+    # chemin arbitraire lu dans le JSON du résultat.
+    if chemin and Path(chemin).resolve().is_relative_to(dossier.resolve()):
+        return [Path(chemin)]
+    return []
+
+
+@router.delete("/documents/{jeton_copie}/{doc_type}")
+def supprimer_document(
+    jeton_copie: str,
+    doc_type: str,
+    db: SQLASession = Depends(get_session),
+    utilisateur: dict = Depends(utilisateur_requis),
+) -> dict:
+    """Supprime un document produit pour une copie (scan, rapport, sujet…)
+    sans toucher à la copie ni à sa note. Le plan de remédiation et le rapport
+    diagnostique ne passent pas ici : ils ne sont jamais stockés, seulement
+    générés à la demande depuis le suivi."""
+    copy_id = valeur_depuis_jeton(jeton_copie)
+    if copy_id is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lien invalide")
+    copie = db.get(Copie, copy_id)
+    if copie is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Copie inconnue")
+    eleve_autorise(utilisateur, copie.identifiant_hakili)
+
+    docs = db.query(Document).filter(Document.copy_id == copy_id, Document.type == doc_type).all()
+    if not docs:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document inconnu")
+    correction = db.query(Correction).filter(Correction.copy_id == copy_id).first()
+    for doc in docs:
+        db.delete(doc)
+    db.commit()
+
+    for chemin in _fichiers_du_document(copy_id, doc_type, correction):
+        if chemin.is_dir():
+            shutil.rmtree(chemin, ignore_errors=True)
+        else:
+            chemin.unlink(missing_ok=True)
+    return {"ok": True}
+
+
 @router.delete("/copies/{jeton_copie}")
 def supprimer_copie(
     jeton_copie: str,
