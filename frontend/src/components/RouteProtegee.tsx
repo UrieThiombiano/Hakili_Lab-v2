@@ -16,6 +16,6 @@ export function RouteAdmin({ children }: { children: ReactNode }) {
   const { personne, pret, casquette } = useAuth()
   if (!pret) return <Spinner label="Chargement…" />
   if (!personne) return <Navigate to="/connexion" replace />
-  if (casquette !== "administrateur") return <Navigate to="/" replace />
+  if (casquette !== "administrateur") return <Navigate to="/a-propos" replace />
   return <>{children}</>
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { ArrowLeft } from "lucide-react"
 import { authApi, ApiError } from "@/lib/api"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/Button"
@@ -18,7 +19,7 @@ export default function Connexion() {
   const [envoi, setEnvoi] = useState(false)
 
   useEffect(() => {
-    if (personne) navigate("/", { replace: true })
+    if (personne) navigate("/a-propos", { replace: true })
   }, [personne, navigate])
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export default function Connexion() {
     setEnvoi(true)
     try {
       await login(cle, pin)
-      navigate("/", { replace: true })
+      navigate("/a-propos", { replace: true })
     } catch (err) {
       if (err instanceof ApiError) {
         const detail = err.detail as { message?: string } | string
@@ -49,7 +50,14 @@ export default function Connexion() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center fond-cahier px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 fond-cahier px-4">
+      <Link
+        to="/"
+        className="w-full max-w-sm inline-flex items-center gap-1.5 text-petit font-medium text-texte-doux hover:text-marine transition-colors duration-150"
+      >
+        <ArrowLeft className="size-4" aria-hidden />
+        Retour à l'accueil
+      </Link>
       <Card className="w-full max-w-sm animate-entree-page">
         <div className="flex items-center gap-3 mb-1">
           <img src="/hakili_logo.png" alt="Maya" className="size-10 rounded-full object-cover bg-white shrink-0" />

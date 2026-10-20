@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from "react-router-dom"
 import { RouteProtegee, RouteAdmin } from "@/components/RouteProtegee"
 import { Spinner } from "@/components/ui/Etat"
 
+// Vitrine publique : chargée à part pour que GSAP/Lenis ne pèsent pas sur l'app.
+const Accueil = lazy(() => import("@/routes/Accueil"))
 const Connexion = lazy(() => import("@/routes/Connexion"))
 const Administration = lazy(() => import("@/routes/Administration"))
 const Parcours = lazy(() => import("@/routes/Parcours"))
@@ -30,7 +32,10 @@ export default function App() {
     <Suspense fallback={<ChargementPage />}>
       <Routes>
         <Route path="/connexion" element={<Connexion />} />
-        <Route path="/" element={<RouteProtegee><APropos /></RouteProtegee>} />
+        {/* Fond marine pendant le chargement de la vitrine : pas d'écran blanc
+            « Chargement… » avant le hero (lui-même marine). */}
+        <Route path="/" element={<Suspense fallback={<div className="min-h-screen bg-marine" />}><Accueil /></Suspense>} />
+        <Route path="/a-propos" element={<RouteProtegee><APropos /></RouteProtegee>} />
         <Route path="/parcours" element={<RouteProtegee><Parcours /></RouteProtegee>} />
         <Route path="/eleves/:jeton" element={<RouteProtegee><ProfilEleve /></RouteProtegee>} />
         <Route path="/sessions/:jeton" element={<RouteProtegee><SessionDetail /></RouteProtegee>} />

@@ -4,7 +4,7 @@ import { Info, FileStack, Route as RouteIcon, BookOpen, ShieldCheck, Settings, X
 import { useAuth } from "@/hooks/useAuth"
 
 const LIENS = [
-  { to: "/", label: "À propos", icon: Info, exact: true },
+  { to: "/a-propos", label: "À propos", icon: Info, exact: true },
   { to: "/analyse-de-copie", label: "Analyse de copie", icon: FileStack },
   { to: "/parcours", label: "Parcours", icon: RouteIcon },
   { to: "/sujets", label: "Sujets tests", icon: BookOpen },
