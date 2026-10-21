@@ -1,7 +1,7 @@
 from enum import Enum
 from pathlib import Path
 from typing import Any, Literal
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 # ── Validation enseignant ──────────────────────────────────────────────────────
@@ -83,6 +83,23 @@ class CopyGrade(BaseModel):
     final_score: float | None = None        # calculé après validation enseignant
     final_score_on_20: float | None = None  # note /20 convertie
     validation_complete: bool = False       # True quand toutes les questions ont été décidées
+
+    @model_validator(mode="before")
+    @classmethod
+    def _totaux_manquants(cls, data: Any) -> Any:
+        # Claude Sonnet 5 omet parfois total_score/total_possible alors que toutes
+        # les questions sont notées (prod du 2026-10-21) : la copie entière était
+        # rejetée. validate_grading() recalcule les deux totaux depuis le barème,
+        # une valeur provisoire suffit ici.
+        if isinstance(data, dict) and isinstance(data.get("questions"), list):
+            if "total_score" not in data or "total_possible" not in data:
+                data = dict(data)
+                data.setdefault("total_score", sum(
+                    float(q.get("score") or 0) if isinstance(q, dict) else float(q.score)
+                    for q in data["questions"]
+                ))
+                data.setdefault("total_possible", 0.0)
+        return data
 
     def compute_final_score(self) -> "CopyGrade":
         """Calcule final_score en priorisant les décisions enseignant."""

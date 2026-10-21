@@ -374,9 +374,16 @@ class OpenAIClient:
                 model=settings.openai_model,
                 messages=[{"role": "user", "content": user_content}],
                 response_format={"type": "json_object"},
-                max_completion_tokens=8192,
+                # GPT-5 raisonne avant d'écrire : avec 8192, le raisonnement
+                # épuisait le budget sur un barème de 46 items et la réponse
+                # arrivait vide (« JSON invalide… Début : », prod du 2026-10-21).
+                max_completion_tokens=32768,
             )
             raw = response.choices[0].message.content or ""
+            if not raw:
+                logger.error("GPT-5 correction vide (finish_reason=%s, tokens out=%s)",
+                             response.choices[0].finish_reason,
+                             getattr(response.usage, "completion_tokens", "?"))
             result = _parse_json_response(raw, CopyGrade)
             if result.success and result.data is not None and expert_instructions.strip():
                 result.data.expert_instructions_used = True
