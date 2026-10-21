@@ -17,9 +17,9 @@ class Settings(BaseSettings):
     # n'appelle un modèle. L'échec reste net là où la clé sert réellement :
     # `ClaudeClient.__init__` refuse de se construire si elle est vide.
     anthropic_api_key: str = ""
-    claude_model_heavy: str = "claude-sonnet-4-6"   # Sonnet 4.6 — transcription, correction, remédiation
-    claude_model_light: str = "claude-sonnet-4-6"   # tâches légères (nom, JSON repair)
-    claude_model_opus: str = "claude-opus-4-7"      # Opus 4.7 — diagnostic (raisonnement approfondi)
+    claude_model_heavy: str = "claude-sonnet-5"     # Sonnet 5 — transcription, correction, remédiation ; « variante Sonnet » de Paramètres → Modèles IA
+    claude_model_light: str = "claude-haiku-4-5-20251001"   # tâches légères (nom, JSON repair)
+    claude_model_opus: str = "claude-opus-5"        # Opus 5 — diagnostic (raisonnement approfondi) ; « variante Opus » de Paramètres → Modèles IA
 
     # Google Gemini (vision — gratuit jusqu'à 1 M tokens/jour)
     google_api_key: str = ""
@@ -52,6 +52,11 @@ class Settings(BaseSettings):
 
     # Seuils pipeline
     confidence_review_threshold: float = 0.75
+    # Corrections IA indépendantes par copie (barèmes détaillés des tests du
+    # référentiel), consolidées par médiane question par question : un passage
+    # qui recopie le corrigé au lieu de lire la copie est mis en minorité
+    # (recette du 2026-10-16 : 13,25 vs 18,75 sur la même transcription).
+    nb_corrections_ia: int = 3
 
     # Stockage
     runs_dir: str = "./runs"
@@ -61,10 +66,14 @@ class Settings(BaseSettings):
     database_url: str = ""
     debug: bool = False
 
-    # Django uniquement (hakili/settings.py la lit via os.environ) — déclarée
-    # ici seulement parce que ce Settings() partage le même .env et rejette
-    # (extra_forbidden) toute variable non déclarée.
     hakili_acces_libre: bool = False
+
+    # Clé de signature des jetons d'URL opaques (`backend/app/auth/tokens.py`
+    # — élève/copie/session jamais en clair dans un lien, D-CEO-25). Facultative
+    # hors DEBUG (repli de dev non secret) ; `tokens.py` refuse de signer un
+    # jeton sans elle une fois DEBUG=false, plutôt que de tourner avec une clé
+    # publique connue de quiconque lit ce dépôt.
+    secret_key: str = ""
 
     # Google Sheets (source de vérité élèves/personnel, compte de service —
     # optionnel). Le personnel (enseignants, responsables, administrateur)

@@ -1,7 +1,7 @@
 from enum import Enum
 from pathlib import Path
 from typing import Any, Literal
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 # ── Validation enseignant ──────────────────────────────────────────────────────
@@ -36,6 +36,12 @@ class RubricItem(BaseModel):
     label: str
     max_score: float = 1.0        # Points de la question (ex : 0.25, 0.5, 1.0, 2.0)
     parent_id: str | None = None  # Non-None si sous-question
+    # Tests du référentiel (barèmes socle) : points de la question dans le
+    # corrigé enseignant (ex : 2 sur 60), et pas de note admis sur l'échelle
+    # max_score — max_score lui-même pour un tout-ou-rien (partie A), un
+    # demi-point du corrigé sinon. None = barème binaire historique.
+    points_corrige: float | None = None
+    score_step: float | None = None
 
 
 class Rubric(BaseModel):
@@ -48,12 +54,17 @@ class Rubric(BaseModel):
 
 class QuestionGrade(BaseModel):
     rubric_item_id: str
-    score: float                  # proposition IA : 0 ou max_score
+    score: float                  # proposition IA : 0, max_score, ou multiple de score_step
     confidence: float = Field(ge=0.0, le=1.0)
     comment: str
     observed_answer: str          # ce que l'élève a écrit ("—" si absent/illisible)
     correct_answer: str = ""      # bonne réponse (corrigé officiel ou calculée par l'IA)
     requires_review: bool
+    # Barème détaillé (item avec points_corrige) : points DU CORRIGÉ obtenus,
+    # ex. 1 sur 2. Le modèle compte des critères ; la conversion vers
+    # max_score est faite par validate_grading, pas par le modèle — il s'y
+    # trompait (0,5/2 au lieu de 1/2 en recette du 2026-10-16).
+    points_obtenus: float | None = None
     # ── Validation enseignant ──────────────────────────────────────────────────
     teacher_decision: TeacherDecision = TeacherDecision.pending
     teacher_score: float | None = None  # note saisie par l'enseignant si refus
@@ -72,6 +83,23 @@ class CopyGrade(BaseModel):
     final_score: float | None = None        # calculé après validation enseignant
     final_score_on_20: float | None = None  # note /20 convertie
     validation_complete: bool = False       # True quand toutes les questions ont été décidées
+
+    @model_validator(mode="before")
+    @classmethod
+    def _totaux_manquants(cls, data: Any) -> Any:
+        # Claude Sonnet 5 omet parfois total_score/total_possible alors que toutes
+        # les questions sont notées (prod du 2026-10-21) : la copie entière était
+        # rejetée. validate_grading() recalcule les deux totaux depuis le barème,
+        # une valeur provisoire suffit ici.
+        if isinstance(data, dict) and isinstance(data.get("questions"), list):
+            if "total_score" not in data or "total_possible" not in data:
+                data = dict(data)
+                data.setdefault("total_score", sum(
+                    float(q.get("score") or 0) if isinstance(q, dict) else float(q.score)
+                    for q in data["questions"]
+                ))
+                data.setdefault("total_possible", 0.0)
+        return data
 
     def compute_final_score(self) -> "CopyGrade":
         """Calcule final_score en priorisant les décisions enseignant."""
@@ -277,6 +305,11 @@ class ConfirmationHypothesis(BaseModel):
     competence_code: str | None = None
     niveau: str | None = None
     reference_pedagogique: str | None = None
+    # Énoncé de la (des) question(s) T0 qui ont fait naître l'hypothèse. Le
+    # libellé de compétence est souvent bien plus large que l'erreur observée
+    # (« Polygones et sections de solides » pour un volume de pyramide raté) :
+    # sans lui, T1 testait une autre notion (recette du 2026-10-17).
+    question_t0: str | None = None
 
 
 class ConfirmationRequest(BaseModel):

@@ -1,646 +1,1727 @@
-# Corrigés saisis à la main, hors du classeur source.
-# Fichier SÉPARÉ des barèmes, délibérément : generer_baremes_socle.py
-# régénère les barèmes depuis Referentiel_Socle_v0.xlsx et écraserait des
-# corrigés qui y seraient stockés. Il fusionne ce fichier à la génération.
-# Produit par scripts/integrer_corriges.py — modifiable à la main si besoin.
+# Corrigés des tests diagnostiques d'entrée — batterie allégée du 2026-10-06.
+# Transcrits le 2026-10-16 des corrigés PDF enseignant (data/Documents/corriges/,
+# livraison test-evaluation/ du 2026-10-16), page par page : les valeurs
+# numériques y sont dessinées en vectoriel et invisibles à l'extraction texte.
+# Remplace intégralement les corrigés des sujets du 2026-08-12 (codes réattribués :
+# un même code désigne aujourd'hui une autre question).
+#
+# Fichier SÉPARÉ des barèmes, délibérément : scripts/generer_baremes_socle.py
+# régénère les barèmes depuis data/referentiel/Referentiel_Urie_v1.xlsx et
+# fusionne ce fichier. Pour corriger une réponse : éditer ici, puis relancer.
+#
+# Par question : reponse_attendue (non-QCM ; la bonne lettre des QCM vient du
+# classeur), solution (démarche + barème détaillé du corrigé), si_echoue.
 
 corriges:
-  1ereD:
-    D2:
-      reponse_attendue: moyenne = 6 ; etendue = 5
-      solution: somme=4+7+5+4+9+6+4+8+5+8=60 ; moyenne=60/10=6 ; etendue=max-min=9-4=5.
-    F10:
-      reponse_attendue: Strictement decroissante sur [0;+infini[
-      solution: ''
-    F11:
-      reponse_attendue: Dg = ]-infini ; 5[
-      solution: il faut 5-x > 0 (racine carree strictement positive au denominateur) -> x<5.
-    F12:
-      reponse_attendue: h croit de -2 (x=-5) a 3 (x=-1) ; decroit de 3 (x=-1) a -4 (x=2) ; croit de -4
-        (x=2) a 2 (x=4)
-      solution: tableau de variations construit directement a partir des 4 points donnes par l'enonce.
-    F13:
-      reponse_attendue: sin x = 4/5
-      solution: 'sin^2(x)=1-cos^2(x)=1-9/25=16/25 ; x dans [0;pi/2] donc sin x positif : sin x=4/5.'
-    F2:
-      reponse_attendue: R prive de 3
-      solution: ''
-    F3:
-      reponse_attendue: '4'
-      solution: ''
-    F4:
-      reponse_attendue: Paire
-      solution: ''
-    F5:
-      reponse_attendue: 3 pi / 4
-      solution: ''
-    F7:
-      reponse_attendue: '-5'
-      solution: ''
-    F8:
-      reponse_attendue: x appartient a ]-1 ; 4[
-      solution: ''
-    G1:
-      reponse_attendue: '2'
-      solution: ''
-    G10:
-      reponse_attendue: vecteur IJ = (1/3)vecteur AC - (1/2)vecteur AB
-      solution: I milieu [AB] -> vecteur AI=(1/2)vecteur AB ; J tel que vecteur AJ=(1/3)vecteur AC ; vecteur
-        IJ=vecteur AJ-vecteur AI=(1/3)AC-(1/2)AB.
-    G11:
-      reponse_attendue: AB.AC = 0 ; triangle ABC rectangle en A
-      solution: vecteur AB=(4;2), vecteur AC=(-1;2) ; AB.AC=4x(-1)+2x2=-4+4=0 -> vecteurs orthogonaux
-        -> rectangle en A.
-    G2:
-      reponse_attendue: y = 3x - 7
-      solution: ''
-    G3:
-      reponse_attendue: k = -3
-      solution: ''
-    G5:
-      reponse_attendue: m = 6
-      solution: ''
-    G7:
-      reponse_attendue: '5'
-      solution: ''
-    G8:
-      reponse_attendue: M'(10 ; -4)
-      solution: ''
-    G9:
-      reponse_attendue: Non coplanaires (droites gauches)
-      solution: ''
-    L1:
-      reponse_attendue: x = 2 ou x = 3
-      solution: ''
-    L10:
-      reponse_attendue: S = ]-infini;-1[ union [3;+infini[
-      solution: numerateur 2x-6 nul en x=3 ; denominateur x+1 nul en x=-1 (exclu) ; tableau de signes
-        du quotient.
-    L2:
-      reponse_attendue: (x - 3)(x - 4)
-      solution: ''
-    L3:
-      reponse_attendue: x = 3 ; y = 1
-      solution: ''
-    L6:
-      reponse_attendue: 2(x + 2)(x - 5)
-      solution: ''
-    L7:
-      reponse_attendue: x appartient a [2 ; 5[
-      solution: ''
-    L8:
-      reponse_attendue: x=11 (retenu, positif) ; x=-14 rejete ; largeur = 11 m
-      solution: delta=3^2+4x154=9+616=625=25^2 ; x=(-3+25)/2=11 ou x=(-3-25)/2=-14 (rejete).
-    L9:
-      reponse_attendue: f(x) < 0 sur ]-infini;-1[ et ]5;+infini[ ; f(x) > 0 sur ]-1;5[ ; nul en -1 et
-        5
-      solution: 'racines de -x^2+4x+5=0 (soit x^2-4x-5=0) : x=-1 et x=5 ; coefficient de x^2 negatif (a=-1)
-        donc f positif entre les racines, negatif a l''exterieur.'
-    N2:
-      reponse_attendue: a = 2
-      solution: ''
-    N4:
-      reponse_attendue: A = 1
-      solution: 3-racine(10)<0 donc |3-racine(10)|=racine(10)-3 ; racine(10)-4<0 donc |racine(10)-4|=4-racine(10)
-        ; A=(racine(10)-3)+(4-racine(10))=1.
-  2ndeC:
-    D1:
-      reponse_attendue: 30 %
-      solution: ''
-    D2:
-      reponse_attendue: effectif total = 25 ; moyenne = 9,92 ; frequence(10) = 32 %
-      solution: somme=5x3+8x6+10x8+12x5+15x3=15+48+80+60+45=248 ; 248/25=9,92 ; 8/25x100=32%.
-    F2:
-      reponse_attendue: y = -2x + 3
-      solution: ''
-    F3:
-      reponse_attendue: f(x) = 500 + 150x ; f(12) = 2 300 F ; masse = 20 kg
-      solution: f(12)=500+150x12=2300 ; 500+150x=3500 -> 150x=3000 -> x=20.
-    G10:
-      reponse_attendue: F(7 ; -7)
-      solution: ''
-    G11:
-      reponse_attendue: vecteur AB(4;2) ; vecteur AC(6;3) ; A, B, C sont alignes
-      solution: 'AC=1,5 x AB (6/4=3/2=1,5 et 3/2=1,5) donc les vecteurs sont colineaires : A, B, C alignes.'
-    G12:
-      reponse_attendue: diagonale AC = 50 m ; trajet par B = 70 m ; difference = 20 m
-      solution: AC=racine(40^2+30^2)=racine(2500)=50 ; AB+BC=40+30=70 ; 70-50=20.
-    G13:
-      reponse_attendue: BC = 12,5 cm ; AN = 6 cm
-      solution: 'AB=AM+MB=4+6=10 ; Thales : 4/10=AN/15=5/BC -> AN=6 ; BC=12,5.'
-    G2:
-      reponse_attendue: I(1 ; 1)
-      solution: ''
-    G3:
-      reponse_attendue: vecteur AD
-      solution: ''
-    G6:
-      reponse_attendue: 12 cm
-      solution: ''
-    G7:
-      reponse_attendue: k = -3
-      solution: ''
-    G8:
-      reponse_attendue: Angle droit en S
-      solution: ''
-    G9:
-      reponse_attendue: 2 m
-      solution: ''
-    L10:
-      reponse_attendue: R = (2x-3)(x+2) ; R(-2) = 0
-      solution: 4x^2-9=(2x-3)(2x+3) ; R=(2x-3)(2x+3)-(2x-3)(x+1)=(2x-3)[(2x+3)-(x+1)]=(2x-3)(x+2) ; R(-2)=(-7)(0)=0.
-    L11:
-      reponse_attendue: 2x + 5000 = 41000 ; mil = 18 000 F, riz = 23 000 F
-      solution: x+(x+5000)=41000 -> 2x=36000 -> x=18000 ; riz=18000+5000=23000.
-    L12:
-      reponse_attendue: niebe = 800 F/kg ; sorgho = 600 F/kg
-      solution: '3n+2s=3600 ; 5n+2s=5200 ; soustraction : 2n=1600 -> n=800 ; 3x800+2s=3600 -> s=600.'
-    L2:
-      reponse_attendue: (x - 7)(x + 7)
-      solution: ''
-    L4:
-      reponse_attendue: x <= 4
-      solution: ''
-    L6:
-      reponse_attendue: (3x - 1)(4x + 3)
-      solution: ''
-    L7:
-      reponse_attendue: x = 4 ; y = 3
-      solution: ''
-    L8:
-      reponse_attendue: x = 3 ou x = -5
-      solution: ''
-    N1:
-      reponse_attendue: -11/12
-      solution: ''
-    N10:
-      reponse_attendue: -1 <= 5-2x <= 1 ; intervalle [-1;1]
-      solution: x=2 -> 5-2x=1 ; x=3 -> 5-2x=-1 (fonction decroissante en x).
-    N2:
-      reponse_attendue: 4,5 x 10 puissance -3
-      solution: ''
-    N3:
-      reponse_attendue: a = 5
-      solution: ''
-    N5:
-      reponse_attendue: '15'
-      solution: ''
-    N7:
-      reponse_attendue: a = 2
-      solution: ''
-    N8:
-      reponse_attendue: 0,6 kg
-      solution: ''
-    N9:
-      reponse_attendue: P = 4 racine(3) ; Q = 19
-      solution: sqrt(75)=5sqrt(3), 2sqrt(12)=4sqrt(3), sqrt(27)=3sqrt(3) -> P=5sqrt(3)-4sqrt(3)+3sqrt(3)=4sqrt(3)
-        ; Q=(2sqrt(5))^2-1=20-1=19.
-  3eme:
-    D1:
-      reponse_attendue: 36 %
-      solution: ''
-    D3:
-      reponse_attendue: '11'
-      solution: ''
-    D4:
-      reponse_attendue: Moyenne 10,95 ; frequence(12) = 40 %
-      solution: effectif total=3+5+8+4=20 ; somme=6x3+9x5+12x8+15x4=18+45+96+60=219 ; moyenne=219/20=10,95
-        ; frequence(12)=8/20x100=40%.
-    D5:
-      reponse_attendue: Benefice 2 100 F ; prix de vente 19 600 F
-      solution: benefice=17500x0,12=2100 F ; prix de vente=17500+2100=19600 F.
-    F2:
-      reponse_attendue: 'g(-1)=9 ; g(0)=7 ; g(4)=-1 ; antecedent de 1 : x=3'
-      solution: g(x)=-2x+7 ; g(-1)=2+7=9 ; g(0)=7 ; g(4)=-8+7=-1 ; -2x+7=1 -> x=3.
-    G1:
-      reponse_attendue: '8'
-      solution: ''
-    G10:
-      reponse_attendue: 45 degres
-      solution: ''
-    G11:
-      reponse_attendue: B(5 ; -4) ; J(-1 ; 0,5)
-      solution: B=2I-A=(2x1-(-3) ; 2x(-1)-2)=(5;-4) ; J=milieu[AI]=((-3+1)/2 ; (2-1)/2)=(-1;0,5).
-    G13:
-      reponse_attendue: F est le milieu de [MP] ; MF = 4,5 cm
-      solution: 'E milieu de [MN], (EF)//(NP) -> reciproque du theoreme des milieux : F est le milieu
-        de [MP]. MF=MP/2=9/2=4,5 cm.'
-    G2:
-      reponse_attendue: vecteur DC
-      solution: ''
-    G4:
-      reponse_attendue: Q
-      solution: ''
-    G6:
-      reponse_attendue: '-7'
-      solution: ''
-    G7:
-      reponse_attendue: 4,7 cm
-      solution: ''
-    G9:
-      reponse_attendue: '[TU]'
-      solution: ''
-    L1:
-      reponse_attendue: 2x - 11
-      solution: ''
-    L10:
-      reponse_attendue: G = (3x-2)(4x+9) ; G(1) = 13
-      solution: 9x^2-4=(3x-2)(3x+2) ; G=(3x-2)(3x+2)+(3x-2)(x+7)=(3x-2)[(3x+2)+(x+7)]=(3x-2)(4x+9) ; G(1)=(1)(13)=13.
-    L11:
-      reponse_attendue: 5x + 9000 = 24000 ; x = 3 000 F
-      solution: 5x=24000-9000=15000 ; x=15000/5=3000. Le poulet coute 3000 FCFA.
-    L3:
-      reponse_attendue: 7x(x + 3)
-      solution: ''
-    L4:
-      reponse_attendue: x <= 5
-      solution: ''
-    L6:
-      reponse_attendue: (5x - 4)(5x + 4)
-      solution: ''
-    L7:
-      reponse_attendue: x = 18
-      solution: ''
-    L8:
-      reponse_attendue: 2x + 5 <= 17
-      solution: ''
-    L9:
-      reponse_attendue: E = 8x au carre - 12x + 29 ; E(2) = 37
-      solution: (3x-2)^2=9x^2-12x+4 ; (x+5)(x-5)=x^2-25 ; E=9x^2-12x+4-x^2+25=8x^2-12x+29 ; E(2)=32-24+29=37.
-    N1:
-      reponse_attendue: -7 et 12/4 (=3)
-      solution: ''
-    N3:
-      reponse_attendue: 2,33
-      solution: ''
-    N4:
-      reponse_attendue: 5/6
-      solution: ''
-    N5:
-      reponse_attendue: -14/7 appartient a Z ; 1/3 n'appartient pas a D
-      solution: ''
-    N7:
-      reponse_attendue: 2 x 10 puissance 4
-      solution: ''
-    N9:
-      reponse_attendue: 7/18 creuse ; reste 11/18
-      solution: 2/9+1/6=4/18+3/18=7/18 creuse ; reste=1-7/18=11/18.
-  4eme:
-    D2:
-      reponse_attendue: 15 %
-      solution: augmentation=20700-18000=2700 ; pourcentage=2700/18000x100=15%.
-    G1:
-      reponse_attendue: 67 degres
-      solution: ''
-    G3:
-      reponse_attendue: 3,5 cm
-      solution: ''
-    G4:
-      reponse_attendue: 73 degres
-      solution: ''
-    G6:
-      reponse_attendue: 4 cm
-      solution: ''
-    G8:
-      reponse_attendue: 54 m3
-      solution: aire base=6x6=36 m2 ; volume=(36x4,5)/3=162/3=54 m3.
-    G9:
-      reponse_attendue: 58 degres -- angles alternes-internes
-      solution: 'M et N de part et d''autre de (Delta) sur les deux paralleles : les angles alternes-internes
-        formes sont egaux.'
-    L1:
-      reponse_attendue: x = 13
-      solution: ''
-    L2:
-      reponse_attendue: x = 7
-      solution: ''
-    L4:
-      reponse_attendue: 2x - 9 = 17
-      solution: ''
-    L5:
-      reponse_attendue: 4x + 1250 = 19250 ; x = 4 500 F
-      solution: 4x=19250-1250=18000 ; x=18000/4=4500. Le poulet coute 4500 FCFA.
-    M2:
-      reponse_attendue: 40 km/h
-      solution: ''
-    M3:
-      reponse_attendue: 9 cm
-      solution: ''
-    M5:
-      reponse_attendue: 1/200
-      solution: ''
-    M6:
-      reponse_attendue: debit 80 L/min ; 6 000 L en 1h15min
-      solution: debit=3600/45=80 L/min ; 1h15min=75min ; volume=80x75=6000 L.
-    N1:
-      reponse_attendue: 2 745 et 4 050
-      solution: ''
-    N11:
-      reponse_attendue: 2/3
-      solution: ''
-    N12:
-      reponse_attendue: 2 au carre x 3 au carre x 5
-      solution: ''
-    N14:
-      reponse_attendue: 3(3x + 5)
-      solution: ''
-    N15:
-      reponse_attendue: 4/15 de la recolte
-      solution: 2/5+1/3=6/15+5/15=11/15 vendue ; reste=1-11/15=4/15.
-    N16:
-      reponse_attendue: A = 4 au carre (=16) ; B = -32
-      solution: 4^6x4^3/4^7=4^(9-7)=4^2 ; (-2)^5=-32.
-    N17:
-      reponse_attendue: 66 kg par sac ; 5 sacs au total
-      solution: PGCD(132,198)=66 ; 132/66=2 sacs de mil ; 198/66=3 sacs de sorgho ; total=5 sacs.
-    N18:
-      reponse_attendue: 5x + 35
-      solution: 5x(x+7)=5x+35.
-    N3:
-      reponse_attendue: 19/12
-      solution: ''
-    N4:
-      reponse_attendue: '11'
-      solution: ''
-    N5:
-      reponse_attendue: 1, 3, 5, 9, 15, 45
-      solution: ''
-    N7:
-      reponse_attendue: '42'
-      solution: ''
-    N8:
-      reponse_attendue: 6 600 F
-      solution: ''
-    N9:
-      reponse_attendue: '30'
-      solution: ''
-  5eme:
-    D1:
-      reponse_attendue: 4 800 F
-      solution: ''
-    D2:
-      reponse_attendue: S(4 ; 3)
-      solution: ''
-    D4:
-      reponse_attendue: '7 savons : 1 750 FCFA ; 12 savons : 3 000 FCFA'
-      solution: Prix unitaire = 1000/4 = 250 FCFA par savon ; 7x250=1750 ; 12x250=3000.
-    D5:
-      reponse_attendue: 'A(2 ; 3) ; B(5 ; 3) ; C(5 ; 7)'
-      solution: ''
-    G12:
-      reponse_attendue: HG = 7 cm ; angle FGH = 110 degres.
-      solution: HG=EF=7cm (cotes opposes d'un parallelogramme, meme longueur) ; angle FGH=angle HEF=110
-        degres (angles opposes d'un parallelogramme, meme mesure).
-    G2:
-      reponse_attendue: Isocele en A
-      solution: ''
-    G3:
-      reponse_attendue: 9 cm
-      solution: ''
-    G4:
-      reponse_attendue: 53 degres
-      solution: ''
-    G5:
-      reponse_attendue: (d3) et (d2) sont perpendiculaires
-      solution: ''
-    G6:
-      reponse_attendue: 6 cm
-      solution: ''
-    G8:
-      reponse_attendue: 6,2 cm
-      solution: ''
-    M1:
-      reponse_attendue: 3 500 m
-      solution: ''
-    M2:
-      reponse_attendue: 27 cm2
-      solution: ''
-    M3:
-      reponse_attendue: 38 cm
-      solution: ''
-    M6:
-      reponse_attendue: 6 cm
-      solution: ''
-    M7:
-      reponse_attendue: 330 m2
-      solution: Aire du rectangle = AB x BC = 20 x 12 = 240 m2 ; DC=AB=20 m (cotes opposes du rectangle)
-        ; aire du triangle DCE = (DC x hauteur)/2 = (20x9)/2 = 90 m2 ; aire totale = 240+90 = 330 m2.
-    M8:
-      reponse_attendue: 52 cm2
-      solution: Aire totale = 2x(4x3 + 4x2 + 3x2) = 2x(12+8+6) = 2x26 = 52 cm2.
-    N1:
-      reponse_attendue: 64,75
-      solution: ''
-    N11:
-      reponse_attendue: 5 000
-      solution: ''
-    N13:
-      reponse_attendue: 46 000 FCFA
-      solution: 6x21500=129000 ; 4x6250=25000 ; depense totale=129000+25000=154000 ; monnaie rendue=200000-154000=46000
-        FCFA.
-    N14:
-      reponse_attendue: Aire semee en mil = 18 ares ; le mil occupe la plus grande partie du champ.
-      solution: 48x3/8=144/8=18 ares (mil) ; 48x1/4=12 ares (niebe) ; 18>12 donc le mil occupe la plus
-        grande partie.
-    N15:
-      reponse_attendue: 'Ordre decroissant : D ; B ; C ; A (soit +5 > +3 > -1 > -4). Le point situe entre
-        A et B est C, d''abscisse -1.'
-      solution: -4 < -1 < +3 donc C (-1) est entre A (-4) et B (+3) ; D (+5) n'est pas entre les deux.
-    N2:
-      reponse_attendue: '19'
-      solution: ''
-    N3:
-      reponse_attendue: 2/3
-      solution: ''
-    N5:
-      reponse_attendue: 1 700
-      solution: ''
-    N6:
-      reponse_attendue: '13'
-      solution: ''
-    N7:
-      reponse_attendue: 12,8 kg
-      solution: ''
-    N9:
-      reponse_attendue: '800'
-      solution: ''
   6eme:
-    D2:
-      reponse_attendue: 31 %
-      solution: ''
-    D3:
-      reponse_attendue: 12 000 F
-      solution: ''
-    D4:
-      reponse_attendue: '5 sacs : 85 000 F ; 9 sacs : 153 000 F'
-      solution: prix unitaire=51000/3=17000 FCFA ; 5x17000=85000 ; 9x17000=153000.
-    D5:
-      reponse_attendue: 'CM2 A : 80 % ; CM2 B : 70 % ; CM2 A a le meilleur pourcentage'
-      solution: 'CM2 A : 40/50x100=80% ; CM2 B : 21/30x100=70% ; 80%>70%.'
-    G1:
-      reponse_attendue: 4,5 cm
-      solution: ''
-    G2:
-      reponse_attendue: Angle aigu
-      solution: ''
-    G3:
-      reponse_attendue: Isocele
-      solution: ''
-    G4:
-      reponse_attendue: 10,5 cm
-      solution: ''
-    G5:
-      reponse_attendue: '[CD]'
-      solution: ''
-    G7:
-      reponse_attendue: P est a l'interieur du cercle
-      solution: ''
-    M2:
-      reponse_attendue: 84 cm2
-      solution: ''
-    M3:
-      reponse_attendue: 4,5 kg
-      solution: ''
-    M7:
-      reponse_attendue: 258 m
-      solution: perimetre=2x(25+18)=86 m ; 3 tours=3x86=258 m de fil.
-    M8:
-      reponse_attendue: 14 m2
-      solution: aire mur=6x3=18 m2 ; aire porte=2x2=4 m2 ; aire a peindre=18-4=14 m2.
     N1:
-      reponse_attendue: 60 092
-      solution: ''
-    N11:
-      reponse_attendue: 8 < 8,36 < 9
-      solution: ''
-    N13:
-      reponse_attendue: '29'
-      solution: ''
-    N14:
-      reponse_attendue: 3 650 F
-      solution: ''
-    N15:
-      reponse_attendue: 1 155 kg
-      solution: 1250+875+1430=3555 kg recus ; 3555-2400=1155 kg restants.
-    N16:
-      reponse_attendue: 21 cartons pleins, 1 savon restant
-      solution: 253 = 12x21 + 1.
-    N17:
-      reponse_attendue: 'CM1 : 80 livres ; CM2 : 60 livres'
-      solution: 240/3=80 (CM1) ; 240/4=60 (CM2).
-    N18:
-      reponse_attendue: 22 500 F
-      solution: 3x6500=19500 ; 2x4000=8000 ; depense totale=19500+8000=27500 ; monnaie=50000-27500=22500
-        FCFA.
+      reponse_attendue: 9,8 ; 9,1 ; 9,081 ; 9,08
+      solution: 'Barème : 1 pt, tout ou rien — les quatre nombres doivent être rangés du plus grand au
+        plus petit.'
+      si_echoue: 'Comparaison de décimaux : la partie décimale est lue comme un entier, et 9,081 est jugé
+        plus grand que 9,1.'
+    N2:
+      si_echoue: 'Valeur de position : confusion entre la centaine et le centième, ou entre le dixième
+        et le centième.'
     N3:
-      reponse_attendue: 4 555
-      solution: ''
+      reponse_attendue: 7,25
+      si_echoue: 'Technique opératoire de la soustraction de décimaux : les virgules ne sont pas alignées
+        et 14 n''est pas écrit 14,00.'
+    N4:
+      reponse_attendue: 101,5
+      si_echoue: 'Technique opératoire de la multiplication d''un décimal par un entier : placement de
+        la virgule dans le produit.'
     N5:
-      reponse_attendue: 15 648
-      solution: ''
+      si_echoue: 'Sens de la fraction d''une quantité : prendre les trois quarts, c''est diviser par 4
+        puis multiplier par 3.'
     N6:
-      reponse_attendue: 5,09 ; 5,2 ; 5,7 ; 5,71
-      solution: ''
+      reponse_attendue: quotient 33, reste 17
+      solution: 'Barème : 1 pt, tout ou rien — le quotient et le reste sont exigés tous les deux.'
+      si_echoue: 'Division euclidienne : la division n''est pas posée, ou le reste obtenu n''est pas plus
+        petit que le diviseur.'
     N7:
-      reponse_attendue: '2'
-      solution: ''
-    N8:
-      reponse_attendue: 7,6
-      solution: ''
-    N9:
-      reponse_attendue: '15'
-      solution: ''
-  tleD:
-    D2:
-      reponse_attendue: 210 delegations
-      solution: C(7,2) x C(5,2) = 21 x 10 = 210.
-    F1:
-      reponse_attendue: R prive de -2 et 2
-      solution: ''
-    F10:
-      reponse_attendue: y = x - 4
-      solution: ''
-    F11:
-      reponse_attendue: ']-infini;-2] et [2;+infini['
-      solution: ''
-    F12:
-      reponse_attendue: f'(1) = 2
-      solution: ''
-    F13:
-      reponse_attendue: limite en 1 = -1 ; limite en +infini = +infini
-      solution: x^2-3x+2=(x-1)(x-2) donc h(x)=x-2 pour x different de 1 ; lim(x->1) x-2 = -1 ; lim(x->+infini)
-        x-2 = +infini.
-    F14:
-      reponse_attendue: f'(x) = (-2x^2+2x+2)/(x^2+1)^2
-      solution: f'(x)=[2(x^2+1)-(2x-1)(2x)]/(x^2+1)^2 = [2x^2+2-4x^2+2x]/(x^2+1)^2.
-    F15:
-      reponse_attendue: 'x = 2 : tangente y = 9x - 15 ; x = -2 : tangente y = 9x + 17'
-      solution: 'f''(x)=3x^2-3=9 -> x^2=4 -> x=2 ou x=-2 ; f(2)=8-6+1=3 ; f(-2)=-8+6+1=-1 ; tangente en
-        x0 : y=9(x-x0)+f(x0).'
-    F16:
-      reponse_attendue: f croit sur [-2;0] de -16 a 4, decroit sur [0;2] de 4 a 0, croit sur [2;4] de
-        0 a 20
-      solution: f'(x)=3x^2-6x=3x(x-2), nul en 0 et 2, signe positif-negatif-positif ; f(-2)=-16, f(0)=4,
-        f(2)=0, f(4)=20.
-    F2:
-      reponse_attendue: 12x^3 - 4x + 5
-      solution: ''
-    F4:
-      reponse_attendue: g(-x) = -g(x) ; g est impaire
-      solution: ''
-    F7:
-      reponse_attendue: h(x) > 0 sur ]-4 ; -2]
-      solution: ''
-    F8:
-      reponse_attendue: y = 2x - 1
-      solution: ''
+      si_echoue: 'Sens de l''opération et ordre des calculs : l''élève ne voit pas qu''il faut d''abord
+        multiplier, puis soustraire.'
+    M1:
+      reponse_attendue: 307 cm
+      si_echoue: 'Conversion des longueurs : la relation entre le mètre et le centimètre n''est pas installée.'
+    M2:
+      reponse_attendue: 14,3 cm
+      solution: 'Barème : 1 pt, tout ou rien. L''unité n''est pas exigée ici.'
+      si_echoue: 'Périmètre d''un triangle, ou addition de décimaux : les trois côtés ne sont pas additionnés.'
+    M3:
+      si_echoue: 'Aire du triangle : le côté de 5 cm est pris pour la hauteur, ou la division par deux
+        est oubliée.'
+    G1:
+      reponse_attendue: EF = 7 cm
+      si_echoue: 'Milieu d''un segment : le milieu partage le segment en deux longueurs égales, donc EF
+        est le double de IE.'
     G2:
-      reponse_attendue: 6 racine(3) cm
-      solution: ''
+      reponse_attendue: '[AD] et [BC]'
+      solution: 'Barème : 1 pt, tout ou rien — les deux côtés sont exigés. Accepter les écritures [DA]
+        et [CB].'
+      si_echoue: Perpendicularité dans le carré, ou nom des côtés d'un quadrilatère.
     G3:
-      reponse_attendue: '0'
-      solution: ''
+      si_echoue: 'Lecture d''un instrument : la graduation du rapporteur n''est pas choisie d''après la
+        nature de l''angle, alors qu''un angle obtus mesure plus de 90°.'
     G4:
-      reponse_attendue: AC = 10 cm ; AG = 5 racine(5) cm
-      solution: AC=racine(8^2+6^2)=racine(100)=10 ; AG=racine(AC^2+AE^2)=racine(100+25)=racine(125)=5racine(5).
-    L1:
-      reponse_attendue: (x - 3)(2x + 1)
-      solution: ''
-    L3:
-      reponse_attendue: (x + 3)/(x + 1)
-      solution: ''
-    L4:
-      reponse_attendue: a = -2
-      solution: ''
-    L6:
-      reponse_attendue: P(x) = (x-1)(x-3)(x+2) ; solutions x=1, x=3, x=-2
-      solution: 1 racine de P -> P(x)=(x-1)(x^2-x-6) par division euclidienne ; x^2-x-6=(x-3)(x+2).
-    L7:
-      reponse_attendue: S = ]-3 ; 4]
-      solution: '(2x-1)/(x+3)-1 = (2x-1-(x+3))/(x+3) = (x-4)/(x+3) <= 0 ; tableau de signe : numerateur
-        nul en 4, denominateur nul en -3 (exclu).'
+      reponse_attendue: le point Q
+      si_echoue: 'Définition du cercle : un point appartient au cercle lorsque sa distance au centre est
+        égale au rayon.'
+    D1:
+      reponse_attendue: 4 550 FCFA
+      si_echoue: 'Prix unitaire : le passage par le prix d''un kilogramme n''est pas fait.'
+    D2:
+      si_echoue: 'Pourcentage simple : le rapport est inversé, ou l''effectif est recopié tel quel.'
+    N8:
+      reponse_attendue: 4,25 - 1,5 = 2,75 litres
+      solution: 'L''opération attendue est une soustraction : 4,25 - 1,5 = 2,75 litres au départ. Barème
+        : 1 pt pour l''écriture de la soustraction 4,25 - 1,5 (remonter de l''état final à l''état initial)
+        ; 1 pt pour le résultat 2,75 litres. L''élève qui écrit 4,25 + 1,5 n''obtient aucun des deux points.
+        Erreur propagée : une soustraction correctement posée mais mal effectuée garde le premier point.'
+      si_echoue: 'Raisonnement inverse sur l''addition : l''opération de l''énoncé est refaite dans le
+        sens direct (4,25 + 1,5) au lieu d''être remontée. Ou alignement des virgules dans la soustraction,
+        4,25 moins 1,50.'
+    N9:
+      reponse_attendue: 325 × (2 × 12) = 325 × 24 = 7 800 FCFA
+      solution: 'Le double de 12 savons : 2 × 12 = 24 savons. Calcul en une ligne : 325 × (2 × 12) ou
+        325 × 24 = 7 800 FCFA. Barème : 1 pt pour le passage de « le double » au nombre 24 et l''écriture
+        du calcul en une ligne ; 1 pt pour le produit 7 800 FCFA. L''élève qui écrit 325 × 12 × 2 obtient
+        le premier point. L''élève qui calcule 325 × 12 = 3 900 puis 3 900 × 2 = 7 800 obtient les 2 pts.
+        Erreur propagée : un produit correctement posé à partir d''un nombre de savons faux garde le second
+        point.'
+      si_echoue: 'Passage de la langue courante à l''écriture mathématique : « le double » n''est pas
+        traduit, et la somme est calculée pour 12 savons. Ou technique opératoire de la multiplication
+        par un nombre à deux chiffres.'
+    N10:
+      reponse_attendue: 500 = 30 × 16 + 20 ; il faut 17 plateaux, Nafissatou a tort
+      solution: '500 = 30 × 16 + 20 : 16 plateaux remplis et il reste 20 oeufs, qui demandent un plateau
+        de plus : 17 plateaux. Barème : 1 pt pour la division euclidienne, quotient 16 et reste 20 ; 1
+        pt pour avoir compté le plateau incomplet et conclu que Nafissatou a tort. Le second point n''est
+        pas acquis si le reste est calculé sans être traduit dans la situation.'
+      si_echoue: 'Interprétation du reste d''une division euclidienne : le reste est trouvé mais la réponse
+        s''arrête à 16 plateaux.'
+    N11:
+      reponse_attendue: grenier plein = 36 sacs ; 24 places libres < 30, elle ne peut pas ajouter les
+        30 sacs
+      solution: 'Les 12 sacs sont le tiers du grenier : 12 × 3 = 36 sacs. Il reste 36 - 12 = 24 places
+        libres. Or 30 > 24 : non. Barème : 1 pt pour la multiplication par 3 et la contenance totale 36
+        sacs ; 1 pt pour la comparaison des 30 sacs aux 24 places libres et la réponse négative. L''élève
+        qui compare 30 à 36 et répond « oui » perd le second point. L''élève qui divise par 3 et répond
+        4 sacs n''obtient aucun des deux points.'
+      si_echoue: 'Sens de la fraction d''une quantité : la partie est connue et le tout cherché, donc
+        on multiplie ; l''élève divise par trois. Ou condition non repérée : la comparaison est faite
+        avec la contenance totale au lieu de la place disponible.'
+    N12:
+      reponse_attendue: 2 875 FCFA par poulet ; 2 750 FCFA ne suffit pas
+      solution: 'Recette à atteindre : 15 000 + 8 000 = 23 000 FCFA ; prix par poulet : 23 000 : 8 = 2
+        875 FCFA. Or 2 750 < 2 875 : ne suffit pas. Barème : 1 pt pour la recette 23 000 FCFA ; 1 pt pour
+        le prix de vente 2 875 FCFA et la réponse négative. L''élève qui divise directement 15 000 ou
+        8 000 par 8 n''obtient aucun point. Erreur propagée : une division juste sur une recette fausse
+        garde le second point. L''élève qui répond par la vérification seule (8 × 2 750 = 22 000, 22 000
+        - 15 000 = 7 000 < 8 000) obtient 1 pt.'
+      si_echoue: 'Choix des opérations dans un problème inverse : le gain visé n''est pas ajouté au prix
+        d''achat avant le partage entre les 8 poulets.'
+    M4:
+      reponse_attendue: largeur 9 m ; 3 rouleaux
+      solution: 'Demi-périmètre : 46 : 2 = 23 m ; largeur 23 - 14 = 9 m. Le grillage fait 46 m ; 2 rouleaux
+        = 40 m, insuffisant : 3 rouleaux. Barème : 1 pt pour la largeur 9 m via le demi-périmètre 23 m
+        ; 1 pt pour les 3 rouleaux, justifiés par 40 m < 46 m. « 2 rouleaux et un peu plus » ou « 2,3
+        rouleaux » ne vaut pas le second point. L''élève qui écrit 46 - 14 = 32 m perd le premier point
+        mais garde le second s''il compte bien les rouleaux pour 46 m.'
+      si_echoue: 'Formule du périmètre du rectangle employée à l''envers : la longueur est retranchée
+        du périmètre entier au lieu du demi-périmètre. Ou condition non repérée : le résultat de la division
+        n''est pas arrondi au rouleau entier supérieur.'
+    M5:
+      reponse_attendue: hangar 64 m² ; reste 536 m² < 550 m², Sibiri a tort
+      solution: 'Aire du hangar : 8 × 8 = 64 m² ; terrain libre : 600 - 64 = 536 m² ; 536 < 550. Barème
+        : 1 pt pour l''aire du hangar 64 m² ; 1 pt pour la différence 536 m² et la conclusion. L''aire
+        du carré calculée comme 4 × 8 ne vaut pas le premier point.'
+      si_echoue: 'Aire du carré, ou aire vue comme une différence de deux aires : l''élève calcule un
+        périmètre, ou soustrait des longueurs.'
+    G5:
+      reponse_attendue: RS = 4 cm ; (RS) et (MQ) sont parallèles, Issouf a tort
+      solution: 'MRSQ a quatre angles droits : rectangle, donc RS = MQ = NP = 4 cm. (RS) ⊥ (MN) et [MQ]
+        ⊥ [MN] ; deux droites perpendiculaires à une même droite sont parallèles. Barème : 1 pt pour RS
+        = 4 cm, reliée à la largeur du rectangle ; 1 pt pour « Issouf a tort » justifié par la propriété.
+        « Il a tort » sans justification ne vaut pas ce point. RS = 10 cm (confondu avec la longueur)
+        ne vaut pas le premier point.'
+      si_echoue: 'Lien entre perpendicularité et parallélisme : la propriété n''est pas mobilisée, et
+        la perpendicularité est traitée comme si elle se transmettait. Ou figure non construite mentalement
+        : le segment [RS] n''est pas vu comme la largeur du rectangle.'
+    G6:
+      reponse_attendue: rayon 3,5 cm ; cercle de centre O et de rayon 3,5 cm tracé au compas
+      solution: 'Rayon : 7 : 2 = 3,5 cm. Barème : 1 pt pour le rayon 3,5 cm (diamètre divisé par 2) ;
+        1 pt pour le tracé au compas d''un cercle de rayon 3,5 cm à 2 mm près, centre O marqué. Un cercle
+        correctement tracé à partir d''un rayon faux garde le second point.'
+      si_echoue: 'Relation entre rayon et diamètre : l''élève multiplie par 2 au lieu de diviser, et trace
+        un cercle de 7 cm de rayon. Ou passage du calcul au tracé : le compas est ouvert au diamètre.'
+    G7:
+      reponse_attendue: zOy = 130° - 40° = 90° ; angle droit, Kadidiatou a tort
+      solution: 'zOy = 130° - 40° = 90°, un angle droit et non aigu. Barème : 1 pt pour la mesure 90°
+        obtenue par soustraction ; 1 pt pour la nature de l''angle et la conclusion. Erreur propagée :
+        une nature correctement déduite d''une mesure fausse garde le second point.'
+      si_echoue: 'Addition et soustraction d''angles adjacents, ou nature d''un angle : un angle aigu
+        mesure moins de 90°.'
+    D3:
+      reponse_attendue: '59 500 : 8 500 = 7 sacs ; 7 ≠ 8, le client a tort'
+      solution: 'Barème : 1 pt pour avoir choisi la division et obtenu 7 sacs ; 1 pt pour la conclusion
+        qui invalide l''affirmation. Démarche équivalente acceptée : 8 × 8 500 = 68 000 FCFA ≠ 59 500
+        (2 pts).'
+      si_echoue: 'Proportionnalité et prix unitaire : l''élève multiplie au lieu de diviser, ou ne relie
+        pas la somme payée au prix d''un sac.'
+    P1.1:
+      reponse_attendue: 360 - 180 = 180 km ; les deux distances sont égales, Boromo est le milieu
+      solution: 'Barème (2 pts) : 1 pt pour la distance 180 km, 1 pt pour la conclusion appuyée sur l''égalité
+        des deux distances (le mot « oui » seul ne vaut rien). Les 55 voyageurs sont une donnée inutile.'
+      si_echoue: 'Milieu d''un segment non relié à l''égalité de deux longueurs. Ou calcul sur les heures
+        et les minutes : l''heure est comptée pour 100 minutes.'
+    P1.2:
+      reponse_attendue: arrivée à Boromo 9 h 10 ; départ de Boromo 9 h 35
+      solution: '6 h 40 min + 2 h 30 min = 9 h 10 min ; avec l''arrêt : 9 h 10 min + 25 min = 9 h 35 min.
+        Barème (2 pts) : 1 pt pour l''arrivée à 9 h 10, 1 pt pour l''ajout des 25 minutes et l''heure
+        de départ 9 h 35.'
+      si_echoue: 'Calcul sur les heures et les minutes : l''heure est comptée pour 100 minutes.'
+    P1.3:
+      reponse_attendue: arrivée 12 h 20 ; durée 5 h 40 min < 6 h, le voyageur a raison
+      solution: '9 h 35 min + 2 h 45 min = 12 h 20 min ; départ 6 h 40 : durée 5 h 40 min. Accepter aussi
+        2 h 30 min + 25 min + 2 h 45 min = 5 h 40 min. Barème (3 pts) : 1 pt pour l''heure d''arrivée
+        12 h 20, 1 pt pour la durée 5 h 40 min, 1 pt pour la phrase de conclusion. Erreur propagée : une
+        durée juste calculée à partir d''une heure d''arrivée fausse garde son point.'
+      si_echoue: 'Calcul sur les heures et les minutes : l''heure est comptée pour 100 minutes.'
+    P2.1:
+      reponse_attendue: 37 500 FCFA, trente-sept mille cinq cents francs CFA
+      solution: '3 × 10 000 + 7 × 1 000 + 5 × 100 = 30 000 + 7 000 + 500 = 37 500. Barème (2 pts) : 1
+        pt pour la somme 37 500 FCFA, 1 pt pour l''écriture en lettres (orthographe non prise en compte).'
+      si_echoue: 'Numération en contexte monétaire : décomposition d''une somme en billets et pièces,
+        ou passage de l''écriture chiffrée à l''écriture en lettres.'
+    P2.2:
+      reponse_attendue: 7 500 FCFA
+      solution: '37 500 : 100 = 375, puis 375 × 20 = 7 500. Accepter le passage par le cinquième : 37
+        500 : 5 = 7 500. Barème (2 pts) : 1 pt pour la méthode de calcul des 20 %, 1 pt pour le montant
+        7 500 FCFA.'
+      si_echoue: Calcul du pourcentage d'une somme.
+    P2.3:
+      reponse_attendue: 45 000 FCFA < 60 000 FCFA ; il manque 15 000 FCFA
+      solution: '37 500 + 7 500 = 45 000 FCFA, et 45 000 < 60 000 ; il manque 60 000 - 45 000 = 15 000
+        FCFA. Conclusion attendue : « L''association ne peut pas payer le forage : il lui manque 15 000
+        FCFA. » Barème (3 pts) : 1 pt pour le total disponible 45 000 FCFA, 1 pt pour la comparaison avec
+        60 000 FCFA, 1 pt pour la phrase de conclusion donnant la somme manquante 15 000 FCFA.'
+      si_echoue: 'Numération en contexte monétaire, ou calcul du pourcentage d''une somme : le total disponible
+        n''est pas reconstitué avant la comparaison.'
+    P3.1:
+      reponse_attendue: '2 400 : 100 = 24 sacs'
+      solution: 'Barème (2 pts) : 1 pt pour avoir choisi la division par 100, 1 pt pour le résultat 24
+        sacs. La distance de 180 km est une donnée inutile.'
+      si_echoue: 'Choix de l''opération : la division par la contenance d''un sac n''est pas reconnue.'
+    P3.2:
+      reponse_attendue: offre A 36 000 FCFA ; offre B 34 400 FCFA
+      solution: 'Offre A : 24 × 1 500 = 36 000 FCFA. Offre B : 20 000 + 24 × 600 = 20 000 + 14 400 = 34
+        400 FCFA. Barème (3 pts) : 1 pt pour l''offre A à 36 000 FCFA ; pour l''offre B, 1 pt pour le
+        produit 14 400 FCFA et 1 pt pour l''ajout des 20 000 FCFA du camion.'
+      si_echoue: 'Comparaison de deux tarifs dont l''un comporte une part fixe : la part fixe est oubliée.'
+    P3.3:
+      reponse_attendue: pour 10 sacs, A = 15 000 FCFA et B = 26 000 FCFA ; l'offre B n'est pas toujours
+        la moins chère, Hamidou a tort
+      solution: 'A : 10 × 1 500 = 15 000 FCFA ; B : 20 000 + 10 × 600 = 26 000 FCFA. Barème (3 pts) :
+        1 pt pour l''offre A à 15 000 FCFA, 1 pt pour l''offre B à 26 000 FCFA, 1 pt pour la phrase de
+        conclusion qui invalide l''affirmation de Hamidou. Erreur propagée : une comparaison correctement
+        conduite sur deux prix faux garde le dernier point.'
+      si_echoue: Comparaison de deux tarifs dont l'un comporte une part fixe, ou généralisation d'un cas
+        particulier sans vérification sur un second cas.
+  5eme:
     N1:
-      reponse_attendue: '36'
-      solution: ''
+      reponse_attendue: 5,034
+      si_echoue: 'Numération décimale : le rang des millièmes n''est pas identifié.'
+    N2:
+      reponse_attendue: '22'
+      si_echoue: 'Priorités opératoires : la parenthèse puis la multiplication ne passent pas avant la
+        soustraction.'
+    N3:
+      reponse_attendue: -9 < -3 < -1 < +2
+      solution: 'Barème : 1 pt, tout ou rien. La liste -9 ; -3 ; -1 ; +2 sans signes de comparaison est
+        acceptée.'
+      si_echoue: 'Comparaison des nombres relatifs : l''ordre des négatifs est inversé.'
+    N4:
+      reponse_attendue: 1 683
+      solution: 'Barème : 1 pt, tout ou rien. Aucune justification n''étant demandée en partie A, seul
+        le résultat est évalué.'
+      si_echoue: 'Calcul astucieux : la décomposition 99 = 100 - 1 n''est pas mobilisée.'
+    N5:
+      reponse_attendue: '78'
+      si_echoue: 'Egalité à trou : la division n''est pas défaite par la multiplication.'
+    N6:
+      si_echoue: 'Simplification de fraction : le diviseur commun 12 n''est pas trouvé, la simplification
+        reste partielle.'
+    M1:
+      reponse_attendue: 420 L
+      si_echoue: 'Conversion des capacités : le rang de l''hectolitre n''est pas placé dans le tableau
+        des unités.'
+    M2:
+      reponse_attendue: 28 cm²
+      si_echoue: 'Aire du parallélogramme : la hauteur relative à la base est confondue avec un côté.'
+    M3:
+      si_echoue: 'Aire totale du cube : les six faces ne sont pas dénombrées, ou l''aire est confondue
+        avec le volume.'
+    G1:
+      reponse_attendue: Elles sont parallèles.
+      solution: 'Barème : 1 pt, tout ou rien. La notation (d) // (d'') est acceptée.'
+      si_echoue: 'Propriété : deux droites perpendiculaires à une même droite sont parallèles entre elles.'
+    G2:
+      reponse_attendue: NON
+      si_echoue: 'Inégalité triangulaire : la somme des deux plus petits côtés n''est pas comparée au
+        plus grand.'
+    G3:
+      reponse_attendue: 62°
+      si_echoue: 'Angles supplémentaires : la somme 180° est confondue avec 90°.'
+    G4:
+      si_echoue: 'Médiatrice : la propriété d''équidistance n''est pas connue, la médiatrice est réduite
+        au milieu du segment.'
+    G5:
+      si_echoue: 'Parallélogramme : les propriétés du losange et du rectangle lui sont attribuées ; le
+        centre n''est pas vu comme milieu commun des diagonales.'
+    D1:
+      si_echoue: 'Pourcentage de remise : le montant de la remise est pris pour le prix payé.'
+    D2:
+      reponse_attendue: (4 ; 4)
+      si_echoue: 'Repérage dans le plan : abscisse et ordonnée sont confondues.'
+    N7:
+      reponse_attendue: 5 + 3 × 8 = 29 (la multiplication est prioritaire) ; (5 + 3) × 8 = 64
+      solution: 'Dans 5 + 3 × 8, la multiplication est prioritaire : 5 + 24 = 29. Rasmané a effectué l''addition
+        avant la multiplication. Expression parenthésée : (5 + 3) × 8 = 64. Barème : 1 pt pour avoir nommé
+        la priorité de la multiplication sur l''addition, le calcul 5 + 24 = 29 valant à lui seul cette
+        explication ; 1 pt pour une expression parenthésée dont le résultat est bien 64. Toute autre expression
+        correcte, par exemple 8 × (10 - 2), vaut ce second point.'
+      si_echoue: Priorités opératoires et rôle des parenthèses dans une expression.
+    N8:
+      reponse_attendue: récolte de 90 kg ; Talato a raison (3/5 > 2/5, ou 54 kg > 36 kg)
+      solution: 'Il reste 1 - 2/5 = 3/5 de la récolte, soit 54 kg ; 1/5 vaut 54 : 3 = 18 kg ; récolte
+        totale 18 × 5 = 90 kg. Masse vendue 90 - 54 = 36 kg. Barème : 1 pt pour avoir reconnu que les
+        54 kg représentent les 3/5 et trouvé 90 kg ; 1 pt pour le jugement « oui » justifié, par la comparaison
+        des fractions 3/5 et 2/5 ou des masses 54 kg et 36 kg. Le mot « oui » seul ne vaut rien. Un jugement
+        correctement justifié à partir d''une récolte erronée garde son point.'
+      si_echoue: 'Fraction d''une quantité en raisonnement inverse : le retour à l''unité fractionnaire
+        n''est pas maîtrisé.'
+    N9:
+      reponse_attendue: B a pour abscisse +3 ou -11 ; deux réponses car B peut être à droite ou à gauche
+        de A
+      solution: 'A droite : -4 + 7 = +3 ; à gauche : -4 - 7 = -11. Barème : 1 pt pour les deux abscisses
+        +3 et -11, une seule valant 0,5 pt ; 1 pt pour l''explication par les deux positions possibles
+        de B par rapport à A.'
+      si_echoue: 'Repérage sur une droite graduée : la distance n''est lue que dans un seul sens.'
+    N10:
+      reponse_attendue: '13'
+      solution: 'On défait les opérations dans l''ordre inverse : 92 - 14 = 78, puis 78 : 6 = 13. Vérification
+        : 13 × 6 + 14 = 92. Barème : 1 pt pour le nombre 13 obtenu en défaisant les deux opérations dans
+        l''ordre inverse ; 1 pt pour la vérification écrite 13 × 6 + 14 = 92. Une vérification juste conduite
+        sur un nombre erroné garde son point.'
+      si_echoue: 'Raisonnement inverse : les opérations ne sont pas défaites dans l''ordre, ou la vérification
+        est omise.'
+    M4:
+      reponse_attendue: largeur 70 m = 7 dam
+      solution: 'Demi-périmètre : 360 : 2 = 180 m ; largeur 180 - 110 = 70 m = 7 dam. Barème : 1 pt pour
+        la largeur 70 m obtenue à partir du demi-périmètre ; 1 pt pour la conversion en décamètres, l''unité
+        dam étant ici évaluée : le seul nombre 7 sans unité ne vaut pas ce point. La conversion juste
+        d''une largeur erronée garde son point.'
+      si_echoue: Périmètre du rectangle en raisonnement inverse, et conversion des unités de longueur.
+    M5:
+      reponse_attendue: 'aire découverte 38 m² > 27 m² (moitié de 54 m²) : oui'
+      solution: 'Tapis : 4 × 4 = 16 m² ; découvert : 54 - 16 = 38 m² ; moitié de la salle : 54 : 2 = 27
+        m². Barème : 1 pt pour l''aire découverte 38 m² ; 1 pt pour la comparaison à 27 m² et la réponse
+        affirmative justifiée. L''élève qui recalcule l''aire de la salle par 9 × 6 n''est pas pénalisé.
+        La comparaison juste d''une aire découverte erronée à la moitié de 54 m² garde son point.'
+      si_echoue: Aire du carré et soustraction de deux aires ; comparaison d'une aire à la moitié d'une
+        autre.
+    G6:
+      reponse_attendue: BOC = 60° et AOB = 120° ; AOB est l'angle obtus
+      solution: 'AOB + BOC = 180° et AOB = 2 × BOC, donc 3 × BOC = 180°, BOC = 60° et AOB = 120°, obtus
+        car compris entre 90° et 180°. Barème : 1 pt pour les deux mesures obtenues en partageant 180°
+        en trois parts égales ; 1 pt pour avoir désigné AOB comme angle obtus en le comparant à 90°.'
+      si_echoue: Angles supplémentaires et partage de 180° en parts égales ; vocabulaire aigu et obtus.
+    G7:
+      reponse_attendue: EF = EG = 7 cm ; programme de construction (segment [FG] de 8 cm, arcs de centres
+        F et G de rayon 7 cm, point E, segments [EF] et [EG])
+      solution: 'EF + EG = 22 - 8 = 14 cm, donc EF = 7 cm. Programme : 1. tracer [FG] de 8 cm ; 2. arc
+        de centre F de rayon 7 cm ; 3. arc de centre G de rayon 7 cm, qui coupe le premier en E ; 4. tracer
+        [EF] et [EG]. Barème : 1 pt pour EF = EG = 7 cm obtenu à partir du périmètre ; 1 pt pour un programme
+        exécutable, ordonné et donnant les trois longueurs utiles. Un programme correct appuyé sur une
+        longueur erronée garde son point. Un programme qui place E sans dire comment, ou oublie le second
+        arc, vaut 0,5 pt. Aucun tracé n''est demandé.'
+      si_echoue: Périmètre du triangle isocèle en raisonnement inverse, et passage de la figure décrite
+        à un programme de construction.
+    G8:
+      reponse_attendue: NP = 5 cm ; MN ≠ NP donc MNPQ n'est pas un losange, Kadidiatou a tort
+      solution: 'Demi-périmètre : MN + NP = 26 : 2 = 13 cm ; NP = 13 - 8 = 5 cm. Un losange a ses quatre
+        côtés égaux, or MN = 8 cm et NP = 5 cm. Barème : 1 pt pour NP = 5 cm obtenu par le demi-périmètre
+        ; 1 pt pour le refus justifié par l''inégalité de deux côtés consécutifs et la propriété du losange.
+        Un refus justifié à partir d''une valeur de NP erronée mais différente de 8 cm garde son point.'
+      si_echoue: Propriétés du parallélogramme et caractérisation du losange.
+    G9:
+      reponse_attendue: MB = 5 cm (M sur la médiatrice, donc MA = MB) ; M n'est pas le milieu de [AB],
+        Safiatou a tort
+      solution: 'Tout point de la médiatrice est équidistant des extrémités : MB = MA = 5 cm. Le milieu
+        de [AB] est à 6 : 2 = 3 cm de A, or MA = 5 cm. Barème : 1 pt pour MB = 5 cm appuyé sur la propriété
+        d''équidistance (MB = 5 cm sans la propriété : 0,5 pt) ; 1 pt pour le refus justifié, par la distance
+        de 3 cm entre le milieu et A, ou par le fait que M n''appartient pas au segment [AB].'
+      si_echoue: 'Médiatrice : propriété d''équidistance, et confusion entre la médiatrice et le milieu
+        du segment.'
+    D3:
+      reponse_attendue: 10 m au maximum ; 12 m coûtent 18 000 FCFA > 15 000, Nafissatou a tort
+      solution: 'Prix d''un mètre : 9 000 : 6 = 1 500 FCFA ; longueur maximale : 15 000 : 1 500 = 10 m
+        ; 12 × 1 500 = 18 000 > 15 000. Barème : 1 pt pour la longueur maximale 10 m obtenue après retour
+        au prix du mètre ; 1 pt pour le refus justifié (prix de 12 m comparé à 15 000 FCFA, ou 12 m comparé
+        au maximum de 10 m). Le refus juste appuyé sur une longueur maximale erronée garde son point.'
+      si_echoue: 'Proportionnalité : le retour à l''unité n''est pas engagé.'
+    P1.1:
+      reponse_attendue: Soungalo a tort ; deux droites perpendiculaires à (AB) sont parallèles, (d) et
+        (d') ne se coupent nulle part
+      solution: 'Barème (2 pts) : 1 pt (G) le refus de l''affirmation de Soungalo ; 1 pt (G) la justification
+        par la propriété des deux perpendiculaires à une même droite, qui les rend parallèles donc sans
+        point commun. Le seul mot « parallèles », sans la conclusion que les droites ne se coupent pas,
+        vaut le second point et pas le premier.'
+      si_echoue: Propriété du parallélisme de deux droites perpendiculaires à une même droite.
+    P1.2:
+      reponse_attendue: ABCD est un rectangle ; aire du sol 12 × 7 = 84 m²
+      solution: 'Barème (2 pts) : 1 pt (G) la nature « rectangle » appuyée sur les quatre angles droits
+        ; 1 pt (M) l''aire de 84 m² avec son unité.'
+      si_echoue: Reconnaissance du rectangle ; aire du rectangle.
+    P1.3:
+      reponse_attendue: V = 84 × 0,1 = 8,4 m³ < 9 m³ ; Issouf a raison
+      solution: 'La dalle est un pavé droit de base le sol : V = 84 × 0,1 = 8,4 m³ ; 8,4 < 9. Conclusion
+        attendue : « Issouf a raison : la dalle demande 8,4 m³ de béton, donc 9 m³ suffisent. » Le prix
+        du sac de ciment (6 500 FCFA) est une donnée inutile. Barème (3 pts) : 1 pt (M) la dalle reconnue
+        comme un pavé droit dont le volume est aire du sol × épaisseur ; 1 pt (M) le volume 8,4 m³ avec
+        son unité ; 1 pt (N) la comparaison de 8,4 à 9 et la phrase de conclusion. Aucune conversion n''est
+        attendue. Signaler la donnée inutile n''est pas exigé.'
+      si_echoue: Volume du pavé droit à partir de l'aire de sa base.
+    P2.1:
+      reponse_attendue: 25 × 4 × 18 = (25 × 4) × 18 = 100 × 18 = 1 800 savons
+      solution: 'Barème (2 pts) : 1 pt (N) le total de 1 800 savons ; 1 pt (N) le regroupement 25 × 4
+        = 100 écrit ou nommé. Le résultat 1 800 obtenu par deux multiplications posées, sans regroupement
+        indiqué, vaut le premier point et pas le second.'
+      si_echoue: Calcul astucieux par regroupement.
+    P2.2:
+      reponse_attendue: '450 000 : 1 800 = 250 FCFA'
+      solution: 'Barème (2 pts) : 1 pt (D) la division 450 000 : 1 800 engagée ; 1 pt (D) le résultat
+        250 FCFA.'
+      si_echoue: Division-partage pour un prix unitaire.
+    P2.3:
+      reponse_attendue: bénéfice 75 FCFA par savon, 135 000 FCFA au total < 150 000 ; Rakieta a tort
+      solution: 'Bénéfice unitaire : 325 - 250 = 75 FCFA ; total : 75 × 1 800 = 135 000 FCFA < 150 000.
+        Barème (3 pts) : 1 pt (N) le bénéfice unitaire 75 FCFA par différence des deux prix ; 1 pt (N)
+        le bénéfice total 135 000 FCFA ; 1 pt (D) la comparaison à 150 000 FCFA et la phrase de conclusion.
+        Le bénéfice total juste calculé à partir d''un bénéfice unitaire erroné garde son point. L''écart
+        de 15 000 FCFA n''est pas exigé.'
+      si_echoue: Notion de bénéfice comme différence entre prix de vente et prix d'achat.
+    P3.1:
+      reponse_attendue: 'Noaga : 24 000 ; 33 000 ; 42 000 FCFA — Drissa : 15 000 ; 30 000 ; 45 000 FCFA
+        (pour 10, 20, 30 sacs)'
+      solution: 'Noaga : 15 000 + 900 × 10 = 24 000 ; 15 000 + 900 × 20 = 33 000 ; 15 000 + 900 × 30 =
+        42 000. Drissa : 1 500 × 10 = 15 000 ; 1 500 × 20 = 30 000 ; 1 500 × 30 = 45 000. Barème (2 pts)
+        : 1 pt (D) la ligne de Noaga complète ; 1 pt (D) la ligne de Drissa complète. Une ligne avec deux
+        prix justes sur trois vaut 0,5 pt.'
+      si_echoue: Passage d'un énoncé à un tableau de prix.
+    P3.2:
+      reponse_attendue: le tarif de Drissa est proportionnel (coefficient 1 500) ; celui de Noaga ne l'est
+        pas (forfait de 15 000 FCFA)
+      solution: 'Chez Drissa chaque prix = nombre de sacs × 1 500. Chez Noaga le forfait de 15 000 FCFA
+        se paie quel que soit le nombre de sacs, et 24 000 : 10 = 2 400 alors que 33 000 : 20 = 1 650.
+        Barème (3 pts) : 1 pt (D) le tarif de Drissa désigné comme proportionnel ; 1 pt (D) le coefficient
+        1 500 nommé comme multiplicateur commun ; 1 pt (D) l''explication du refus pour Noaga, par le
+        forfait ou par deux quotients inégaux. La seule réponse « Drissa » sans justification vaut le
+        premier point seulement.'
+      si_echoue: Reconnaissance de la proportionnalité en présence d'un terme fixe.
+    P3.3:
+      reponse_attendue: 25 × 48,5 = 1 212,5 kg < 1 500 kg, un seul voyage suffit ; la donnée manquante
+        est le nombre de sacs de la récolte de Yacouba
+      solution: 'Masse : 25 × 48,5 = 1 212,5 kg ; 1,5 t = 1 500 kg ; 1 212,5 < 1 500. Les deux tarifs
+        ne se comparent que pour un nombre de sacs donné, que l''énoncé ne fournit pas. Barème (3 pts)
+        : 1 pt (N) la masse 1 212,5 kg ; 1 pt (M) la conversion 1,5 t = 1 500 kg et la décision de chargement
+        ; 1 pt (D) la donnée manquante nommée et la phrase de conclusion. La mention vague « il manque
+        une donnée » ne vaut rien. Remarquer en plus que les deux tarifs coïncident à 25 sacs n''est pas
+        pénalisé.'
+      si_echoue: Multiplication d'un décimal par un entier, conversion de la tonne en kilogrammes, et
+        repérage d'une donnée manquante.
+  4eme:
+    N1:
+      reponse_attendue: 6 138
+      si_echoue: 'Critère de divisibilité par 9 : la somme des chiffres, distinguée de celui par 3.'
+    N2:
+      si_echoue: Somme de nombres relatifs de signes contraires.
+    N3:
+      reponse_attendue: 11/24
+      solution: 'Barème : 1 pt, tout ou rien. La fraction 11/24 est déjà irréductible.'
+      si_echoue: Réduction au même dénominateur avant la soustraction de deux fractions.
+    N4:
+      reponse_attendue: 3⁴
+      solution: 'Barème : 1 pt, tout ou rien. La réponse 81 seule ne vaut pas le point : l''écriture demandée
+        est une puissance de 3.'
+      si_echoue: Règles du produit et du quotient de puissances de même base.
+    N5:
+      reponse_attendue: -7,2 ; -|-3| ; 6,5 ; |-8|
+      solution: 'Barème : 1 pt, tout ou rien. Accepter le rangement des valeurs : -7,2 ; -3 ; 6,5 ; 8.'
+      si_echoue: Valeur absolue d'un nombre relatif et comparaison des relatifs.
+    N6:
+      reponse_attendue: '90'
+      si_echoue: Confusion entre PPCM et PGCD, ou recherche des multiples communs.
+    N7:
+      reponse_attendue: 7(2x + 3)
+      si_echoue: Reconnaissance du facteur commun numérique dans une somme.
+    L1:
+      si_echoue: 'Lecture de la transformation qui fait passer d''une égalité à une autre : l''inconnue
+        est divisée par 5, c''est donc la multiplication par 5 qui l''isole.'
+    L2:
+      reponse_attendue: x = 6
+      si_echoue: 'Résolution d''une équation à deux transformations : ajouter 9 aux deux membres, puis
+        diviser les deux membres par 4.'
+    G1:
+      reponse_attendue: 116°
+      si_echoue: 'Angles correspondants déterminés par deux droites parallèles et une sécante : ils ont
+        la même mesure.'
+    G2:
+      si_echoue: Somme des angles d'un triangle, associée à la propriété du triangle isocèle.
+    G3:
+      reponse_attendue: A'B' = 5,4 cm et A'B'C' = 63°
+      solution: 'Barème : 1 pt, tout ou rien — les deux réponses sont exigées.'
+      si_echoue: Conservation des longueurs et des angles par une symétrie centrale.
+    G4:
+      si_echoue: Formule du volume d'un cône, en particulier le facteur 1/3.
+    M1:
+      si_echoue: Conversion de 1 h 30 min en 1,5 h avant le calcul de la vitesse moyenne.
+    M2:
+      reponse_attendue: 20 km
+      si_echoue: Emploi de l'échelle, puis conversion des centimètres en kilomètres.
+    D1:
+      si_echoue: Calcul d'un pourcentage d'augmentation et ajout au prix initial.
+    N8:
+      reponse_attendue: a = 0 ou a = 6 (240 et 246)
+      solution: 'Divisible par 2 : chiffre des unités pair, a ∈ {0 ; 2 ; 4 ; 6 ; 8}. Divisible par 3 :
+        2 + 4 + a = 6 + a multiple de 3, a ∈ {0 ; 3 ; 6 ; 9}. Les deux : a = 0 et a = 6. Barème : 1 pt
+        pour avoir traduit les deux critères de divisibilité (chiffre des unités pair, somme des chiffres
+        multiple de 3) ; 1 pt pour les deux valeurs a = 0 et a = 6. Ce second point n''est pas acquis
+        si une seule des deux valeurs est donnée.'
+      si_echoue: Recherche de toutes les solutions d'une double condition de divisibilité, la valeur a
+        = 0 étant la plus souvent oubliée.
+    N9:
+      reponse_attendue: somme de départ 4 000 FCFA ; Moussa a raison (11/20 > 1/2, ou 2 200 FCFA > 2 000
+        FCFA)
+      solution: 'Somme de départ : 1 800 : 9/20 = 1 800 × 20/9 = 4 000 FCFA. Part dépensée : 1 - 9/20
+        = 11/20 > 10/20 = 1/2, soit 4 000 - 1 800 = 2 200 FCFA. Barème : 1 pt pour la somme de départ
+        4 000 FCFA, retrouvée en remontant la fraction ; 1 pt pour le jugement « Moussa a raison » justifié
+        par la comparaison de 11/20 et 1/2, ou de 2 200 FCFA et 2 000 FCFA. Le jugement seul ne vaut pas
+        ce point. Erreur propagée : une somme de départ fausse suivie d''une comparaison correcte garde
+        le second point.'
+      si_echoue: 'Raisonnement inverse sur une fraction d''une quantité : l''élève multiplie par 9/20
+        au lieu de diviser.'
+    N10:
+      reponse_attendue: n = 6 ; aucun p car 2⁶ = 64 < 100 < 128 = 2⁷
+      solution: 'Puissances de 2 : 2 ; 4 ; 8 ; 16 ; 32 ; 64, donc n = 6. 2⁶ < 100 < 2⁷ : 100 est entre
+        deux puissances consécutives de 2. Barème : 1 pt pour n = 6 ; 1 pt pour la non-existence de p
+        justifiée par l''encadrement 64 < 100 < 128. La seule réponse « cela n''existe pas », sans encadrement
+        ni liste des puissances de 2, ne vaut pas ce point.'
+      si_echoue: Recherche d'un exposant quand le résultat est donné, et encadrement d'un nombre par deux
+        puissances consécutives de même base.
+    N11:
+      reponse_attendue: solde avant versement -43 500 FCFA ; Drissa a raison (-8 500 + 35 000 = 26 500
+        > 0)
+      solution: 's + 35 000 = -8 500, donc s = -8 500 - 35 000 = -43 500 FCFA. Second versement : -8 500
+        + 35 000 = 26 500 FCFA, positif. Barème : 1 pt pour le solde -43 500 FCFA, obtenu en remontant
+        le versement ; 1 pt pour « Drissa a raison » appuyé sur le calcul -8 500 + 35 000 = 26 500. Le
+        jugement seul ne vaut pas ce point.'
+      si_echoue: 'Raisonnement inverse sur les nombres relatifs : retrancher un versement au lieu de l''ajouter,
+        ou conclure sur le signe d''une somme sans la calculer.'
+    N12:
+      reponse_attendue: 7(x + 4) = 7x + 28 m² ; Safiatou a tort
+      solution: '7 × (x + 4) = 7 × x + 7 × 4 = 7x + 28 : le facteur 7 multiplie les deux termes, le second
+        terme est 28 et non 4. Barème : 1 pt pour la forme développée 7x + 28 ; 1 pt pour « elle a tort
+        » justifié par la distributivité (le terme 7 × 4 = 28 oublié). Le jugement seul ne vaut pas ce
+        point.'
+      si_echoue: 'Développement d''un produit de la forme k(x + a) : le facteur n''est appliqué qu''au
+        premier terme.'
+    L3:
+      reponse_attendue: x + 3x - 7 = 61 ; x = 17 (Kadidiatou 17 pintades, Awa 44)
+      solution: 'Kadidiatou x pintades, Awa 3x - 7 : x + 3x - 7 = 61, 4x = 68, x = 17 ; Awa 3 × 17 - 7
+        = 44. Barème : 1 pt pour l''équation x + 3x - 7 = 61 ; 1 pt pour la résolution aboutissant à x
+        = 17. Erreur propagée : une équation fausse mais correctement résolue garde le second point.'
+      si_echoue: 'Passage de la langue courante à l''écriture mathématique : « le triple diminué de 7
+        » traduit par 3(x - 7).'
+    G5:
+      reponse_attendue: OA = 9/2 = 4,5 cm (O milieu de [AB]) ; figure en vraie grandeur
+      solution: 'B symétrique de A par rapport à O : O est le milieu de [AB], OA = AB/2 = 4,5 cm. Figure
+        : segment [AB] de 9 cm, O placé à 4,5 cm de A, trois points nommés. Barème : 1 pt pour OA = 4,5
+        cm appuyée sur O milieu de [AB] ; 1 pt pour la figure en vraie grandeur (AB = 9 cm, O à 4,5 cm
+        de A, points nommés), tolérance 2 mm. Erreur propagée : une longueur OA fausse reportée fidèlement
+        garde le second point.'
+      si_echoue: 'Propriété caractéristique de la symétrie centrale : le centre de symétrie est le milieu
+        du segment qui joint un point et son symétrique.'
+    G6:
+      reponse_attendue: EFy = 73° (alternes-internes égaux) ; avec 107° les droites ne sont pas parallèles
+        (107° ≠ 73°)
+      solution: 'Deux droites coupées par une sécante sont parallèles lorsque deux angles alternes-internes
+        ont la même mesure : EFy = xEF = 73°. 107° est le supplémentaire de 73° : des alternes-internes
+        supplémentaires ne caractérisent pas le parallélisme. Barème : 1 pt pour 73° appuyé sur l''égalité
+        des alternes-internes ; 1 pt pour le cas 107° écarté par la comparaison 107° ≠ 73°. La seule réponse
+        « non », sans comparaison, ne vaut pas ce point.'
+      si_echoue: 'Réciproque de la propriété des angles alternes-internes : l''élève confond angles égaux
+        et angles supplémentaires.'
+    G7:
+      reponse_attendue: BAC = 50°, BAD = 25° ; Sibiri a tort, (AD) n'est pas la médiatrice de [BC] (triangle
+        non isocèle en A)
+      solution: 'BAC = 180° - 50° - 80° = 50° ; bissectrice : BAD = 25°. La bissectrice issue de A n''est
+        la médiatrice de [BC] que si ABC est isocèle en A ; ici 50° ≠ 80°. Barème : 1 pt pour BAC = 50°
+        puis BAD = 25° ; 1 pt pour « il a tort » justifié par le triangle non isocèle en A (accepter AB
+        ≠ AC, ou (AD) non perpendiculaire à [BC]). Le jugement seul ne vaut pas ce point.'
+      si_echoue: Somme des angles d'un triangle, ou confusion entre bissectrice, médiane et médiatrice
+        dans un triangle quelconque.
+    G8:
+      reponse_attendue: h = 4 m ; Talato a tort, le volume est multiplié par 4 (200,96 m³)
+      solution: 'V = π × r² × h : 50,24 = 3,14 × 2² × h = 12,56 × h, h = 4 m. Rayon doublé : r² est multiplié
+        par 4, donc le volume aussi : 3,14 × 4² × 4 = 200,96 m³. Barème : 1 pt pour h = 4 m retrouvée
+        à partir du volume ; 1 pt pour « elle a tort » justifié par le facteur 4, calculé ou expliqué
+        par le carré du rayon.'
+      si_echoue: Effet sur le volume de la multiplication d'une longueur par un nombre, quand cette longueur
+        intervient au carré.
+    D2:
+      reponse_attendue: prix avant remise 60 000 FCFA ; le vendeur a tort, la remise vaut 9 000 FCFA
+      solution: 'Prix payé = 85 % du prix initial : 51 000 × 100 / 85 = 60 000 FCFA. La remise porte sur
+        le prix avant remise : 15 × 60 000 / 100 = 9 000 FCFA (vérification 60 000 - 51 000 = 9 000).
+        Barème : 1 pt pour le prix avant remise 60 000 FCFA retrouvé à partir des 85 % ; 1 pt pour « il
+        a tort » justifié par la remise de 9 000 FCFA et la base du pourcentage. Accepter la vérification
+        par soustraction. Erreur propagée : un prix faux suivi d''une remise obtenue par soustraction
+        garde le second point.'
+      si_echoue: 'Retour au prix initial après une remise : l''élève applique le pourcentage au prix réduit
+        au lieu du prix initial.'
+    P1.1:
+      reponse_attendue: durée 360/80 = 4,5 h = 4 h 30 min ; arrivée à 10 h 30
+      solution: 'Barème (2 pts) : 1 pt pour la durée de 4 h 30 min ; 1 pt pour l''heure d''arrivée 10
+        h 30. Une durée écrite 4,5 h sans conversion garde son point. La consommation de 22 L aux 100
+        km est une donnée inutile (ne rien retirer ni ajouter à ce sujet).'
+      si_echoue: Calcul d'une durée à partir d'une distance et d'une vitesse.
+    P1.2:
+      reponse_attendue: écarts de 1 degré (-16), 2 degrés (-13) et 4 degrés (-19)
+      solution: '|-16 - (-15)| = 1 ; |-13 - (-15)| = 2 ; |-19 - (-15)| = 4. Barème (2 pts) : 2 pts pour
+        les trois écarts 1 ; 2 et 4 ; 1 pt seulement si deux des trois sont justes. Ne rien retirer pour
+        un écart écrit en relatif (-1 au lieu de 1) si la comparaison de la question 3 est menée sur la
+        valeur absolue.'
+      si_echoue: Ecart de deux nombres relatifs pris en valeur absolue.
+    P1.3:
+      reponse_attendue: le relevé de -19 degrés (écart 4 > 3) ; la température imposée n'a pas été respectée
+      solution: 'Conclusion attendue : « La température imposée n''a pas été respectée pendant tout le
+        trajet, car le relevé de -19 degrés s''écarte de 4 degrés de -15 degrés, ce qui dépasse la limite
+        de 3 degrés. » Barème (3 pts) : 1 pt pour la comparaison explicite de l''écart le plus grand à
+        la limite (4 > 3) ; 1 pt pour l''identification du relevé de -19 degrés comme seul non conforme
+        ; 1 pt pour la phrase de conclusion. Erreur propagée : des écarts faux à la question 2, comparés
+        correctement à 3 degrés, gardent les deux premiers points.'
+      si_echoue: Ecart de deux nombres relatifs pris en valeur absolue, et comparaison à une limite.
+    P2.1:
+      reponse_attendue: 5 000x - 3 000 = 32 000
+      solution: 'Recette des ventes 5 000x FCFA, transport de 3 000 FCFA retiré. Barème (2 pts) : 1 pt
+        pour l''expression 5 000x - 3 000 ; 1 pt pour l''égalité à 32 000. Une équation équivalente (5
+        000x = 32 000 + 3 000) vaut les 2 pts.'
+      si_echoue: Traduction d'une situation par une équation.
+    P2.2:
+      reponse_attendue: ajouter 3 000 aux deux membres (5 000x = 35 000) ; x = 7 sacs
+      solution: '5 000x = 32 000 + 3 000 = 35 000 ; x = 35 000 / 5 000 = 7. Barème (2 pts) : 1 pt pour
+        l''opération nommée « ajouter 3 000 aux deux membres » ; 1 pt pour la solution x = 7. L''opération
+        simplement effectuée sans être nommée garde son point (sur la solution).'
+      si_echoue: Transformation d'une égalité.
+    P2.3:
+      reponse_attendue: nouveau prix 6 000 FCFA ; recette transport payé 33 000 FCFA > 32 000 ; Zenabou
+        a raison
+      solution: '20 % de 5 000 = 1 000 FCFA, nouveau prix 6 000 FCFA ; 6 × 6 000 = 36 000 ; 36 000 - 3
+        000 = 33 000 > 32 000. Conclusion : « Zenabou a raison : sa recette transport payé est de 33 000
+        FCFA, soit 1 000 FCFA de plus que l''objectif. » Barème (3 pts) : 1 pt pour le nouveau prix 6
+        000 FCFA ; 1 pt pour la recette transport payé 33 000 FCFA ; 1 pt pour « elle a raison » et la
+        conclusion appuyée sur 33 000 vs 32 000. Erreur propagée : un nouveau prix faux exploité correctement
+        garde les deux derniers points. Le coefficient 1,2 vaut le premier point.'
+      si_echoue: Augmentation d'un prix d'un pourcentage donné suivie d'un retour au contexte pour décider.
+    P3.1:
+      reponse_attendue: longueur 45 m, largeur 30 m
+      solution: 'Au 1/500, 1 cm sur le plan = 500 cm = 5 m : 9 × 5 = 45 m et 6 × 5 = 30 m. Barème (2 pts)
+        : 1 pt pour l''emploi de l''échelle (1 cm pour 5 m, ou × 500 puis conversion) ; 1 pt pour les
+        deux dimensions 45 m et 30 m (non acquis si une seule est juste).'
+      si_echoue: Emploi d'une échelle sur des longueurs.
+    P3.2:
+      reponse_attendue: côté = PGCD(45 ; 30) = 15 m ; 6 parcelles
+      solution: '45 = 3² × 5 et 30 = 2 × 3 × 5, PGCD = 15. Nombre de parcelles : (45/15) × (30/15) = 3
+        × 2 = 6. Barème (3 pts) : 1 pt pour avoir reconnu le PGCD de 45 et 30 ; 1 pt pour 15 m ; 1 pt
+        pour les 6 parcelles. Accepter la liste des diviseurs communs. Erreur propagée : un côté faux
+        mais divisant les deux dimensions, suivi d''un nombre de parcelles correct, garde le troisième
+        point.'
+      si_echoue: PGCD comme outil d'un partage optimal.
+    P3.3:
+      reponse_attendue: périmètre 150 m ; coût 180 000 FCFA < 200 000, le budget suffit (reste 20 000
+        FCFA)
+      solution: '2 × (45 + 30) = 150 m ; 150 × 1 200 = 180 000 FCFA < 200 000 ; reste 20 000 FCFA. Barème
+        (3 pts) : 1 pt pour le périmètre 150 m ; 1 pt pour le coût 180 000 FCFA ; 1 pt pour la conclusion
+        que le budget suffit, appuyée sur 180 000 vs 200 000. Un périmètre calculé comme 45 + 30 perd
+        le premier point mais garde les deux autres si le coût et la conclusion en découlent correctement.'
+      si_echoue: Périmètre d'un rectangle confondu avec la somme de deux côtés.
+  3eme:
+    N1:
+      reponse_attendue: -20/4 (qui est égal à -5)
+      si_echoue: 'Confusion entre l''écriture d''un nombre et l''ensemble auquel il appartient : un quotient
+        d''entiers peut être un entier. Livret de remédiation 3ème, module 3.'
+    N2:
+      reponse_attendue: 6,05 × 10⁻⁵
+      si_echoue: 'Ecriture scientifique : la mantisse doit vérifier 1 ≤ a < 10, et l''exposant est négatif
+        pour un nombre inférieur à 1. Livret de remédiation 3ème, module 4.'
+    N3:
+      si_echoue: Confusion entre approximation par défaut et approximation par excès. Livret de remédiation
+        3ème, module 1.
+    N4:
+      si_echoue: 'Division par une fraction : on multiplie par l''inverse, et la règle des signes s''applique
+        au quotient. Livret de remédiation 3ème, module 3.'
+    L1:
+      reponse_attendue: 6x² + 13x - 5
+      si_echoue: 'Double distributivité : un produit oublié ou une erreur de signe sur 3x × (-1). Livret
+        de remédiation 3ème, module 5.'
+    L2:
+      reponse_attendue: (x - 3)(3x + 5)
+      si_echoue: 'Factorisation par un facteur commun apparent : le facteur (x - 3) n''est pas reconnu.
+        Livret de remédiation 3ème, module 5.'
+    L3:
+      reponse_attendue: x = -3
+      si_echoue: 'Résolution d''une équation du premier degré : regroupement des termes en x d''un côté
+        et des constantes de l''autre. Livret de remédiation 3ème, module 6.'
+    L4:
+      reponse_attendue: x < -3
+      solution: 'Barème : 1 pt, tout ou rien. Accepter toute écriture équivalente de l''ensemble des solutions
+        ; la notation par intervalle n''est pas exigible à l''entrée en 3ème.'
+      si_echoue: Le sens de l'inégalité change quand on divise les deux membres par un nombre négatif.
+        Livret de remédiation 3ème, module 6.
+    G1:
+      reponse_attendue: CD = 7
+      si_echoue: 'Distance sur une droite graduée : différence des abscisses prise sans valeur absolue,
+        ou soustraction de deux relatifs mal conduite. Livret de remédiation 3ème, modules 12 et 2.'
+    G2:
+      si_echoue: 'Relation de Chasles : la somme ne s''enchaîne qu''après avoir remis les vecteurs dans
+        l''ordre, l''extrémité du premier devenant l''origine du second. Livret de remédiation 3ème, module
+        12.'
+    G3:
+      reponse_attendue: K(-2 ; -2)
+      si_echoue: 'Coordonnées du milieu : demi-somme des abscisses et demi-somme des ordonnées, avec des
+        nombres relatifs. Livret de remédiation 3ème, module 12.'
+    G4:
+      reponse_attendue: le point C
+      si_echoue: 'Dans le parallélogramme ABCD, vecteur AD = vecteur BC : l''image de B par la translation
+        de vecteur AD est donc C. Livret de remédiation 3ème, module 12.'
+    G5:
+      reponse_attendue: BC = 7,2 cm
+      si_echoue: 'Théorème des milieux : le segment joignant les milieux mesure la moitié du troisième
+        côté, relation employée ici dans le sens inverse. Livret de remédiation 3ème, module 10.'
+    G6:
+      si_echoue: 'Volume d''une pyramide : le tiers du produit de l''aire de base par la hauteur, facteur
+        1/3 oublié. Livret de remédiation 3ème, module 11.'
+    D1:
+      reponse_attendue: '11'
+      si_echoue: 'Moyenne d''une série : somme des valeurs divisée par leur nombre.'
+    D2:
+      si_echoue: 'Echelle : la longueur réelle s''obtient en multipliant la longueur du plan par le dénominateur,
+        puis en convertissant les centimètres en mètres. Livret de remédiation 3ème, module 7.'
+    N5:
+      reponse_attendue: 3 × 10³ = 3 000 parcelles < 10 000 ; Rasmane a tort
+      solution: '(2,4 × 10⁹)/(8 × 10⁵) = (2,4/8) × 10⁹⁻⁵ = 0,3 × 10⁴ = 3 × 10³. Barème : 1 pt pour le
+        quotient des mantisses et la différence des exposants, le résultat ramené en écriture scientifique
+        ; 1 pt pour la comparaison à 10 000 et la réponse donnée à Rasmane. Le résultat laissé sous la
+        forme 0,3 × 10⁴ coûte le premier point, jamais le second.'
+      si_echoue: 'Quotient de deux nombres en écriture scientifique : les exposants se soustraient et
+        la mantisse doit être ramenée entre 1 et 10. Livret de remédiation 3ème, module 4.'
+    N6:
+      reponse_attendue: b = -4/5 = -0,8 > -1 ; b n'est pas inférieur à -1
+      solution: 'b = (-1/3) : (5/12) = (-1/3) × (12/5) = -12/15 = -4/5. Barème : 1 pt pour b = -4/5 obtenu
+        en multipliant par l''inverse, forme irréductible comprise ; 1 pt pour la comparaison justifiée
+        à -1. Un résultat laissé sous la forme -12/15 coûte un demi-point sur le premier point. Erreur
+        propagée : une valeur de b fausse mais correctement comparée à -1 garde le second point.'
+      si_echoue: Recherche d'un facteur manquant dans un produit de rationnels, puis comparaison de deux
+        nombres relatifs. Livret de remédiation 3ème, modules 3 et 2.
+    N7:
+      reponse_attendue: prix < 20 × 5 000 = 100 000 FCFA < 120 000 ; la somme suffit
+      solution: 'On majore : 18 < 20 et 4 750 < 5 000, le prix total est inférieur à 100 000 FCFA. Barème
+        : 1 pt pour l''ordre de grandeur obtenu en majorant les deux nombres (100 000 FCFA) ; 1 pt pour
+        la comparaison à 120 000 FCFA et la conclusion. Toute autre majoration correcte (ex. 20 × 4 800
+        = 96 000) vaut le premier point. Le prix exact 85 500 FCFA n''est pas exigé.'
+      si_echoue: 'Ordre de grandeur par majoration : encadrer avant de calculer pour décider sans poser
+        l''opération. Livret de remédiation 3ème, module 1.'
+    L5:
+      reponse_attendue: E = 20x - 50 ; l'affirmation E = -20x est fausse
+      solution: '(2x - 5)(2x + 5) = 4x² - 25 et (2x - 5)² = 4x² - 20x + 25 ; E = 4x² - 25 - 4x² + 20x
+        - 25 = 20x - 50. Barème : 1 pt pour les deux développements (identités remarquables jusqu''au
+        bout) ; 1 pt pour la réduction E = 20x - 50, signe moins distribué, et le rejet de l''affirmation.
+        Un élève qui écrit correctement les deux développements puis se trompe en retirant la parenthèse
+        garde le premier point et perd le second.'
+      si_echoue: Identités remarquables, puis signe du moins devant une parenthèse qui doit être distribué
+        à tous les termes. Livret de remédiation 3ème, module 5.
+    L6:
+      reponse_attendue: A = 2x(2x + 1) ; pour x = 5, A = 110 m² et non 60, Hamidou a tort
+      solution: 'A = 4x² + 2x = 2x(2x + 1) ; x = 5 : 2 × 5 × 11 = 110. Barème : 1 pt pour la factorisation
+        complète 2x(2x + 1) ; 1 pt pour 110 et le rejet de l''affirmation. Une factorisation incomplète,
+        x(4x + 2) ou 2(2x² + x), vaut un demi-point sur le premier point. Erreur propagée : une factorisation
+        fausse correctement évaluée en 5 garde le second point.'
+      si_echoue: Factorisation menée jusqu'au bout, le facteur commun étant 2x, puis valeur numérique
+        d'une expression littérale. Livret de remédiation 3ème, module 5.
+    L7:
+      reponse_attendue: x + (3x - 6) = 58 ; x = 16
+      solution: 'Adama possède 3x - 6 pintades : 4x - 6 = 58, 4x = 64, x = 16. Barème : 1 pt pour l''équation
+        x + 3x - 6 = 58 (« le triple, diminué de 6 » écrit 3x - 6) ; 1 pt pour x = 16. Erreur propagée
+        : une équation fausse résolue correctement garde le second point. La vérification 16 + 42 = 58
+        n''est pas exigée.'
+      si_echoue: 'Traduction d''un énoncé par une équation : « le triple, diminué de 6 » s''écrit 3x -
+        6, et non 3(x - 6). Livret de remédiation 3ème, module 6.'
+    G7:
+      reponse_attendue: D placé en reportant AB à partir de C ; ABDC est un parallélogramme, ses diagonales
+        [AD] et [BC] ont même milieu, Talato a raison
+      solution: 'Vecteur CD = vecteur AB : D s''obtient en reportant direction, sens et longueur 5 cm
+        à partir de C. ABDC parallélogramme, diagonales [AD] et [BC] se coupent en leur milieu. Barème
+        : 1 pt pour D placé par report de AB à partir de C, à 2 mm près, traits de construction ou codage
+        visibles (D correct sans trait garde le point) ; 1 pt pour « Talato a raison » justifié par le
+        parallélogramme ABDC et la propriété des diagonales. « Elle a raison » vérifié seulement à la
+        règle vaut un demi-point. Accepter la justification vectorielle ou par les côtés [AB] et [CD]
+        parallèles et de même longueur.'
+      si_echoue: Egalité de deux vecteurs et report d'un vecteur à partir d'un point, puis reconnaissance
+        du parallélogramme et propriété de ses diagonales. Livret de remédiation 3ème, modules 12 et 9.
+    G8:
+      reponse_attendue: 'périmètre de RUV = 24 : 2 = 12 cm ; Kadidiatou a tort'
+      solution: 'RU = RS/2, RV = RT/2 (milieux) et UV = ST/2 (théorème des milieux) : périmètre de RUV
+        = moitié de 24 = 12 cm. Barème : 1 pt pour avoir établi que les trois côtés de RUV sont les moitiés
+        de ceux de RST ; 1 pt pour 12 cm et le rejet explicite. Un élève qui ne divise que [ST] par 2
+        perd le premier point. La seule égalité UV = ST/2 vaut un demi-point. Erreur propagée : un périmètre
+        faux correctement comparé à 6 cm garde le second point.'
+      si_echoue: Théorème des milieux et définition du milieu combinés sur les trois côtés, puis effet
+        d'une division par 2 de chaque côté sur le périmètre. Livret de remédiation 3ème, module 10.
+    F1:
+      reponse_attendue: u(-3) = 10 ; l'antécédent de -8 est 6
+      solution: 'u(-3) = 4 - 2 × (-3) = 10 ; 4 - 2x = -8 donne x = 6. Barème : 1 pt pour l''image u(-3)
+        = 10 ; 1 pt pour l''antécédent x = 6 obtenu en résolvant 4 - 2x = -8. Les deux cases justes sans
+        calcul indiqué coûtent un demi-point sur chacun des deux points.'
+      si_echoue: 'Image et antécédent : l''image se calcule en remplaçant x, l''antécédent se cherche
+        en résolvant une équation. Livret de remédiation 3ème, module 6.'
+    D3:
+      reponse_attendue: n = 7 ; 7 > 4 (quart de 16), la note 13 a été obtenue par plus du quart des élèves
+      solution: 'Notes connues : 5 × 3 + 9 × 4 + 17 × 2 = 85 ; 85 + 13n = 176, 13n = 91, n = 7. Effectif
+        total 16, quart 4, 7 > 4. Barème : 1 pt pour 85 + 13n = 176 et n = 7 (par essais vérifiés : point
+        gardé) ; 1 pt pour le quart de l''effectif total, 4, comparé à 7, et la conclusion. Erreur propagée
+        : un effectif faux correctement comparé au quart de son propre total garde le second point.'
+      si_echoue: Recherche d'un effectif à partir de la somme des notes, raisonnement conduit à l'envers,
+        puis comparaison d'un effectif au quart de l'effectif total.
+    D4:
+      reponse_attendue: prix d'achat 17 500 FCFA ; bénéfice 3 500 FCFA ≠ 4 200 FCFA, l'affirmation de
+        Salif est fausse
+      solution: 'Prix de vente = 120 % du prix d''achat : 21 000 : 1,2 = 17 500 FCFA ; bénéfice 3 500
+        FCFA. 20 % de 21 000 = 4 200 ≠ 3 500. Barème : 1 pt pour le prix d''achat 17 500 FCFA (pourcentage
+        sur le prix d''achat) ; 1 pt pour la comparaison 3 500 vs 4 200 et le rejet. 17 500 par essais
+        vérifiés garde le premier point.'
+      si_echoue: 'Un pourcentage se rapporte toujours à une base : ici le bénéfice se calcule sur le prix
+        d''achat, et non sur le prix de vente. Livret de remédiation 3ème, module 7.'
+    P1.1:
+      reponse_attendue: V = 3 × 2 × 1,5 = 9 m³
+      solution: 'Barème (2 pts) : 1 pt pour le produit des trois dimensions, 1 pt pour le résultat 9 m³
+        avec son unité. La distance de 400 m est une donnée inutile : son emploi n''est pas compté comme
+        une erreur, son repérage ne rapporte aucun point.'
+      si_echoue: Volume d'un pavé droit. Livret de remédiation 3ème, module 11.
+    P1.2:
+      reponse_attendue: 3/4 × 9 = 6,75 m³ = 6 750 L
+      solution: 'Barème (2 pts) : 1 pt pour les trois quarts de 9 m³, 1 pt pour la conversion en litres
+        (1 m³ = 1 000 L) ; un seul des deux points si une étape manque.'
+      si_echoue: Fraction d'une quantité, conversion des mètres cubes en litres. Livret de remédiation
+        3ème, module 7.
+    P1.3:
+      reponse_attendue: '15 × 150 = 2 250 L par jour ; 6 750 : 2 250 = 3 jours'
+      solution: 'Conclusion attendue : « La réserve de la citerne suffit au village pendant 3 jours entiers.
+        » Barème (3 pts) : 1 pt pour la consommation quotidienne 2 250 L, 1 pt pour la division 6 750
+        : 2 250, 1 pt pour la phrase de conclusion. Erreur propagée : une consommation fausse correctement
+        divisée garde le point de la division.'
+      si_echoue: Division donnant une durée. Livret de remédiation 3ème, modules 11 et 7.
+    P2.1:
+      reponse_attendue: M(0 ; -2)
+      solution: 'M((-4 + 4)/2 ; (1 + (-5))/2) = M(0 ; -2). Barème (2 pts) : 1 pt pour la demi-somme des
+        abscisses, 1 pt pour la demi-somme des ordonnées ; une seule des deux coordonnées juste vaut un
+        seul point.'
+      si_echoue: Coordonnées d'un milieu. Livret de remédiation 3ème, module 12.
+    P2.2:
+      reponse_attendue: vecteur BA (-6 ; -2) ; D(-6 ; -4)
+      solution: 'Vecteur BA : (-4 - 2 ; 1 - 3) = (-6 ; -2) ; D(0 - 6 ; -2 - 2) = (-6 ; -4). Barème (2
+        pts) : 1 pt pour le vecteur BA et ses coordonnées, 1 pt pour les coordonnées de D. Un élève qui
+        place D en ajoutant BA à M sans écrire les coordonnées du vecteur garde les deux points.'
+      si_echoue: Image d'un point par une translation dans un repère. Livret de remédiation 3ème, module
+        12.
+    P2.3:
+      reponse_attendue: AC = 5 × 200 = 1 000 cm = 10 m > 9 m ; la corde de 9 m ne suffit pas
+      solution: 'Conclusion attendue : « La distance réelle entre les piquets A et C vaut 10 m : une corde
+        de 9 m ne suffit pas pour les relier. » Barème (3 pts) : 1 pt pour la lecture de l''échelle (1
+        cm pour 200 cm), 1 pt pour la longueur réelle 10 m conversion comprise, 1 pt pour la conclusion
+        comparant 10 m à 9 m.'
+      si_echoue: Passage d'une longueur sur un plan à la longueur réelle. Livret de remédiation 3ème,
+        module 7.
+    P3.1:
+      reponse_attendue: 1 600n = 80 000 ; n = 50
+      solution: 'Barème (2 pts) : 1 pt pour avoir ramené la recherche de l''antécédent à l''équation 1
+        600n = 80 000, 1 pt pour n = 50.'
+      si_echoue: Recherche d'un antécédent par résolution d'une équation. Livret de remédiation 3ème,
+        module 6.
+    P3.2:
+      reponse_attendue: 1 600n ≥ 84 000 ; n ≥ 52,5
+      solution: 'Barème (3 pts) : 1 pt pour l''inéquation 1 600n ≥ 84 000 avec le symbole ≥, 1 pt pour
+        la division des deux membres par 1 600 (nombre positif), 1 pt pour n ≥ 52,5.'
+      si_echoue: Mise en inéquation d'une contrainte de budget. Livret de remédiation 3ème, module 6.
+    P3.3:
+      reponse_attendue: au moins 53 élèves ; 50 ne suffisent pas, le directeur a tort
+      solution: 'Le nombre d''élèves est un entier naturel et n ≥ 52,5 : le plus petit entier qui convient
+        est 53. Conclusion : « Il faut au moins 53 élèves inscrits pour couvrir la location du car : le
+        directeur a tort, 50 élèves ne suffisent pas. » Barème (3 pts) : 1 pt pour le passage au plus
+        petit entier naturel, 53 ; 1 pt pour le rejet motivé de l''affirmation du directeur ; 1 pt pour
+        la phrase de conclusion. « 52 élèves » (arrondi par défaut) coûte le point du passage à l''entier
+        mais garde les deux autres si le raisonnement est écrit.'
+      si_echoue: Lecture du résultat en nombre entier d'élèves. Livret de remédiation 3ème, module 6.
+  2ndeC:
+    N1:
+      reponse_attendue: A = 9/8
+      si_echoue: Soustraction de deux fractions de dénominateurs différents, ou produit de deux fractions,
+        non automatisés.
+    N2:
+      reponse_attendue: B = 6√5
+      si_echoue: 'Extraction du plus grand carré parfait sous un radical non acquise : √45 = √(9 × 5)
+        = 3√5.'
+    N3:
+      si_echoue: 'Règle du quotient de deux puissances de 10 : les exposants se soustraient, ici -3 -
+        5 = -8.'
+    N4:
+      reponse_attendue: ']-4 ; +∞['
+      solution: 'Barème : 1 pt, tout ou rien. Le crochet ouvert en -4 est exigé.'
+      si_echoue: Passage d'une inégalité stricte à l'écriture par intervalle, et sens des crochets, non
+        maîtrisés.
+    N5:
+      si_echoue: Identité (a - b)(a + b) = a² - b² non reconnue, ou (√2)² = 2 non su.
+    L1:
+      si_echoue: 'Carré d''une différence : le double produit -2 × 5 × 2x est oublié ou mal calculé.'
+    L2:
+      reponse_attendue: F = (3x - 5)(3x + 5)
+      si_echoue: Reconnaissance d'une différence de deux carrés, 9x² = (3x)² et 25 = 5², non acquise.
+    L3:
+      reponse_attendue: x = 4, S = {4}
+      si_echoue: Regroupement des termes en x d'un côté et des constantes de l'autre, avec changement
+        de signe, non automatisé.
+    L4:
+      si_echoue: Inversion du sens de l'inégalité lors de la division par un nombre négatif non appliquée.
+    L5:
+      reponse_attendue: G = 5x - 9
+      si_echoue: 'Distribution du signe moins devant un produit : -x(x - 5) = -x² + 5x.'
+    L6:
+      reponse_attendue: (x ; y) = (4 ; 2)
+      solution: 'Barème : 1 pt, tout ou rien. Le couple complet est exigé.'
+      si_echoue: Résolution d'un système par combinaison ou par substitution non automatisée.
+    L7:
+      reponse_attendue: S = {-4 ; 0}
+      solution: 'Barème : 1 pt, tout ou rien. Les deux solutions sont exigées.'
+      si_echoue: 'Equation produit : un produit de facteurs est nul si et seulement si l''un au moins
+        des facteurs est nul. La solution x = 0 est souvent oubliée.'
+    G1:
+      reponse_attendue: MP = 5 cm
+      si_echoue: 'Identification de l''hypoténuse : le triangle est rectangle en M, donc [NP] est l''hypoténuse
+        et MP² = NP² - MN².'
+    G2:
+      reponse_attendue: vecteur CB
+      si_echoue: 'Relation de Chasles et opposé d''un vecteur : AB - AC = CA + AB = CB.'
+    G3:
+      si_echoue: Formule de la distance dans un repère orthonormal non mémorisée, ou racine carrée finale
+        oubliée.
+    G4:
+      si_echoue: 'Ecriture des rapports de Thalès dans le bon sens : AM/AB = AN/AC.'
+    G5:
+      reponse_attendue: vecteur AB(3 ; 5)
+      si_echoue: 'Coordonnées d''un vecteur : xB - xA et yB - yA, dans cet ordre et avec les signes.'
+    G6:
+      reponse_attendue: 6 m
+      si_echoue: 'Choix de la ligne trigonométrique : la hauteur est le côté opposé à l''angle, donc h
+        = 12 × sin 30°.'
+    F1:
+      si_echoue: 'Distinction image et antécédent : chercher l''antécédent de 13, c''est résoudre f(x)
+        = 13.'
+    D1:
+      reponse_attendue: 12 sacs
+      si_echoue: 'Calcul d''une moyenne simple : somme des valeurs divisée par l''effectif.'
+    N6:
+      reponse_attendue: x = √18 = 3√2 ; (3√2)² = 18 > 16 = 4², donc x > 4, Issouf a raison
+      solution: 'x positif, x² = 18 : x = √18 = √(9 × 2) = 3√2. Comparaison des carrés de deux positifs
+        : 18 > 16. Barème : 1 pt pour l''extraction du carré parfait conduisant à x = 3√2 ; 1 pt pour
+        la comparaison à 4 appuyée sur les carrés et la réponse explicite à Issouf. « Il a raison » sans
+        comparaison chiffrée ne prend pas le second point. L''encadrement √16 < √18 donc x > 4 obtient
+        le point entier.'
+      si_echoue: Extraction du plus grand carré parfait sous un radical, ou comparaison de deux nombres
+        positifs par leurs carrés.
+    N7:
+      reponse_attendue: 3 - 2x ∈ ]-5 ; 5] ; la borne atteinte est 5 (pour x = -1)
+      solution: 'De -1 ≤ x < 4, en multipliant par -2 : -8 < -2x ≤ 2 ; en ajoutant 3 : -5 < 3 - 2x ≤ 5.
+        5 = 3 - 2 × (-1) est atteint car x peut valoir -1. Barème : 1 pt pour l''intervalle ]-5 ; 5],
+        crochets conformes aux inégalités ; 1 pt pour la borne 5 désignée et justifiée par x = -1. Un
+        intervalle erroné dont la borne atteinte est correctement justifiée garde le second point.'
+      si_echoue: 'Multiplication d''un encadrement par un nombre négatif : le sens des inégalités s''inverse
+        et les deux bornes échangent leur rôle, la borne fermée devenant la borne supérieure.'
+    L8:
+      reponse_attendue: E = 12x + 9 = 3(4x + 3), multiple de 3 ; Boukary a raison
+      solution: 'E = (2x + 3)² - 4x² = 4x² + 12x + 9 - 4x² = 12x + 9 = 3(4x + 3), et 4x + 3 est entier
+        dès que x est entier. Barème : 1 pt pour le développement du carré et la réduction en 12x + 9
+        ; 1 pt pour la mise en facteur de 3 et la conclusion. « Oui, il a raison » sans l''écriture 3(4x
+        + 3) ni équivalent ne prend pas le second point.'
+      si_echoue: Carré d'une somme, le double produit 2 × 2x × 3 étant oublié ; ou reconnaissance d'un
+        multiple de 3 par mise en facteur.
+    L9:
+      reponse_attendue: F = (4x + 5)(3x - 2) ; F s'annule pour x = -5/4 et x = 2/3 seulement, Salif a
+        tort
+      solution: '16x² - 25 = (4x - 5)(4x + 5), donc F = (4x + 5)[(4x - 5) - (x - 3)] = (4x + 5)(3x - 2).
+        F s''annule en -5/4 et 2/3 ; 5/4 n''est ni l''un ni l''autre. Barème : 1 pt pour la factorisation
+        complète (4x + 5)(3x - 2) ; 1 pt pour les deux valeurs qui annulent F et la conclusion. La vérification
+        directe F(5/4) = 10 × 7/4 = 35/2 ≠ 0 vaut aussi le second point. Erreur propagée : racines correctement
+        lues sur sa propre forme factorisée.'
+      si_echoue: Mise en évidence d'un facteur commun après usage d'une identité remarquable ; ou confusion
+        entre annuler 16x² - 25 et annuler F.
+    L10:
+      reponse_attendue: x - (2/5)x - 18 = 30 ; x = 80 pagnes
+      solution: '(3/5)x = 48, x = 48 × 5/3 = 80. Barème : 1 pt pour l''équation traduisant les deux ventes
+        et le reste, l''inconnue étant nommée ; 1 pt pour la résolution et x = 80. L''élève qui résout
+        correctement une équation mal posée garde le second point.'
+      si_echoue: 'Traduction d''un énoncé en équation : la fraction porte sur le stock de départ, et non
+        sur ce qui reste après la vente du matin.'
+    L11:
+      reponse_attendue: 15 000 + 800n ≤ 38 000 ; n ≤ 28,75, au plus 28 participants
+      solution: '800n ≤ 23 000, n ≤ 28,75 ; un nombre de participants est entier : 28. Barème : 1 pt pour
+        l''inéquation posée dans le bon sens (frais fixes non multipliés par n) ; 1 pt pour le retour
+        à l''entier 28 justifié. 28,75 laissée telle quelle ne prend que le premier point. La réponse
+        29 ne prend pas le second point.'
+      si_echoue: Passage du langage courant à une inéquation, ou interprétation d'une solution décimale
+        dans un contexte où l'inconnue est un nombre entier.
+    L12:
+      reponse_attendue: 4b + 3s = 62 et b - s = 5 ; s = 6 L, b = 11 L ; 11 ≠ 12, un bidon ne contient
+        pas le double d'un seau
+      solution: 'b = s + 5 ; 4(s + 5) + 3s = 62, 7s = 42, s = 6, b = 11 ; 2 × 6 = 12 ≠ 11. Barème : 1
+        pt pour le système correctement posé, inconnues nommées avec leur unité ; 1 pt pour la résolution
+        et la comparaison chiffrée de b à 2s. Toute méthode de résolution est acceptée. Un système mal
+        posé résolu correctement garde le second point.'
+      si_echoue: Traduction de « un bidon contient 5 litres de plus qu'un seau » par une équation, le
+        sens de la différence étant souvent inversé.
+    G7:
+      reponse_attendue: vecteur AC(9 ; m - 1) ; 3(m - 1) - 2 × 9 = 0 ; m = 7
+      solution: 'A, B, C alignés lorsque AB et AC sont colinéaires : 3(m - 1) - 18 = 0, 3m = 21, m = 7.
+        Barème : 1 pt pour les coordonnées AC(9 ; m - 1) et la condition de colinéarité en produit en
+        croix ; 1 pt pour la résolution et m = 7. L''écriture AC = k·AB menant au même résultat est acceptée.'
+      si_echoue: Condition de colinéarité de deux vecteurs par le produit en croix xy' - yx' = 0, ou alignement
+        de trois points traduit par la colinéarité de deux vecteurs.
+    G8:
+      reponse_attendue: F(5 ; -2) ; ordonnée non nulle, F n'est pas sur l'axe des abscisses, Fatimata
+        a tort
+      solution: 'xF = 2xI - xE = 2 × 1 - (-3) = 5 ; yF = 2yI - yE = 2 × 1 - 4 = -2. Barème : 1 pt pour
+        F(5 ; -2) par usage inverse de la formule du milieu ; 1 pt pour le critère d''ordonnée nulle énoncé
+        et la conclusion. Un F erroné auquel le critère est correctement appliqué garde le second point.'
+      si_echoue: 'Usage inverse de la formule du milieu : les coordonnées du milieu sont connues, celles
+        d''une extrémité sont cherchées. Ou caractérisation de l''axe des abscisses par une ordonnée nulle.'
+    G9:
+      reponse_attendue: AB² + AC² = 225 ≠ 196 = BC², l'angle en A n'est pas droit ; il faudrait BC = 15
+        m
+      solution: 'AB² + AC² = 81 + 144 = 225 et BC² = 196 : l''égalité de Pythagore n''est pas vérifiée.
+        Barème : 1 pt pour les deux quantités calculées et comparées, suivies de la conclusion ; 1 pt
+        pour BC = 15 m. « L''angle n''est pas droit » sans les deux calculs ne prend pas le premier point.'
+      si_echoue: 'Réciproque du théorème de Pythagore : comparer le carré du plus grand côté à la somme
+        des carrés des deux autres, le plus grand côté étant ici [BC].'
+    G10:
+      reponse_attendue: AB = 10 cm, MN = (3/5) × 15 = 9 cm ; les 2/3 de 15 valent 10, Talato a tort
+      solution: 'AB = AM + MB = 10 cm ; Thalès : MN/BC = AM/AB = 6/10 = 3/5 ; MN = 9 cm, soit les trois
+        cinquièmes de BC. Barème : 1 pt pour AB = 10 cm et le rapport AM/AB = 3/5 ; 1 pt pour MN = 9 cm
+        et la conclusion appuyée sur le calcul des deux tiers de 15. « Elle a tort » sans calcul de (2/3)
+        × 15 ni comparaison de rapports ne prend pas le second point.'
+      si_echoue: 'Reconstitution du côté entier AB à partir de ses deux morceaux : le rapport de Thalès
+        est AM/AB et non AM/MB.'
+    G11:
+      reponse_attendue: sin α = 45/90 = 0,5, α = 30° ; la piste de 120 m monte de 60 m et non 45 m, Hamidou
+        a tort
+      solution: 'Le dénivelé est le côté opposé, la piste l''hypoténuse : sin α = 0,5, α = 30°. 120 ×
+        sin 30° = 60 m. Barème : 1 pt pour le sinus 0,5 et α = 30° ; 1 pt pour le dénivelé de 60 m et
+        la conclusion. Accepter tout raisonnement de proportionnalité aboutissant à 60 m.'
+      si_echoue: Choix de la ligne trigonométrique, ou confusion entre l'angle, qui est conservé, et le
+        dénivelé, qui varie avec la longueur de la piste.
+    F2:
+      reponse_attendue: (D) y = -2x + 3 ; pour x = 2, y = -1, C est sur (D), Awa a raison
+      solution: 'a = (-3 - 5)/(3 - (-1)) = -2 ; 5 = -2 × (-1) + b, b = 3. Barème : 1 pt pour y = -2x +
+        3 ; 1 pt pour la substitution des coordonnées de C avec son calcul et la conclusion. « C appartient
+        à (D) » sans calcul ne prend pas le second point. Une équation erronée sur laquelle C est correctement
+        testé garde le second point.'
+      si_echoue: Détermination d'une équation de droite à partir de deux points, ou vérification de l'appartenance
+        d'un point à une droite par substitution.
+    D2:
+      reponse_attendue: x = 7 ; « au moins 4 sacs » = 8 + 4 = 12 < 12,5, le président a tort
+      solution: '6 + x + 8 + 4 = 25, x = 7. Barème : 1 pt pour x = 7 obtenu par la somme des effectifs
+        ; 1 pt pour le cumul 8 + 4 = 12 comparé à 12,5 et la conclusion (12/25 = 48 % vaut aussi ce point).
+        L''élève qui ajoute à tort l''effectif de 3 sacs ne prend pas le second point.'
+      si_echoue: Lecture d'un tableau d'effectifs, calcul d'un effectif manquant par le total, ou sens
+        de « au moins », qui réunit la valeur citée et toutes les valeurs supérieures.
+    P1.1:
+      reponse_attendue: AB = √(6² + 8²) = 10 unités ; AC = 12 unités
+      solution: 'Vecteur AB(6 ; 8), AB = √100 = 10 ; vecteur AC(12 ; 0), AC = 12. Barème (2 pts) : 1 pt
+        pour AB = 10 unités, 1 pt pour AC = 12 unités, la formule de distance ou les coordonnées du vecteur
+        devant apparaître. Un résultat posé sans calcul ne prend pas son point.'
+      si_echoue: Formule de la distance dans un repère orthonormal.
+    P1.2:
+      reponse_attendue: périmètre 32 unités = 320 m
+      solution: 'AB + BC + AC = 10 + 10 + 12 = 32 unités ; l''unité vaut 10 m : 320 m. Barème (3 pts)
+        : 1 pt pour l''addition donnant 32 unités ; 1 pt pour l''emploi de l''unité du repère comme facteur
+        de conversion ; 1 pt pour 320 m. L''élève qui additionne ses propres longueurs de la question
+        1 garde les deux points de conversion.'
+      si_echoue: Conversion des unités du repère en mètres, le facteur d'échelle étant appliqué au périmètre
+        et non à chaque longueur séparément.
+    P1.3:
+      reponse_attendue: 320 × 1 200 = 384 000 FCFA < 400 000 ; la somme suffit
+      solution: 'Conclusion : « La clôture des 320 m revient à 384 000 FCFA, somme inférieure aux 400
+        000 FCFA dont dispose Ousséni : cette somme suffit pour clôturer le jardin. » Barème (3 pts) :
+        1 pt pour le coût 384 000 FCFA ; 1 pt pour la comparaison explicite à 400 000 FCFA ; 1 pt pour
+        la phrase de conclusion. L''élève qui compare correctement son propre coût au budget garde les
+        deux derniers points.'
+      si_echoue: Coût proportionnel à une longueur, puis comparaison à un budget.
+    P2.1:
+      reponse_attendue: BC = 100 m ; MN = (3/4) × 100 = 75 m
+      solution: 'Pythagore (rectangle en A) : BC² = 60² + 80² = 10 000, BC = 100 m. Thalès ((MN)//(BC))
+        : MN/BC = AM/AB = 45/60 = 3/4. Barème (2 pts) : 1 pt pour BC = 100 m, égalité de Pythagore écrite
+        dans le bon sens ; 1 pt pour MN = 75 m par le rapport de Thalès. Le rapport écrit à l''envers
+        (60/45) ne prend pas le second point.'
+      si_echoue: Théorème de Pythagore et rapport de Thalès.
+    P2.2:
+      reponse_attendue: sin ABC = 80/100 = 0,8 ; distance de M à (BC) = MH = 15 × 0,8 = 12 m
+      solution: 'Côté opposé à ABC : [AC], hypoténuse [BC]. H pied de la perpendiculaire à (BC) par M
+        : MBH rectangle en H d''angle ABC en B, sin ABC = MH/MB. Barème (3 pts) : 1 pt pour le sinus identifié
+        comme côté opposé / hypoténuse, 0,8 ; 1 pt pour la reconnaissance de ABC comme angle du triangle
+        MBH rectangle en H ; 1 pt pour MH = 12 m. Le cosinus à la place du sinus conduit à 9 m : seul
+        le point de reconnaissance de l''angle reste acquis.'
+      si_echoue: Choix du côté opposé et de l'hypoténuse dans un sinus, distance d'un point à une droite
+        confondue avec une longueur quelconque.
+    P2.3:
+      reponse_attendue: aire de MBCN = (75 + 100)/2 × 12 = 1 050 m² > 800 m² (tiers de 2 400 m²) ; Sibiri
+        a raison
+      solution: 'Champ ABC : 60 × 80 / 2 = 2 400 m², tiers 800 m². Conclusion : « Le quadrilatère MBCN
+        couvre 1 050 m² sur les 2 400 m² du champ, soit plus que les 800 m² du tiers : Sibiri a raison.
+        » Barème (3 pts) : 1 pt pour l''aire 1 050 m² (formule du trapèze ou différence des aires de ABC
+        et AMN) ; 1 pt pour l''aire 2 400 m² du champ et la comparaison explicite au tiers, 800 m² ; 1
+        pt pour la conclusion. L''élève qui conclut correctement sur sa propre aire garde les deux derniers
+        points. « Un quart, puisque MN est aux trois quarts » ne prend aucun point de calcul.'
+      si_echoue: Rapport de réduction de Thalès appliqué aux aires comme aux longueurs.
+    P3.1:
+      reponse_attendue: f(x) = 300x + 12 000 ; g(x) = 500x
+      solution: 'Barème (2 pts) : 1 pt pour f(x) = 300x + 12 000, frais fixes non multipliés par x ; 1
+        pt pour g(x) = 500x. La masse de 50 kg des sacs est une donnée inutile ; la signaler n''est ni
+        exigé ni pénalisé.'
+      si_echoue: Modélisation d'un tarif par une application affine, frais fixes et part proportionnelle
+        distingués.
+    P3.2:
+      reponse_attendue: 300x + 12 000 < 500x ⇔ x > 60 ; S = ]60 ; +∞[
+      solution: 'Barème (3 pts) : 1 pt pour l''inéquation 300x + 12 000 < 500x posée ; 1 pt pour la résolution
+        conduisant à x > 60 ; 1 pt pour l''écriture ]60 ; +∞[, le crochet ouvert en 60 étant exigé. L''inéquation
+        résolue dans le mauvais sens (x < 60) ne prend que le premier point.'
+      si_echoue: Comparaison de deux tarifs par une inéquation plutôt que par essais successifs.
+    P3.3:
+      reponse_attendue: f(75) = 34 500 FCFA, g(75) = 37 500 FCFA ; choisir le transporteur X
+      solution: 'f(75) = 300 × 75 + 12 000 = 34 500 ; g(75) = 500 × 75 = 37 500. Conclusion : « Pour 75
+        sacs, le transporteur X demande 34 500 FCFA contre 37 500 FCFA chez Y : Nafissatou doit choisir
+        le transporteur X. » Barème (3 pts) : 1 pt pour f(75) = 34 500 FCFA ; 1 pt pour g(75) = 37 500
+        FCFA ; 1 pt pour la conclusion désignant X. La conclusion tirée du seul encadrement 75 > 60 sans
+        les deux prix prend le point de conclusion, pas les deux points de calcul.'
+      si_echoue: Modélisation d'un tarif par une application affine ; comparaison de deux tarifs.
+    P4.1:
+      reponse_attendue: 800 × 25 = 20 000 L = 2 × 10⁴ L
+      solution: 'Barème (2 pts) : 1 pt pour le produit 800 × 25 = 20 000 litres ; 1 pt pour l''écriture
+        scientifique 2 × 10⁴ (forme a × 10ⁿ avec 1 ≤ a < 10 exigée ; 20 × 10³ ne prend pas ce point).
+        La hauteur de 12 m de la tour est une donnée inutile ; la signaler n''est ni exigé ni pénalisé.'
+      si_echoue: Ecriture d'un nombre en notation scientifique.
+    P4.2:
+      reponse_attendue: 1,2 × 10⁵ - 1 × 10⁴ × n = 0 ; n = 12 jours
+      solution: 'Au bout de n jours le château a perdu 1 × 10⁴ × n litres : 1 × 10⁴ × n = 1,2 × 10⁵, n
+        = 1,2 × 10¹ = 12. Barème (3 pts) : 1 pt pour l''équation posée, la variation quotidienne multipliée
+        par n ; 1 pt pour le quotient de deux puissances de 10 mené correctement ; 1 pt pour n = 12 jours,
+        l''unité étant attendue.'
+      si_echoue: Quotient de deux puissances de 10, ou mise en équation d'une diminution régulière jour
+        après jour.
+    P4.3:
+      reponse_attendue: deux semaines = 14 jours ; 12 < 14, la réserve ne tiendra pas plus de deux semaines,
+        Yacouba a tort
+      solution: 'Conclusion : « La réserve ne tient que 12 jours, alors que deux semaines en comptent
+        14 : Yacouba a tort, cette réserve ne tiendra pas plus de deux semaines. » Barème (3 pts) : 1
+        pt pour la conversion des deux semaines en 14 jours ; 1 pt pour la comparaison explicite de 12
+        à 14 ; 1 pt pour la conclusion tranchant sur l''affirmation. L''élève qui conclut correctement
+        à partir d''un n erroné garde les trois points.'
+      si_echoue: Conversion d'une durée et comparaison pour décider.
+  1ereD:
+    N1:
+      si_echoue: Extraction du carré parfait sous le radical et réduction de radicaux semblables. Livret
+        de remédiation 1ère D / Tle D, module 1.
+    N2:
+      si_echoue: Passage de |x - a| < r à l'intervalle de centre a et de rayon r. Livret de remédiation
+        1ère D / Tle D, module 4.
+    L1:
+      reponse_attendue: S = {-1/2 ; 3}
+      solution: 'Barème : 1 pt, tout ou rien — les deux solutions sont exigées.'
+      si_echoue: Résolution d'une équation du second degré par le discriminant. Livret de remédiation
+        1ère D / Tle D, module 7.
+    L2:
+      reponse_attendue: P(x) = 3(x - 1)(x - 3)
+      solution: 'Barème : 1 pt, tout ou rien. Accepter la forme 3(x - 3)(x - 1).'
+      si_echoue: Factorisation d'un trinôme après mise en facteur du coefficient dominant. Livret de remédiation
+        1ère D / Tle D, module 7.
+    L3:
+      reponse_attendue: S = {(2 ; -1)}
+      solution: 'Barème : 1 pt, tout ou rien — le couple entier est exigé, une seule inconnue ne vaut
+        rien.'
+      si_echoue: Résolution d'un système linéaire de deux équations à deux inconnues. Livret de remédiation
+        1ère D / Tle D, module 10.
+    L4:
+      si_echoue: Signe d'un quotient et exclusion de la valeur qui annule le dénominateur. Livret de remédiation
+        1ère D / Tle D, module 7.
+    F1:
+      reponse_attendue: f(0) = -2
+      solution: 'Barème : 1 pt, tout ou rien. Accepter la seule réponse -2.'
+      si_echoue: 'Lecture d''une image : confusion entre image et antécédent. Livret de remédiation 1ère
+        D / Tle D, module 8.'
+    F2:
+      reponse_attendue: Df = ℝ \ {-3 ; 3}
+      solution: 'Barème : 1 pt, tout ou rien. Accepter ]-∞ ; -3[ ∪ ]-3 ; 3[ ∪ ]3 ; +∞[.'
+      si_echoue: Recherche des valeurs interdites d'une fonction rationnelle. Livret de remédiation 1ère
+        D / Tle D, module 8.
+    F3:
+      si_echoue: Sens de la translation associée à x ↦ f(x - a). Livret de remédiation 1ère D / Tle D,
+        module 8.
+    F4:
+      reponse_attendue: 210 degrés
+      si_echoue: Conversion radians vers degrés par la proportionnalité π rad = 180 degrés. Livret de
+        remédiation 1ère D / Tle D, module 11.
+    F5:
+      reponse_attendue: sommet (-1 ; -4)
+      solution: 'Barème : 1 pt, tout ou rien — les deux coordonnées sont exigées.'
+      si_echoue: Lecture des coordonnées du sommet sur la forme canonique, notamment le signe de l'abscisse.
+        Livret de remédiation 1ère D / Tle D, module 8.
+    F6:
+      reponse_attendue: fonction impaire
+      si_echoue: Reconnaissance de la parité par l'effet du changement de x en -x. Livret de remédiation
+        1ère D / Tle D, module 8.
+    G1:
+      reponse_attendue: m = -9
+      si_echoue: Critère de colinéarité de deux vecteurs par le déterminant. Livret de remédiation 1ère
+        D / Tle D, module 9.
+    G2:
+      si_echoue: Calcul du produit scalaire en repère orthonormé, en particulier le signe du second produit.
+    G3:
+      reponse_attendue: A'(-1 ; -5)
+      solution: 'Barème : 1 pt, tout ou rien — les deux coordonnées sont exigées.'
+      si_echoue: 'Caractérisation du symétrique par le milieu : I est le milieu de [AA''].'
+    G4:
+      reponse_attendue: AB = 10
+      si_echoue: Formule de la distance de deux points en repère orthonormé. Livret de remédiation 1ère
+        D / Tle D, module 9.
+    G5:
+      si_echoue: 'Positions relatives de deux droites de l''espace : deux droites non sécantes ne sont
+        pas toujours non coplanaires.'
+    G6:
+      reponse_attendue: M'(-5 ; 7)
+      solution: 'Barème : 1 pt, tout ou rien — les deux coordonnées sont exigées.'
+      si_echoue: Relation vectorielle de l'homothétie et prise en compte du rapport négatif.
+    G7:
+      reponse_attendue: (AE) et (EFG) sont sécants en E ; la droite est perpendiculaire au plan
+      solution: 'Barème : 1 pt, tout ou rien. Accepter « sécants en E » seul, comme « perpendiculaires
+        » seul.'
+      si_echoue: 'Position relative d''une droite et d''un plan de l''espace : la réponse « parallèles
+        » signale que l''arête verticale n''est pas située par rapport à la face supérieure.'
+    D1:
+      si_echoue: 'Médiane d''une série d''effectif pair : ordonner la série puis prendre la demi-somme
+        des deux valeurs centrales.'
+    N3:
+      reponse_attendue: B = (x - 2) + (5 - x) = 3
+      solution: 'Pour 2 < x < 5 : x - 2 > 0 donc |x - 2| = x - 2, et x - 5 < 0 donc |x - 5| = 5 - x. B
+        vaut 3 quel que soit x de ]2 ; 5[. Barème : 1 pt pour avoir déterminé les deux signes et supprimé
+        correctement les deux valeurs absolues ; 1 pt pour la réduction aboutissant à B = 3. Un seul des
+        deux signes correct vaut 0,5 pt sur le premier point.'
+      si_echoue: Suppression d'une valeur absolue selon le signe de l'expression encadrée. Livret de remédiation
+        1ère D / Tle D, module 4.
+    N4:
+      reponse_attendue: -6 < 2x - y < 4 ; oui, -6 est un minorant de 2x - y (jamais atteint)
+      solution: '-2 < 2x < 6 et -4 < -y < -2 ; en ajoutant : -6 < 2x - y < 4. Barème : 1 pt pour l''encadrement
+        -6 < 2x - y < 4, obtenu en multipliant par 2 puis en ajoutant l''encadrement de -y (le renversement
+        des bornes de y à -y est ce que ce point récompense) ; 1 pt pour la réponse affirmative justifiée
+        par 2x - y > -6 pour toutes les valeurs. « Oui » sans justification ne vaut rien ; un minorant
+        conclu d''un encadrement erroné mais correctement exploité garde le second point.'
+      si_echoue: Opérations sur les encadrements, notamment le renversement des bornes quand on change
+        de signe, et notion de minorant. Livret de remédiation 1ère D / Tle D, modules 5 et 6.
+    L5:
+      reponse_attendue: b = -7 ; l'autre solution est 4
+      solution: '3² + 3b + 12 = 0, 3b = -21, b = -7. x² - 7x + 12 = 0 : produit des solutions 12, donc
+        3x'' = 12, x'' = 4. Barème : 1 pt pour avoir remplacé x par 3 et obtenu b = -7 ; 1 pt pour x''
+        = 4 (produit, somme des racines ou discriminant). La seconde solution juste obtenue à partir d''un
+        b erroné garde son point.'
+      si_echoue: Emploi d'une solution connue dans l'équation pour retrouver un coefficient, puis relations
+        entre coefficients et racines. Livret de remédiation 1ère D / Tle D, module 7.
+    L6:
+      reponse_attendue: Q(x) = -2(x + 2)(x - 3) ; sur ]-2 ; 3[, Q(x) > 0, l'affirmation de Fatimata est
+        vraie
+      solution: 'Q(x) = -2(x² - x - 6) = -2(x + 2)(x - 3). Sur ]-2 ; 3[, x + 2 > 0 et x - 3 < 0, produit
+        négatif, multiplié par -2 : positif. Barème : 1 pt pour la factorisation (mise en facteur de -2
+        ou discriminant Δ = 100) ; 1 pt pour la validation justifiée par le signe des deux facteurs et
+        du coefficient -2. « Vraie » sans étude de signe ne vaut rien ; une étude de signe correcte sur
+        une factorisation erronée garde le second point.'
+      si_echoue: Factorisation d'un trinôme de coefficient dominant négatif et signe d'un produit de deux
+        facteurs sur un intervalle. Livret de remédiation 1ère D / Tle D, module 7.
+    L7:
+      reponse_attendue: S = ]-∞ ; 2[ ; 2 n'est pas solution (quotient non défini), Nafissatou a tort
+      solution: 'Défini pour x ≠ 2 : (x + 1)/(x - 2) - 1 ≤ 0 ⇔ 3/(x - 2) ≤ 0 ; 3 > 0 donc x - 2 < 0. Barème
+        : 1 pt pour ]-∞ ; 2[, conclu du signe strictement positif de 3 et de x - 2 < 0 ; 1 pt pour « Nafissatou
+        a tort » justifié par la non-définition du quotient en 2. Le produit en croix effectué sans discuter
+        le signe de x - 2 ne vaut pas le premier point. Une borne 2 incluse dans l''ensemble puis exclue
+        dans la réponse à Nafissatou garde le second point.'
+      si_echoue: 'Résolution d''une inéquation quotient : tout ramener au même membre au lieu de multiplier
+        par le dénominateur, et exclusion de la valeur interdite. Livret de remédiation 1ère D / Tle D,
+        module 7.'
+    L8:
+      reponse_attendue: 3m + 2n = 34 000 et 5m + 4n = 60 000 ; m = 8 000 FCFA
+      solution: 'En multipliant la première par 2 : 6m + 4n = 68 000 ; en retranchant la seconde : m =
+        8 000. Barème : 1 pt pour le système correctement écrit, inconnues nommées ; 1 pt pour la résolution
+        donnant m = 8 000 FCFA. Le prix du niébé n''est pas demandé (ne rien retirer ni ajouter). Une
+        résolution juste sur un système mal traduit garde le second point.'
+      si_echoue: Mise en équation d'un énoncé en langue courante, puis résolution d'un système par combinaison.
+        Livret de remédiation 1ère D / Tle D, module 10.
+    F7:
+      reponse_attendue: Dh = [-3 ; 1[ ∪ ]1 ; +∞[ ; oui, -3 appartient à Dh (h(-3) = 0)
+      solution: 'Conditions : x + 3 ≥ 0 et x - 1 ≠ 0. Un radicande nul est permis et -3 ≠ 1. Barème :
+        1 pt pour les deux conditions posées et Dh écrit avec -3 inclus et 1 exclu ; 1 pt pour la réponse
+        affirmative sur -3, justifiée par le radicande pouvant être nul. Exclure -3 au motif que la racine
+        s''annule est l''erreur visée et ne vaut pas le second point.'
+      si_echoue: 'Conjonction de deux contraintes de définition : radicande positif ou nul, dénominateur
+        non nul. Livret de remédiation 1ère D / Tle D, module 8.'
+    F8:
+      reponse_attendue: v(-x) = v(x) pour tout réel x ; v est paire, l'axe des ordonnées est axe de symétrie,
+        Boukary a raison
+      solution: 'Pour tout x réel, -x est réel et v(-x) = ((-x)² + 1)/((-x)² + 3) = v(x). Barème : 1 pt
+        pour le calcul de v(-x) et l''égalité établie pour tout x ; 1 pt pour la conclusion nommant la
+        parité, la reliant à l''axe de symétrie et validant l''affirmation. « Vrai » sans calcul ne vaut
+        rien.'
+      si_echoue: Preuve de la parité par le calcul de v(-x) et lien entre parité et axe de symétrie. Livret
+        de remédiation 1ère D / Tle D, module 8.
+    F9:
+      reponse_attendue: S = [-4 ; -2] ∪ [4 ; 6] ; f(1) < 0 car f croît strictement sur [0 ; 4] et 1 <
+        4, f(1) < f(4) = 0
+      solution: 'Sur [-4 ; 0], f décroît de 3 à -5 et s''annule en -2 ; sur [0 ; 6], f croît de -5 à 7
+        et s''annule en 4. Barème : 1 pt pour [-4 ; -2] ∪ [4 ; 6], bornes -2 et 4 incluses, ensemble restant
+        dans [-4 ; 6] (un morceau oublié : 0,5 pt) ; 1 pt pour f(1) négatif en invoquant la croissance
+        stricte sur [0 ; 4] et 1 < 4. « Négatif » sans argument de variation ne vaut rien.'
+      si_echoue: Passage du sens de variation et des zéros au signe de la fonction, et prise en compte
+        de l'ensemble de définition. Livret de remédiation 1ère D / Tle D, module 8.
+    F10:
+      reponse_attendue: cos x = -3/5
+      solution: 'cos²x = 1 - 16/25 = 9/25, cos x = ±3/5 ; x dans ]π/2 ; π[ : cosinus négatif. Barème :
+        1 pt pour cos²x = 9/25 par la relation fondamentale ; 1 pt pour le signe négatif justifié par
+        le deuxième quadrant. 3/5 sans discussion du signe ne vaut que le premier point.'
+      si_echoue: Relation cos²x + sin²x = 1 et signe du cosinus selon le quadrant. Livret de remédiation
+        1ère D / Tle D, module 11.
+    G8:
+      reponse_attendue: BM→ = -2 BC→ ; BM→ et BC→ colinéaires de même origine B, donc B, C, M alignés
+      solution: 'BM = BA + AM = -AB + 3AB - 2AC = 2AB - 2AC = 2CB = -2BC (vecteurs). Barème : 1 pt pour
+        la relation de Chasles conduisant à BM = -2BC ; 1 pt pour la conclusion d''alignement fondée sur
+        la colinéarité de deux vecteurs de même origine B. Un coefficient erroné mais une colinéarité
+        correctement invoquée garde le second point.'
+      si_echoue: Relation de Chasles et critère d'alignement par colinéarité. Livret de remédiation 1ère
+        D / Tle D, module 9.
+    G9:
+      reponse_attendue: AB→(4 ; 2), AC→(-1 ; 5), AB→ · AC→ = 6 ≠ 0 ; ABC n'est pas rectangle en A
+      solution: 'AB · AC = 4 × (-1) + 2 × 5 = 6. Barème : 1 pt pour les coordonnées des deux vecteurs
+        et le produit scalaire égal à 6 ; 1 pt pour la conclusion appuyée sur « produit scalaire nul si
+        et seulement si angle droit ». Une valeur erronée mais non nulle conduisant à la même conclusion
+        garde le second point.'
+      si_echoue: Coordonnées d'un vecteur défini par deux points, puis emploi du produit scalaire comme
+        test d'orthogonalité.
+    G10:
+      reponse_attendue: y = 3 ou y = -5 ; Rakieta a raison, aucun point d'abscisse 8 (36 > 25)
+      solution: 'M(5 ; y) sur le cercle ⇔ (5 - 2)² + (y + 1)² = 25 ⇔ (y + 1)² = 16 ⇔ y = 3 ou y = -5.
+        Abscisse 8 : (8 - 2)² = 36, (y + 1)² = -11 impossible. Barème : 1 pt pour les deux ordonnées 3
+        et -5 (une seule : 0,5 pt) ; 1 pt pour « Rakieta a raison » justifié par 36 > 25 ou par la distance
+        de I à la droite d''abscisse 8 (6 > rayon).'
+      si_echoue: Caractérisation d'un cercle par la distance au centre et raisonnement inverse à abscisse
+        imposée. Livret de remédiation 1ère D / Tle D, module 9.
+    D2:
+      reponse_attendue: 'note effacée 15 ; série ordonnée 8, 9, 11, 12, 14, 15, 15, médiane 12 = moyenne
+        : oui'
+      solution: 'Somme des sept notes : 7 × 12 = 84 ; 84 - 69 = 15. Effectif 7 impair : médiane = 4e valeur
+        = 12. Barème : 1 pt pour la note effacée 15 via la somme totale 84 ; 1 pt pour la médiane 12 après
+        avoir ordonné les sept notes, et la réponse affirmative. Une médiane juste sur une note effacée
+        erronée garde son point ; « oui » sans série ordonnée ne vaut rien.'
+      si_echoue: Retour de la moyenne à la somme, puis médiane d'une série d'effectif impair.
+    P1.1:
+      reponse_attendue: -(x - 2)² + 4 = -(x² - 4x + 4) + 4 = -x² + 4x = f(x)
+      solution: 'Barème (2 pts) : 1 pt pour le développement de (x - 2)², 1 pt pour l''identification
+        du résultat à -x² + 4x.'
+      si_echoue: Forme canonique d'un trinôme. Livret de remédiation 1ère D / Tle D, modules 7 et 8.
+    P1.2:
+      reponse_attendue: (x - 2)² ≥ 0 donc f(x) ≤ 4, égalité en x = 2 ; hauteur maximale 4 m, atteinte
+        à 2 m du jet
+      solution: 'Barème (3 pts) : 1 pt pour l''argument (x - 2)² ≥ 0 conduisant à f(x) ≤ 4, 1 pt pour
+        la hauteur maximale 4 m, 1 pt pour la distance 2 m.'
+      si_echoue: Lecture de l'extremum d'un trinôme sur sa forme canonique. Livret de remédiation 1ère
+        D / Tle D, modules 7 et 8.
+    P1.3:
+      reponse_attendue: f(2,5) = 3,75 > 3,5 ; l'eau passe au-dessus du mur
+      solution: 'f(2,5) = -(0,5)² + 4 = 3,75. Conclusion : « A 2,5 m du jet, l''eau s''élève à 3,75 m,
+        soit plus haut que le mur de 3,5 m : l''eau passe au-dessus du mur. » Barème (3 pts) : 1 pt pour
+        f(2,5) = 3,75, 1 pt pour la comparaison à 3,5, 1 pt pour la conclusion. La conclusion seule, sans
+        calcul de f(2,5), ne vaut rien. Erreur propagée : une valeur de f(2,5) fausse correctement comparée
+        à 3,5, avec conclusion cohérente, garde les deux derniers points.'
+      si_echoue: Calcul d'une image et comparaison pour décider. Livret de remédiation 1ère D / Tle D,
+        modules 7 et 8.
+    P2.1:
+      reponse_attendue: médiane 14 pintades ; étendue 22 - 9 = 13 pintades
+      solution: 'Série ordonnée : 9, 12, 12, 12, 14, 15, 18, 21, 22 ; effectif 9 impair, médiane = 5e
+        valeur. Barème (2 pts) : 1 pt pour la médiane 14 après avoir ordonné la série, 1 pt pour l''étendue
+        13. Le prix de 3 500 FCFA par pintade est une donnée inutile : son emploi n''est pas une erreur,
+        son repérage ne rapporte rien.'
+      si_echoue: Médiane et étendue d'une série.
+    P2.2:
+      reponse_attendue: 145 ≤ 135 + n ≤ 155 ; 14,5 ≤ m ≤ 15,5
+      solution: '10 ≤ n ≤ 20, total des dix jours 135 + n. Barème (3 pts) : 1 pt pour l''encadrement du
+        total 145 ≤ 135 + n ≤ 155, 1 pt pour la division des trois membres par 10, 1 pt pour 14,5 ≤ m
+        ≤ 15,5 aux bornes larges.'
+      si_echoue: Encadrement d'une moyenne à partir de l'encadrement d'un total.
+    P2.3:
+      reponse_attendue: 5 jours sur 9 avec au moins 14 pintades ; 5 > 9/2, l'affirmation d'Awa est vraie
+      solution: 'Jours à 15, 18, 21, 14 et 22 pintades. Conclusion : « Awa a vendu au moins 14 pintades
+        pendant 5 jours sur 9, soit plus d''un jour sur deux : son affirmation est vraie. » Barème (3
+        pts) : 1 pt pour le dénombrement des 5 jours, 1 pt pour la comparaison de 5 à la moitié de 9,
+        1 pt pour la conclusion. Un dénombrement faux correctement comparé à 4,5 garde les deux derniers
+        points.'
+      si_echoue: Dénombrement sur une série et comparaison à la moitié de l'effectif.
+    P3.1:
+      reponse_attendue: BA = BC = 5 (50 m sur le terrain) ; BA→ · BC→ = 0
+      solution: 'BA→(-4 ; -3), BA = √25 = 5 ; BC→(3 ; -4), BC = 5 ; BA · BC = -12 + 12 = 0. Barème (2
+        pts) : 1 pt pour les deux distances BA = BC = 5, 1 pt pour le produit scalaire nul.'
+      si_echoue: Distance et produit scalaire en repère orthonormé. Livret de remédiation 1ère D / Tle
+        D, module 9.
+    P3.2:
+      reponse_attendue: ABC rectangle isocèle en B ; D(4 ; -2)
+      solution: 'Produit scalaire nul : rectangle en B ; BA = BC : isocèle en B. D = A + BC→ = (1 + 3
+        ; 2 - 4). Barème (3 pts) : 1 pt pour « rectangle en B » appuyé sur le produit scalaire nul, 1
+        pt pour « isocèle » appuyé sur BA = BC, 1 pt pour D(4 ; -2). Accepter l''ordre « isocèle rectangle
+        en B ».'
+      si_echoue: Nature d'un triangle par produit scalaire et distances ; translation. Livret de remédiation
+        1ère D / Tle D, module 9.
+    P3.3:
+      reponse_attendue: 196 ≤ P ≤ 204 ; 190 < 196, le grillage ne suffit pas à coup sûr (ni dans aucun
+        cas)
+      solution: 'Côté c en mètres : 49 ≤ c ≤ 51, donc 196 ≤ 4c ≤ 204. Conclusion : « Le périmètre du carré
+        vaut au moins 196 m alors que Kadidiatou ne dispose que de 190 m de grillage : ce grillage ne
+        suffit pas à coup sûr, et il ne suffit même dans aucun cas. » Barème (3 pts) : 1 pt pour l''encadrement
+        196 ≤ P ≤ 204, 1 pt pour la comparaison de 190 à la borne inférieure 196, 1 pt pour la conclusion.
+        Le corrigé indique que comparer 190 à 204 au lieu de 196 ne vaut pas le second point (point contesté
+        : voir anomalie n° 3 du référentiel v1, qui propose d''accepter les deux comparaisons).'
+      si_echoue: Encadrement d'une grandeur multipliée par un entier. Livret de remédiation 1ère D / Tle
+        D, module 9.
+    P4.1:
+      reponse_attendue: AC = √18 = 3√2 m ; a = 3
+      solution: 'ABC rectangle en B, AB = BC = 3 m : AC² = 9 + 9 = 18. Barème (2 pts) : 1 pt pour AC²
+        = 18 par Pythagore dans ABC rectangle en B, 1 pt pour l''écriture 3√2. Les 30 sacs de mil sont
+        une donnée inutile.'
+      si_echoue: Théorème de Pythagore et écriture des radicaux. Livret de remédiation 1ère D / Tle D,
+        module 1.
+    P4.2:
+      reponse_attendue: AG = √34 m ; (AB) et (CG) sont non coplanaires
+      solution: '[CG] perpendiculaire au plan de base : ACG rectangle en C, CG = 4 m, AG² = 18 + 16 =
+        34. (CG) ne rencontre le plan de base qu''en C, qui n''est pas sur (AB) : ni sécantes ni parallèles.
+        Barème (3 pts) : 1 pt pour avoir situé l''angle droit en C, 1 pt pour AG = √34 m, 1 pt pour «
+        non coplanaires ». « Orthogonales » seul ne vaut pas le point de la position relative ; accepter
+        « non coplanaires » seul comme « non coplanaires et orthogonales ».'
+      si_echoue: Positions relatives de deux droites de l'espace et théorème de Pythagore appliqué deux
+        fois pour la diagonale d'un pavé droit.
+    P4.3:
+      reponse_attendue: 5,80² = 33,64 < 34 = AG², donc 5,80 < AG ; la perche tient dans le grenier le
+        long de la diagonale AG
+      solution: 'La plus grande longueur rangeable dans un pavé droit est sa grande diagonale AG. Conclusion
+        : « La perche de 5,80 m est plus courte que la diagonale AG du grenier : Salif peut la ranger
+        entièrement à l''intérieur, en la plaçant le long de cette diagonale. » Barème (3 pts) : 1 pt
+        pour avoir identifié AG comme la plus grande longueur rangeable, 1 pt pour la comparaison 33,64
+        < 34, 1 pt pour la conclusion. Comparer 5,80 à 34 au lieu de 33,64 à 34 ne vaut pas le second
+        point.'
+      si_echoue: Comparaison de deux longueurs par leurs carrés ; diagonale d'un pavé droit.
+  tleD:
+    N1:
+      reponse_attendue: A = 2
+      si_echoue: 'Simplification d''un radical : √50 = 5√2 et √18 = 3√2. Livret de remédiation 1ère D
+        / Tle D, module 1.'
+    L1:
+      reponse_attendue: b = -5, soit P(x) = (x + 1)(x² - 5x + 6)
+      solution: 'Barème : 1 pt, tout ou rien. Seule la valeur b = -5 est exigée (coefficient de x² : 1
+        + b = -4, ou valeur particulière P(1) = 4 = 2 × (7 + b)).'
+      si_echoue: Identification des coefficients dans une factorisation partiellement donnée, puis factorisation
+        d'un polynôme par (x - a) lorsque a est une racine connue. Livret de remédiation 1ère D / Tle
+        D, module 7.
+    L2:
+      si_echoue: 'Signe d''un trinôme dont le coefficient de x² est négatif : l''expression est positive
+        entre les racines. Livret de remédiation 1ère D / Tle D, module 7.'
+    L3:
+      reponse_attendue: x = -1 ou x = 1
+      solution: 'Barème : 1 pt, tout ou rien. Les deux solutions sont exigées.'
+      si_echoue: Un quotient est nul quand son numérateur est nul et son dénominateur non nul. Livret
+        de remédiation 1ère D / Tle D, module 7.
+    F1:
+      si_echoue: 'Condition d''existence d''un radical placé au dénominateur : la quantité sous le radical
+        doit être strictement positive. Livret de remédiation 1ère D / Tle D, module 8.'
+    F2:
+      reponse_attendue: f'(x) = 6x² + 5/x²
+      si_echoue: Dérivée de 1/x et effet du signe moins qui la précède. Livret de remédiation 1ère D /
+        Tle D, module 12.
+    F3:
+      si_echoue: 'Limite en une valeur interdite : étude du signe du dénominateur du côté indiqué. Livret
+        de remédiation 1ère D / Tle D, module 12.'
+    F4:
+      reponse_attendue: maximum en x = 5/2
+      si_echoue: Lien entre le changement de signe de la dérivée et la nature de l'extremum. Livret de
+        remédiation 1ère D / Tle D, module 12.
+    F5:
+      si_echoue: 'Asymptotes d''une fonction homographique : la valeur interdite donne la verticale, la
+        limite en l''infini donne l''horizontale. Livret de remédiation 1ère D / Tle D, module 12.'
+    F6:
+      reponse_attendue: u'(x) = 24x(3x² - 1)³
+      solution: 'Barème : 1 pt, tout ou rien. La forme factorisée est exigée.'
+      si_echoue: 'Dérivée d''une puissance de fonction : (uⁿ)'' = n·u''·uⁿ⁻¹. Livret de remédiation 1ère
+        D / Tle D, module 12.'
+    F7:
+      reponse_attendue: y = -(1/4)x + 1
+      si_echoue: Formule de la tangente y = f'(a)(x - a) + f(a), et calcul de f'(2). Livret de remédiation
+        1ère D / Tle D, modules 10 et 12.
+    F8:
+      reponse_attendue: le minimum de f est -2, atteint en x = 1
+      solution: 'Barème : 1 pt, tout ou rien. La valeur -2 et l''abscisse 1 sont toutes deux exigées.'
+      si_echoue: Confusion entre le minimum, qui est une ordonnée, et l'abscisse en laquelle il est atteint.
+        Livret de remédiation 1ère D / Tle D, module 8.
+    S1:
+      si_echoue: Dans une suite arithmétique écrite sous la forme uₙ = an + b, la raison est le coefficient
+        a.
     S2:
-      reponse_attendue: 1+2+...+n+(n+1) = (n+1)(n+2)/2
-      solution: ''
+      reponse_attendue: 3ⁿ⁺¹ ≥ 2n + 3
+      solution: 'Barème : 1 pt, tout ou rien. La forme 3ⁿ⁺¹ ≥ 2(n + 1) + 1 est acceptée.'
+      si_echoue: 'Ecriture de la propriété au rang n + 1 : remplacer n par n + 1 partout, dans les deux
+        membres.'
     S3:
-      reponse_attendue: v0 = 3
-      solution: ''
-    S4:
-      reponse_attendue: w(n+1) <= 2
-      solution: ''
-    S5:
-      reponse_attendue: douzieme mois = 26 500 F ; total sur douze mois = 219 000 F
-      solution: suite arithmetique u(n)=10000+(n-1)x1500 ; u(12)=10000+11x1500=26500 ; somme=12x(10000+26500)/2=219000.
+      reponse_attendue: '187'
+      solution: 'Barème : 1 pt, tout ou rien. Le dernier terme étant donné : 11 × (2 + 32)/2 = 11 × 17
+        = 187.'
+      si_echoue: 'Somme des termes consécutifs d''une suite arithmétique, et comptage des termes : de
+        v₀ à v₁₀ il y a 11 termes, non 10.'
     T1:
-      reponse_attendue: x = pi/3 ou x = 5pi/3
-      solution: ''
+      reponse_attendue: '0'
+      si_echoue: Reconnaissance de la forme cos a cos b - sin a sin b = cos(a + b). Livret de remédiation
+        1ère D / Tle D, module 11.
+    T2:
+      reponse_attendue: S = [2π/3 ; π]
+      solution: 'Barème : 1 pt, tout ou rien. Sur [0 ; π] le cosinus est décroissant : une seule borne
+        à déterminer, 2π/3, et l''intervalle est fermé.'
+      si_echoue: Lecture d'une inéquation en cosinus sur le cercle trigonométrique. Livret de remédiation
+        1ère D / Tle D, module 11.
+    D1:
+      si_echoue: 'Confusion entre combinaison et arrangement : l''ordre des trois élèves choisis n''intervient
+        pas.'
+    G1:
+      si_echoue: 'Expression du produit scalaire en coordonnées et condition d''orthogonalité : 4m + 3
+        × (-2) = 0. Livret de remédiation 1ère D / Tle D, module 9.'
+    G2:
+      reponse_attendue: AG = 11 cm
+      si_echoue: 'Diagonale d''un pavé droit : AG² = AB² + BC² + AE², soit deux emplois successifs du
+        théorème de Pythagore.'
+    L4:
+      reponse_attendue: a = 0 ; P(1) = 0, 1 est racine, Moussa a raison
+      solution: 'P(2) = 8 + 4a - 14 + 6 = 4a = 0, donc a = 0 ; P(x) = x³ - 7x + 6, P(1) = 1 - 7 + 6 =
+        0. Barème : 1 pt pour avoir traduit « 2 est racine » par P(2) = 0 et abouti à a = 0 ; 1 pt pour
+        le calcul de P(1) et le jugement justifié. Erreur propagée : le second point est acquis si P(1)
+        est calculé correctement avec la valeur de a trouvée par l''élève et si le jugement est cohérent.'
+      si_echoue: Traduction d'une racine en équation sur un coefficient, puis test d'une racine par calcul
+        d'image. Livret de remédiation 1ère D / Tle D, module 7.
+    L5:
+      reponse_attendue: f(x) < 0 sur ]1/2 ; 3[ ; f(-2) = 0, donc -2 est solution de f(x) ≤ 0
+      solution: 'Sur ]1/2 ; 3[ : x - 3 < 0, x + 2 > 0, 2x - 1 > 0, donc f(x) < 0. f(-2) = (-5) × 0 / (-5)
+        = 0 et 0 ≤ 0. Barème : 1 pt pour le signe des trois facteurs aboutissant à f(x) < 0 ; 1 pt pour
+        f(-2) = 0 et la conclusion que -2 est solution (inégalité large). Refuser « -2 n''est pas solution
+        parce que f(-2) n''est pas strictement négatif » : c''est l''erreur visée.'
+      si_echoue: Signe d'un quotient par le signe de chacun de ses facteurs, et distinction entre inégalité
+        large et inégalité stricte. Livret de remédiation 1ère D / Tle D, module 7.
+    L6:
+      reponse_attendue: Δ = (m - 1)² - 16 = 0 ⇔ m = 5 ou m = -3 ; pour m = 0, Δ = -15 < 0, pas de solution
+        réelle, Safiatou a raison
+      solution: 'Barème : 1 pt pour la condition Δ = 0 conduite jusqu''aux deux valeurs m = 5 et m = -3
+        (les deux exigées) ; 1 pt pour le discriminant -15 dans le cas m = 0 et le jugement justifié «
+        Safiatou a raison ».'
+      si_echoue: Rôle du discriminant dans la discussion du nombre de solutions d'une équation du second
+        degré. Livret de remédiation 1ère D / Tle D, module 7.
+    F9:
+      reponse_attendue: D = ]-3 ; 3[ ; f(-x) = -f(x), f est impaire, Talato a tort
+      solution: '9 - x² > 0 ⇔ -3 < x < 3 ; D centré en 0 et f(-x) = -x/√(9 - x²) = -f(x). Barème : 1 pt
+        pour D = ]-3 ; 3[ avec l''inégalité stricte (radical au dénominateur) ; 1 pt pour le calcul de
+        f(-x) et le jugement « Talato a tort, f est impaire ». Accepter une réponse qui conclut « f est
+        impaire » sans écrire « paire » dès que f(-x) = -f(x) est établi.'
+      si_echoue: Condition d'existence d'un radical au dénominateur, ou conduite du test de parité par
+        le calcul de f(-x). Livret de remédiation 1ère D / Tle D, module 8.
+    F10:
+      reponse_attendue: a = 1 ; pour a = 2, limites +∞ à droite et -∞ à gauche de 2, pas de limite, Issouf
+        a tort
+      solution: 'Pour une limite finie, le numérateur doit s''annuler en 2 : 4 + 2a - 6 = 0, a = 1. Pour
+        a = 2, le numérateur vaut 2 en 2. Barème : 1 pt pour a = 1 justifié par l''annulation du numérateur
+        en 2 ; 1 pt pour les deux limites latérales et le jugement « Issouf a tort ». Refuser « Issouf
+        a raison » appuyé sur la seule limite à droite.'
+      si_echoue: Forme indéterminée 0/0, et étude du signe du dénominateur de part et d'autre d'une valeur
+        interdite. Livret de remédiation 1ère D / Tle D, module 12.
+    F11:
+      reponse_attendue: asymptotes x = 1 et y = 2x - 1 ; f(x) - (2x - 1) = 3/(x - 1) ≠ 0, la courbe ne
+        coupe jamais l'oblique, Rakieta a tort
+      solution: 'Barème : 1 pt pour les deux équations d''asymptotes, verticale x = 1 et oblique y = 2x
+        - 1 ; 1 pt pour f(x) - (2x - 1) = 3/(x - 1), constaté jamais nul, et « Rakieta a tort ».'
+      si_echoue: Lecture des asymptotes sur une écriture « partie affine plus reste », et étude de la
+        position d'une courbe par rapport à son asymptote. Livret de remédiation 1ère D / Tle D, module
+        12.
+    F12:
+      reponse_attendue: a = -2, b = 1 ; f'(2) = 5
+      solution: 'f''(x) = 3x² + 2ax + b ; f''(0) = b = 1 ; f''(1) = 4 + 2a = 0, a = -2 ; f''(2) = 12 -
+        8 + 1 = 5. Barème : 1 pt pour a = -2 et b = 1 (les deux exigées) ; 1 pt pour f''(2) = 5. Erreur
+        propagée : f''(2) correctement calculé à partir des valeurs de a et b trouvées, même erronées.'
+      si_echoue: Dérivation d'un polynôme à coefficients paramétrés, puis traduction de deux conditions
+        en un système. Livret de remédiation 1ère D / Tle D, module 12.
+    F13:
+      reponse_attendue: f'(x) = -3 ⇔ x = 1 ; tangente y = -3x + 3
+      solution: 'f''(x) = 3x² - 6x = -3 ⇔ (x - 1)² = 0 ⇔ x = 1 ; f(1) = 0 ; y = -3(x - 1). Barème : 1
+        pt pour f''(x) = -3 et l''abscisse x = 1 ; 1 pt pour f(1) = 0 et l''équation réduite y = -3x +
+        3. Erreur propagée : équation correctement formée à partir de l''abscisse trouvée.'
+      si_echoue: Identification du coefficient directeur d'une tangente à la dérivée, puis condition de
+        parallélisme de deux droites. Livret de remédiation 1ère D / Tle D, modules 10 et 12.
+    F14:
+      reponse_attendue: f' ≥ 0 sur [0 ; 1], f croissante sur [0 ; 1] ; f' < 0 sur ]1 ; 2[, f décroissante,
+        Sibiri a tort
+      solution: 'Barème : 1 pt pour le signe des deux facteurs sur [0 ; 1] aboutissant à f''(x) ≥ 0 et
+        « f croissante sur [0 ; 1] » ; 1 pt pour le signe de f'' sur ]1 ; 2[ et « Sibiri a tort ». Accepter
+        un contre-exemple chiffré (f(1) = 5 et f(2) = 4).'
+      si_echoue: Passage du signe de la dérivée au sens de variation, et portée d'une monotonie limitée
+        à un sous-intervalle. Livret de remédiation 1ère D / Tle D, module 12.
+    S4:
+      reponse_attendue: r = 3 ; uₙ = 3n - 2 = 100 ⇔ n = 34 entier, 100 = u₃₄ est un terme
+      solution: 'u₈ = u₃ + 5r : 22 = 7 + 5r, r = 3. Barème : 1 pt pour r = 3 ; 1 pt pour uₙ = 100 résolu
+        en n = 34 et la conclusion appuyée sur le fait que 34 est entier. Erreur propagée : uₙ = 100 correctement
+        résolue avec la raison trouvée et nature entière de l''indice discutée.'
+      si_echoue: Relation u_p = u_q + (p - q)r, puis résolution inverse d'une équation en l'indice avec
+        contrôle de son appartenance à ℕ.
+    S5:
+      reponse_attendue: uₙ₊₁ = 3(2 × 3ⁿ - 1) + 2 = 2 × 3ⁿ⁺¹ - 1 ; Aminata a tort, il manque l'initialisation
+        (et la conclusion)
+      solution: 'Barème : 1 pt pour avoir substitué l''hypothèse dans uₙ₊₁ = 3uₙ + 2 et mené le calcul
+        jusqu''à 2 × 3ⁿ⁺¹ - 1 ; 1 pt pour « Aminata a tort » accompagné du nom de ce qui manque, l''initialisation
+        (u₀ = 2 × 3⁰ - 1 = 1). Accepter l''initialisation nommée même non vérifiée ; refuser un simple
+        « elle a tort ».'
+      si_echoue: 'Structure du raisonnement par récurrence : les trois temps que sont l''initialisation,
+        l''hérédité et la conclusion, et le rôle de chacun.'
     T3:
-      reponse_attendue: x appartient a [pi/4 ; 3pi/4]
-      solution: ''
-    T4:
-      reponse_attendue: cos(pi/12) = (racine(6)+racine(2))/4
-      solution: cos(pi/3-pi/4)=cos(pi/3)cos(pi/4)+sin(pi/3)sin(pi/4) = (1/2)(racine(2)/2)+(racine(3)/2)(racine(2)/2)
-        = racine(2)/4+racine(6)/4.
+      reponse_attendue: sin x = 4/5 ; sin(x + π/3) = (4 + 3√3)/10
+      solution: 'sin²x = 1 - 9/25 = 16/25 ; x ∈ ]0 ; π/2[ donc sin x > 0. sin(x + π/3) = (4/5)(1/2) +
+        (3/5)(√3/2). Barème : 1 pt pour sin x = 4/5 avec le signe justifié par le quadrant (non acquis
+        sans justification du signe) ; 1 pt pour la formule d''addition et la valeur exacte (4 + 3√3)/10.'
+      si_echoue: Relation fondamentale de la trigonométrie, choix du signe selon le quadrant, formule
+        d'addition du sinus. Livret de remédiation 1ère D / Tle D, module 11.
+    D2:
+      reponse_attendue: C(6,4) × C(4,1) + C(6,5) = 60 + 6 = 66 comités
+      solution: '« Au moins 4 femmes » : exactement 4 femmes et 1 homme (15 × 4 = 60) ou exactement 5
+        femmes (6), cas disjoints. Barème : 1 pt pour la décomposition en deux cas disjoints avec le produit
+        de combinaisons ; 1 pt pour 60, 6 et le total 66.'
+      si_echoue: Traduction de « au moins » en réunion de cas disjoints, et choix simultané dans deux
+        groupes par un produit de combinaisons.
+    G3:
+      reponse_attendue: AE = CG = 12 cm ; ACG rectangle en C, Boukary a raison
+      solution: '(CG) ⊥ (ABC) : ACG rectangle en C, CG² = 13² - 5² = 144, CG = 12 = AE. Barème : 1 pt
+        pour AE = 12 cm par emploi inverse de Pythagore dans ACG ; 1 pt pour l''angle droit en C justifié
+        par la perpendicularité de (CG) au plan (ABC) et « Boukary a raison ». Autre démarche acceptée
+        : AE² = 169 - 9 - 16 = 144.'
+      si_echoue: Emploi du théorème de Pythagore dans l'espace, et propriété d'une droite perpendiculaire
+        à un plan.
+    P1.1:
+      reponse_attendue: u₂ = 20 ruches, u₃ = 56 ruches
+      solution: 'u₂ = 3 × 8 - 4 = 20 ; u₃ = 3 × 20 - 4 = 56. Barème (2 pts) : 1 pt pour u₂ = 20, 1 pt
+        pour u₃ = 56.'
+      si_echoue: Calcul des termes d'une suite définie par récurrence.
+    P1.2:
+      reponse_attendue: hérédité uₙ₊₁ = 3(2 × 3ⁿ + 2) - 4 = 2 × 3ⁿ⁺¹ + 2 ; pour tout n ≥ 1, uₙ = 2 × 3ⁿ
+        + 2
+      solution: 'Initialisation donnée : 2 × 3¹ + 2 = 8 = u₁. Conclusion attendue : « P(1) est vraie et
+        la propriété est héréditaire, donc, d''après le principe de récurrence, pour tout entier n ≥ 1,
+        uₙ = 2 × 3ⁿ + 2. » Barème (3 pts) : 1 pt pour l''hypothèse de récurrence écrite au rang n, 1 pt
+        pour le calcul d''hérédité par substitution jusqu''à 2 × 3ⁿ⁺¹ + 2, 1 pt pour la phrase de conclusion
+        invoquant l''initialisation et l''hérédité. L''initialisation fournie n''est pas payée ; une hérédité
+        juste sans hypothèse écrite ne vaut pas le premier point.'
+      si_echoue: Modélisation d'une récurrence du type uₙ₊₁ = a·uₙ + b, conduite de l'hérédité à partir
+        d'une hypothèse écrite.
+    P1.3:
+      reponse_attendue: C(15,3) = 455 ; 488 < 500, Rasmané a tort
+      solution: 'C(15,3) = (15 × 14 × 13)/(3 × 2 × 1) = 455. La cinquième année : 488 ruches < 500. Barème
+        (3 pts) : 1 pt pour la reconnaissance d''une combinaison et la pose de C(15,3), 1 pt pour 455,
+        1 pt pour la conclusion appuyée sur 488 vs 500. Erreur propagée : valeur cohérente avec une écriture
+        erronée de C(15,3) ; la conclusion garde son point si elle compare 488 à 500 et tranche.'
+      si_echoue: Confusion entre combinaison et arrangement.
+    P2.1:
+      reponse_attendue: C'(x) = 1 - 9/x² = (x² - 9)/x² ; négatif sur [1 ; 3[, nul en 3, positif sur ]3
+        ; 9]
+      solution: 'Sur [1 ; 9], x² > 0 : C''(x) a le signe de (x - 3)(x + 3), donc de x - 3. Barème (2 pts)
+        : 1 pt pour la mise au même dénominateur aboutissant à (x² - 9)/x², 1 pt pour le signe justifié
+        par x² > 0 puis par celui de x - 3. Le nombre d''ouvriers (12) est une donnée inutile.'
+      si_echoue: Dérivée de 1/x et réduction au même dénominateur, signe d'un quotient. Livret de remédiation
+        1ère D / Tle D, modules 7 et 12.
+    P2.2:
+      reponse_attendue: C décroît de 14 à 10 sur [1 ; 3], puis croît de 10 à 14 sur [3 ; 9]
+      solution: 'Barème (3 pts) : 1 pt pour la ligne de signe de C'' avec le zéro en x = 3, 1 pt pour
+        les deux sens de variation, 1 pt pour les trois valeurs 14, 10 et 14 aux bons endroits. Erreur
+        propagée : un tableau cohérent avec un signe de C'' faux garde les points.'
+      si_echoue: Tableau de variation à partir du signe de la dérivée. Livret de remédiation 1ère D /
+        Tle D, module 12.
+    P2.3:
+      reponse_attendue: C(9) = C(1) = 14, Fatimata a tort ; coût moyen minimal pour 3 tonnes (10 000 FCFA
+        la tonne)
+      solution: 'Conclusion : « Fatimata a tort : produire 9 tonnes revient exactement au même coût moyen
+        que produire 1 tonne, soit 14 000 FCFA la tonne ; le coût moyen est minimal pour une production
+        de 3 tonnes, où il vaut 10 000 FCFA la tonne. » Barème (3 pts) : 1 pt pour avoir constaté C(1)
+        = C(9) = 14, 1 pt pour le minimum atteint en 3 tonnes, 1 pt pour la conclusion qui invalide l''affirmation
+        et donne la quantité à produire.'
+      si_echoue: Lecture d'un minimum dans un tableau de variation. Livret de remédiation 1ère D / Tle
+        D, module 12.
+    P3.1:
+      reponse_attendue: h(0) = 3 m, h(3) = 5 m ; hauteur maximale 5 m atteinte à t = 3 h
+      solution: 'sin(πt/6) ≤ 1 donc h(t) ≤ 5, égalité pour πt/6 = π/2, t = 3. Barème (2 pts) : 1 pt pour
+        h(0) = 3 m et h(3) = 5 m tous deux justes, 1 pt pour la hauteur maximale 5 m établie à partir
+        de sin ≤ 1 et l''heure t = 3 (un seul point si la hauteur est donnée sans l''heure — règle jugée
+        ambiguë, anomalie n° 8 du référentiel v1).'
+      si_echoue: Maximum d'une fonction sinusoïdale. Livret de remédiation 1ère D / Tle D, module 11.
+    P3.2:
+      reponse_attendue: sin(πt/6) ≥ 1/2 ; πt/6 ∈ [π/6 ; 5π/6] ; S = [1 ; 5]
+      solution: 'h(t) ≥ 4 ⇔ 2 sin(πt/6) ≥ 1. Avec θ = πt/6 parcourant [0 ; 2π[. Barème (3 pts) : 1 pt
+        pour la réduction à sin(πt/6) ≥ 1/2, 1 pt pour l''intervalle [π/6 ; 5π/6] sur l''angle, 1 pt pour
+        le retour à t et S = [1 ; 5].'
+      si_echoue: Résolution d'une inéquation trigonométrique par passage à l'angle πt/6 plutôt que par
+        un travail direct sur t. Livret de remédiation 1ère D / Tle D, module 11.
+    P3.3:
+      reponse_attendue: la pompe fonctionne de 1 h à 5 h, soit 5 - 1 = 4 heures et non 5 ; Zénabou a tort
+      solution: 'Conclusion : « Zénabou a tort : la pompe fonctionne de 1 h à 5 h, soit pendant 4 heures
+        et non 5 heures. » Barème (3 pts) : 1 pt pour avoir établi que la pompe fonctionne entre les deux
+        heures données et non en dehors, 1 pt pour la durée 4 heures comme différence 5 - 1, 1 pt pour
+        la conclusion. Accepter la justification de [1 ; 5] par le résultat de la question 2.'
+      si_echoue: 'Interprétation d''un intervalle de temps comme une durée : la durée est la différence
+        des bornes, non le nombre d''heures entières citées.'
+    P4.1:
+      reponse_attendue: AB = √40 = 2√10 ; AC = √40 = 2√10
+      solution: 'AB→(6 ; 2), AC→(2 ; 6). Barème (2 pts) : 1 pt pour AB = 2√10, 1 pt pour AC = 2√10, sous
+        forme exacte ; √40 garde son point, 6,3 ne le garde pas. Le prix de la clôture (2 500 FCFA/m)
+        et l''échelle sont des données inutiles.'
+      si_echoue: Distance entre deux points dans un repère orthonormé. Livret de remédiation 1ère D /
+        Tle D, modules 1 et 9.
+    P4.2:
+      reponse_attendue: AB→ · AC→ = 6 × 2 + 2 × 6 = 24
+      solution: 'Barème (3 pts) : 1 pt pour les coordonnées des deux vecteurs, 1 pt pour l''expression
+        du produit scalaire en coordonnées, 1 pt pour la valeur 24.'
+      si_echoue: Produit scalaire en coordonnées. Livret de remédiation 1ère D / Tle D, module 9.
+    P4.3:
+      reponse_attendue: ABC est isocèle en A (AB = AC) mais pas rectangle en A (AB→ · AC→ = 24 ≠ 0) ;
+        Salif n'a raison qu'à moitié
+      solution: 'Conclusion : « Salif n''a raison qu''à moitié : le triangle ABC est bien isocèle en A,
+        puisque AB = AC, mais il n''est pas rectangle en A, puisque le produit scalaire vaut 24 et n''est
+        pas nul. » Barème (3 pts) : 1 pt pour le caractère isocèle justifié par AB = AC, 1 pt pour le
+        refus de l''angle droit justifié par un produit scalaire non nul, 1 pt pour la conclusion nommant
+        la nature du triangle. Une conclusion qui accorde tout à Salif ou qui lui refuse tout ne vaut
+        pas ce dernier point.'
+      si_echoue: Produit scalaire en coordonnées employé comme test d'orthogonalité. Livret de remédiation
+        1ère D / Tle D, modules 1 et 9.

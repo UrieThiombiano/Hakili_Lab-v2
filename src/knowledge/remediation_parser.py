@@ -161,7 +161,11 @@ def _parse_lecon_bloc(numero: str, titre: str, bloc: str) -> Lecon:
         ]
 
     m = re.search(
-        r"\*\*Exemple résolu\.\*\*\s*(.+?)(?=\n>\s*####\s*⚠|\n\n##|\Z)", bloc, re.S
+        # Arrêt devant N'IMPORTE QUEL sous-titre en bloc-citation qui suit
+        # (« DÉCLIC » ou « ⚠ ATTENTION », selon lequel des deux vient en
+        # premier dans la leçon) — s'arrêter seulement devant "⚠" avalait le
+        # bloc DÉCLIC entier quand il précédait ATTENTION, corrigé D-CEO-43.
+        r"\*\*Exemple résolu\.\*\*\s*(.+?)(?=\n>\s*####|\n\n##|\Z)", bloc, re.S
     )
     if m:
         lecon.exemple_resolu = _fold_blank(m.group(1))
@@ -180,7 +184,9 @@ def _parse_lecon_bloc(numero: str, titre: str, bloc: str) -> Lecon:
                 ErreurFrequente(erreur=_fold_blank(erreur), correction=_fold_blank(correction))
             )
 
-    m = re.search(r">\s*####\s*DÉCLIC\s*:\s*(.+?)\n(.+?)(?=\n\n[^>]|\Z)", bloc, re.S)
+    # Même correctif qu'« Exemple résolu » ci-dessus, dans l'autre sens :
+    # DÉCLIC doit s'arrêter avant ATTENTION quand ATTENTION le suit.
+    m = re.search(r">\s*####\s*DÉCLIC\s*:\s*(.+?)\n(.+?)(?=\n>\s*####|\n\n[^>]|\Z)", bloc, re.S)
     if m:
         corps_declic = " ".join(
             ligne.lstrip("> ").strip()

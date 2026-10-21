@@ -49,18 +49,31 @@ _SUB = re.compile(r'\b([A-Za-z])_([A-Za-z0-9]{1,2})\b')
 # domaine (unités d'aire/volume, rayon/diamètre au carré) contrairement à un exposant
 # générique sur une lettre isolée (ex: u2 pourrait être un indice de suite u_n).
 _UNIT_POW = re.compile(r'\b([cdk]?m)(2|3)\b')
-_GEOM_POW = re.compile(r'\b(Rayon|rayon|Diam[eè]tre|diam[eè]tre|R|D)(2|3)\b')
+# Pas de « R » ni de « D » seuls : D1 à D4 sont des codes de question
+# (organisation de données) dans tous les tests du référentiel — « En D2, … »
+# devenait « En D², … » dans les rapports (recette du 2026-10-16).
+_GEOM_POW = re.compile(r'\b(Rayon|rayon|Diam[eè]tre|diam[eè]tre)(2|3)\b')
 _SUP_DIGIT = {"2": "²", "3": "³"}
 
 # Commandes LaTeX résiduelles (défense en profondeur — les prompts imposent
-# l'ASCII mais un provider peut fuiter du LaTeX)
+# l'ASCII mais un provider peut fuiter du LaTeX, et le contenu de
+# `remediation/` — module 7 — est du LaTeX plus riche, écrit à la main)
 _LATEX_FRAC = re.compile(r'\\[dt]?frac\{([^{}]+)\}\{([^{}]+)\}')
 _LATEX_SQRT = re.compile(r'\\sqrt\{([^{}]+)\}')
+_LATEX_WIDEHAT = re.compile(r'\\widehat\{([^{}]+)\}')
 _LATEX_SIMPLE = [
     (r'\times', '×'), (r'\cdot', '×'), (r'\div', '÷'), (r'\pi', 'π'),
     (r'\leq', '≤'), (r'\geq', '≥'), (r'\neq', '≠'),
     (r'\le', '≤'), (r'\ge', '≥'), (r'\ne', '≠'), (r'\infty', '∞'),
+    (r'\circ', '°'),
+    # Délimiteurs de taille — purement visuels en LaTeX, sans équivalent HTML
+    # utile ici : la parenthèse/le crochet qui suit porte déjà le sens.
+    (r'\left', ''), (r'\right', ''),
 ]
+# `re.escape(cmd)` + lookahead "pas une lettre juste après" : sans ça,
+# `str.replace('\le', '≤')` mangeait `\left` en `≤ft` (`\le` est un préfixe
+# de `\left`) — découvert sur du contenu `remediation/` réel (D-CEO-43).
+_LATEX_CMD_RE = [(re.compile(re.escape(cmd) + r'(?![a-zA-Z])'), sym) for cmd, sym in _LATEX_SIMPLE]
 
 
 def ascii_math_upgrade(s: str) -> str:
@@ -68,8 +81,9 @@ def ascii_math_upgrade(s: str) -> str:
     # LaTeX résiduel → formes ASCII/Unicode gérées en aval
     s = _LATEX_FRAC.sub(r'(\1/\2)', s)
     s = _LATEX_SQRT.sub(r'sqrt(\1)', s)
-    for cmd, sym in _LATEX_SIMPLE:
-        s = s.replace(cmd, sym)
+    s = _LATEX_WIDEHAT.sub(r'angle \1', s)
+    for pattern, sym in _LATEX_CMD_RE:
+        s = pattern.sub(sym, s)
     # Comparaisons et flèches — l'ordre compte : <=> avant <= et =>
     s = re.sub(r'\s*<=>\s*', ' équivaut à ', s)
     s = re.sub(r'\s*<=\s*', ' ≤ ', s)

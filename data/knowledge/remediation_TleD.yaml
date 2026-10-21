@@ -714,19 +714,7 @@
 
       | Le facteur $x - 3$ est commun et non nul. | $F = \dfrac{x^{2} + 3x + 9}{x + 3}$ |
 
-      | **Vérification :** pour $x = 0$, $\dfrac{-27}{-9} = 3$ et $\dfrac{9}{3} = 3$ ✓ | |
-
-
-      > #### DÉCLIC : deux cubes, une ligne
-
-      >
-
-      > Dès que tu reconnais deux cubes, la factorisation tient en une ligne, là où les autres posent
-      une division euclidienne. Le réflexe à installer : devant une expression à deux termes, teste d''abord
-      les cubes avant tout calcul.
-
-
-      ---'
+      | **Vérification :** pour $x = 0$, $\dfrac{-27}{-9} = 3$ et $\dfrac{9}{3} = 3$ ✓ | |'
     erreurs_frequentes: []
     declic: 'deux cubes, une ligne — Dès que tu reconnais deux cubes, la factorisation tient en une ligne,
       là où les autres posent une division euclidienne. Le réflexe à installer : devant une expression
@@ -1474,30 +1462,7 @@
 
       [SVG: figures/m04_f7.svg]
 
-      *Figure 4.2 : $|x - 5| \le 2$ décrit le segment centré en 5, de rayon 2, bornes comprises.*
-
-
-      > #### DÉCLIC : où cela sert dès la rentrée
-
-      >
-
-      > On ne te demande plus « résous cette équation » mais « détermine l''ensemble de définition de
-      $f$ » : la réponse s''écrit en intervalles. Signe d''un trinôme, tableau de variations, ensemble
-      de solutions : même écriture. Ce module sert dès le premier chapitre de fonctions.
-
-
-      > #### 🎓 EN TERMINALE D : la valeur absolue, langage des limites
-
-      >
-
-      > Dire que $f\left(x\right)$ tend vers $\ell$ signifie : « $|f\left(x\right) - \ell|$ devient aussi
-      petit qu''on veut », c''est-à-dire que la **distance** entre $f\left(x\right)$ et $\ell$ se rapproche
-      de 0. Tout énoncé du type « $f\left(x\right)$ est à moins de $10^{-3}$ de $\ell$ » se traduit par
-      $|f\left(x\right) - \ell| < 10^{-3}$, exactement la traduction distance ↔ intervalle de ce module.
-      C''est la porte d''entrée du chapitre Limites et continuité.
-
-
-      ---'
+      *Figure 4.2 : $|x - 5| \le 2$ décrit le segment centré en 5, de rayon 2, bornes comprises.*'
     erreurs_frequentes:
     - erreur: écrire $[3\,;\,+\infty]$ ou $[-\infty\,;\,5]$.
       correction: 'le crochet reste ouvert du côté de l''infini : $[3\,;\,+\infty[$ et $]-\infty\,;\,5]$.'
@@ -1506,12 +1471,7 @@
     declic: 'où cela sert dès la rentrée — On ne te demande plus « résous cette équation » mais « détermine
       l''ensemble de définition de $f$ » : la réponse s''écrit en intervalles. Signe d''un trinôme, tableau
       de variations, ensemble de solutions : même écriture. Ce module sert dès le premier chapitre de
-      fonctions. #### 🎓 EN TERMINALE D : la valeur absolue, langage des limites Dire que $f\left(x\right)$
-      tend vers $\ell$ signifie : « $|f\left(x\right) - \ell|$ devient aussi petit qu''on veut », c''est-à-dire
-      que la **distance** entre $f\left(x\right)$ et $\ell$ se rapproche de 0. Tout énoncé du type « $f\left(x\right)$
-      est à moins de $10^{-3}$ de $\ell$ » se traduit par $|f\left(x\right) - \ell| < 10^{-3}$, exactement
-      la traduction distance ↔ intervalle de ce module. C''est la porte d''entrée du chapitre Limites
-      et continuité.'
+      fonctions.'
     figures:
     - figures/m04_f2.svg
     - figures/m04_f7.svg
@@ -1548,20 +1508,7 @@
 
       | La réunion prend tout ce qui est colorié au moins une fois. | $A \cup B = [-3\,;\,8[$ |
 
-      | **Vérification :** 1 est dans la réunion, pas dans l''intersection. ✓ | |
-
-
-      > #### 📖 CE QU''IL FAUT RETENIR
-
-      >
-
-      > **Centre, rayon, amplitude**
-
-      >
-
-      > Pour un intervalle borné de bornes $a < b$ : **centre** $c = \frac{a + b}{2}$, **rayon** $r =
-      \frac{b - a}{2}$, **amplitude** $b - a = 2r$. L''intervalle ouvert de centre $c$ et de rayon $r$
-      s''écrit $|x - c| < r$.'
+      | **Vérification :** 1 est dans la réunion, pas dans l''intersection. ✓ | |'
     erreurs_frequentes:
     - erreur: prendre l'amplitude pour le rayon, et écrire $]-3\,;\,5[$ sous la forme $|x - 1| < 8$, qui
         donne $]-7\,;\,9[$.
@@ -2104,13 +2051,7 @@
     declic: 'Encadrer, c''est déjà faire de l''Analyse — Les questions difficiles ne demandent pas de
       **calculer** un nombre, mais de le **contrôler** : montrer qu''une expression reste positive, qu''une
       erreur est inférieure à $10^{-3}$, qu''une suite ne dépasse jamais $3$. Tout se traite avec les
-      gestes de ce module : encadrer, majorer, minorer, passer à l''opposé, passer à l''inverse. ####
-      🎓 EN TERMINALE D : l''encadrement, moteur du théorème des gendarmes Pour trouver la limite d''une
-      suite $\left(u_{n}\right)$, tu écriras souvent un encadrement du type $-\frac{1}{n} \le u_{n} \le
-      \frac{1}{n}$ : les deux « gendarmes » tendent vers $0$, donc $u_{n}$ aussi. De même, « majorer $|u_{n}
-      - \ell|$ par une quantité qui tend vers $0$ » est la façon rigoureuse de prouver une convergence.
-      Les majorations de ce module, inégalité triangulaire comprise, sont exactement les outils de ces
-      démonstrations.'
+      gestes de ce module : encadrer, majorer, minorer, passer à l''opposé, passer à l''inverse.'
     figures:
     - figures/m05_f6.svg
   exercices:
@@ -2874,18 +2815,7 @@
       | $a = -3 < 0$ : le « $-$ » est à droite. | $5 - 3x > 0$ si $x < \frac{5}{3}$ ; $5 - 3x < 0$ si
       $x > \frac{5}{3}$ |
 
-      | **Vérification :** $x = 0$ donne $5 > 0$ ✓ ; $x = 2$ donne $-1 < 0$. ✓ | |
-
-
-      > #### DÉCLIC
-
-      >
-
-      > Le tableau de signes est l''outil de toute l''année : signe de $f''$, donc variations, donc optimisation.
-      Le temps passé ici te sera rendu à chaque devoir d''analyse.
-
-
-      ---'
+      | **Vérification :** $x = 0$ donne $5 > 0$ ✓ ; $x = 2$ donne $-1 < 0$. ✓ | |'
     erreurs_frequentes: []
     declic: null
     figures: []
@@ -3421,36 +3351,7 @@
       | Numérateur changé de signe, dénominateur inchangé : c''est l''opposé. | $f\left(-x\right) = -f\left(x\right)$
       : **$f$ est impaire** |
 
-      | **Vérification :** $f\left(1\right) = \frac{1}{2}$ et $f\left(-1\right) = -\frac{1}{2}$. ✓ | |
-
-
-      > #### 📖 CE QU''IL FAUT RETENIR
-
-      >
-
-      > **Les fonctions de référence à connaître par coeur**
-
-      >
-
-      > | Fonction | $D_{f}$ | Variations | Parité |
-
-      > |---|---|---|---|
-
-      > | $x \mapsto x$ | $\mathbb{R}$ | ↗ sur $\mathbb{R}$ | impaire |
-
-      > | $x \mapsto x^{2}$ | $\mathbb{R}$ | ↘ sur $\left]-\infty\,;\,0\right]$, ↗ sur $\left[0\,;\,+\infty\right[$
-      | paire |
-
-      > | $x \mapsto x^{3}$ | $\mathbb{R}$ | ↗ sur $\mathbb{R}$ | impaire |
-
-      > | $x \mapsto \frac{1}{x}$ | $\mathbb{R} \setminus \{0\}$ | ↘ sur $\left]-\infty\,;\,0\right[$
-      et sur $\left]0\,;\,+\infty\right[$ | impaire |
-
-      > | $x \mapsto \sqrt{x}$ | $\left[0\,;\,+\infty\right[$ | ↗ sur $\left[0\,;\,+\infty\right[$ | ni
-      l''une ni l''autre |
-
-      > | $x \mapsto \|x\|$ | $\mathbb{R}$ | ↘ sur $\left]-\infty\,;\,0\right]$, ↗ sur $\left[0\,;\,+\infty\right[$
-      | paire |'
+      | **Vérification :** $f\left(1\right) = \frac{1}{2}$ et $f\left(-1\right) = -\frac{1}{2}$. ✓ | |'
     erreurs_frequentes:
     - erreur: conclure « $f$ n'est pas paire, donc elle est impaire ».
       correction: les deux propriétés sont indépendantes, et le cas le plus fréquent est de n'être **ni
@@ -3944,31 +3845,7 @@
 
       | Plus grand carré $BC^{2}$ : sommet candidat $A$. | $AB^{2} + AC^{2} = 50 = BC^{2}$ |
 
-      | **Conclusion :** $ABC$ est rectangle et isocèle en $A$ (réciproque de Pythagore) ✓ | |
-
-
-      > #### 📖 CE QU''IL FAUT RETENIR
-
-      >
-
-      > **Losange, rectangle, carré**
-
-      >
-
-      > On montre d''abord que $ABCD$ est un **parallélogramme** ($\overrightarrow{AB} = \overrightarrow{DC}$),
-      puis :
-
-      >
-
-      > - deux côtés **consécutifs** de même longueur ($AB = BC$) : **losange** ;
-
-      > - **diagonales** de même longueur ($AC = BD$) : **rectangle** ;
-
-      > - les deux à la fois : **carré**.
-
-      >
-
-      > Le mot **consécutifs** commande tout : $AB = DC$ est automatique et n''apprend rien.'
+      | **Conclusion :** $ABC$ est rectangle et isocèle en $A$ (réciproque de Pythagore) ✓ | |'
     erreurs_frequentes:
     - erreur: conclure $AB = 25$ alors que $AB^{2} = 25$, ou simplifier $\sqrt{a^{2} + b^{2}}$ en $a +
         b$.
@@ -4330,22 +4207,7 @@
 
       | Je remplace pour l''ordonnée. | $y = 2 \times 2 - 1 = 3$ ; **$I\left(2\,;\,3\right)$** |
 
-      | **Vérification dans $d_{2}$ :** $-2 + 5 = 3$. ✓ | |
-
-
-      > #### MÉTHODE : Signe de $ax + b$, comparaison de deux droites
-
-      >
-
-      > 1. Racine : $x_{0} = -\frac{b}{a}$.
-
-      > 2. Si $a > 0$ : négatif sur $]-\infty\,;\,x_{0}[$, positif sur $]x_{0}\,;\,+\infty[$ ; si $a <
-      0$, l''inverse.
-
-      > 3. Comparer : $ax + b > a''x + b''$ revient à $\left(a - a''\right)x + \left(b - b''\right) >
-      0$.
-
-      > 4. Conclus par des **intervalles**, crochet en $x_{0}$ selon inégalité stricte ou large.'
+      | **Vérification dans $d_{2}$ :** $-2 + 5 = 3$. ✓ | |'
     erreurs_frequentes:
     - erreur: répondre « $x = 2$ » à un système $2 \times 2$.
       correction: la solution est un **couple**.
@@ -4714,21 +4576,7 @@
 
       | 2ᵉ quadrant : abscisse négative. | $\cos x = -\frac{4}{5}$ |
 
-      | **Vérification :** $\frac{16}{25} + \frac{9}{25} = 1$ ✓ | |
-
-
-      > #### MÉTHODE : Résoudre $\cos x = a$ ou $\sin x = a$ dans $\left[0\,;\,2\pi\right[$
-
-      >
-
-      > 1. Vérifie que $-1 \le a \le 1$ : sinon, pas de solution.
-
-      > 2. Lis la solution évidente dans le tableau des valeurs remarquables.
-
-      > 3. La seconde est sa symétrique : par rapport à l''axe des **abscisses** en $\cos$ (donc $-x$),
-      par rapport à l''axe des **ordonnées** en $\sin$ (donc $\pi - x$).
-
-      > 4. Ramène les deux réels dans $\left[0\,;\,2\pi\right[$ en ajoutant un tour si besoin.'
+      | **Vérification :** $\frac{16}{25} + \frac{9}{25} = 1$ ✓ | |'
     erreurs_frequentes:
     - erreur: conclure $\cos x = \frac{4}{5}$ à partir de $\cos^{2} x = \frac{16}{25}$ sans regarder où
         est $x$.

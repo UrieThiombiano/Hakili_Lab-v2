@@ -38,7 +38,7 @@ def _get_font_name() -> str:
         return "Helvetica"
 
 
-def _build_context(student_name: str, session: Any, plan: dict) -> dict[str, Any]:
+def _build_context(student_name: str, session: Any, plan: dict, provisoire: bool = False) -> dict[str, Any]:
     from src.pipeline.pdf_report_html import _cm
 
     etapes_ctx = []
@@ -69,6 +69,7 @@ def _build_context(student_name: str, session: Any, plan: dict) -> dict[str, Any
         "etapes":        etapes_ctx,
         "INSCRIT":       session.inscrite,
         "DATE_INSCRIPTION": session.date_inscription,
+        "PROVISOIRE":    provisoire,
     }
 
 
@@ -77,8 +78,13 @@ def generate_plan_pdf(
     student_name: str,
     session: Any,
     plan: dict,
+    provisoire: bool = False,
 ) -> None:
-    """Génère la fiche de remédiation (le plan chiffré) en PDF via xhtml2pdf."""
+    """Génère la fiche de remédiation (le plan chiffré) en PDF via xhtml2pdf.
+
+    `provisoire=True` : plan construit à partir d'hypothèses non confirmées
+    (voir `GET /api/sessions/{jeton}/plan-provisoire`) — affiche un bandeau
+    d'avertissement, reste sinon un rendu identique."""
     try:
         from xhtml2pdf import pisa
     except ImportError:
@@ -96,7 +102,7 @@ def generate_plan_pdf(
         lstrip_blocks=True,
     )
     template = env.get_template("fiche_remediation_plan.html.j2")
-    ctx = _build_context(student_name, session, plan)
+    ctx = _build_context(student_name, session, plan, provisoire=provisoire)
     ctx["FONT_NAME"] = font_name
     html_content = template.render(**ctx)
 

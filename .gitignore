@@ -18,6 +18,10 @@ runs/
 data/copies/
 data/outputs/
 
+# Préférences de modèles IA — config d'exploitation, propre à chaque instance
+# (éditée depuis Paramètres → Modèles IA, D-CEO-44). Le repli est dans .env.
+data/preferences_modeles.json
+
 # Corpus de référence (module 3).
 #
 # Les fichiers `corpus_*.yaml` SONT versionnés, à une condition tenue par
@@ -39,7 +43,6 @@ logs/
 
 # Google Sheets — clé de compte de service (secret, jamais versionné)
 credentials/
-*.json
 
 # IDE
 .vscode/

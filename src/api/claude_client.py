@@ -121,13 +121,32 @@ _GRADING_TOOL: dict[str, Any] = {
                     "type": "object",
                     "properties": {
                         "rubric_item_id": {"type": "string"},
+                        # Rempli AVANT la note : le modèle raisonnait jusque-là
+                        # dans `comment` et changeait d'avis en cours de phrase,
+                        # après avoir déjà fixé `points_obtenus` (« 1,5 pt sur 2 :
+                        # … donc le second point est acquis », recette du
+                        # 2026-10-17). Non conservé (ignoré par QuestionGrade).
+                        "analyse": {
+                            "type": "string",
+                            "description": (
+                                "Brouillon rédigé AVANT de noter, pour les items notés critère par "
+                                "critère (score_step < max_score) : chaque critère du barème du "
+                                "corrigé, acquis ou non, au vu de la transcription. Deux phrases au "
+                                "plus. « — » pour un item tout-ou-rien (partie A, QCM) ou une "
+                                "absence de réponse. Non montré à l'enseignant."
+                            ),
+                        },
                         "score": {"type": "number", "minimum": 0},
                         "confidence": {"type": "number"},
                         "comment": {"type": "string"},
                         "observed_answer": {"type": "string"},
                         "requires_review": {"type": "boolean"},
+                        "points_obtenus": {
+                            "type": ["number", "null"],
+                            "description": "Seulement si le RubricItem porte points_corrige : points du corrigé obtenus (multiple de 0.5).",
+                        },
                     },
-                    "required": ["rubric_item_id", "score", "confidence", "comment",
+                    "required": ["rubric_item_id", "analyse", "score", "confidence", "comment",
                                  "observed_answer", "requires_review"],
                 },
             },
@@ -325,8 +344,18 @@ _retry = retry(
 
 
 class ClaudeClient:
-    def __init__(self) -> None:
+    def __init__(
+        self, *, modele_heavy: str | None = None, modele_opus: str | None = None
+    ) -> None:
         import anthropic
+
+        # Modèles par défaut de CE client. `None` ⇒ valeurs `.env` (`settings`).
+        # Le pipeline les surcharge selon Paramètres → Modèles IA (variante
+        # Sonnet / Opus, src/core/preferences_modeles.py). Les méthodes
+        # `transcribe`/`grade`/`diagnose` acceptent en plus un `model=` ponctuel
+        # qui prime sur ces défauts.
+        self._modele_heavy = modele_heavy or settings.claude_model_heavy
+        self._modele_opus = modele_opus or settings.claude_model_opus
 
         # `anthropic_api_key` est facultative à l'import de la configuration (voir
         # src/core/config.py) pour que les chemins sans IA — migrations Django,
@@ -358,7 +387,7 @@ class ClaudeClient:
         prompt_path = Path(__file__).parent.parent.parent / "prompts" / filename
         return prompt_path.read_text(encoding="utf-8")
 
-    def _creer_message(self, *, model: str, **kwargs: Any) -> Any:
+    def _creer_message(self, *, model: str, stream: bool = False, **kwargs: Any) -> Any:
         """Appelle l'API en retirant ce que le modèle visé n'accepte plus.
 
         Un seul passage obligé vers `messages.create`, pour que le filtrage des
@@ -366,7 +395,12 @@ class ClaudeClient:
         dépende pas de la vigilance de chaque appelant. Le retrait est
         journalisé : un `temperature=0` qui disparaît en silence donnerait
         l'illusion d'un déterminisme qu'on n'a plus.
-        """
+
+        `stream=True` : passe par `messages.stream(...)` et rend le message
+        final assemblé (même forme qu'un appel non streamé — `.content`,
+        `.stop_reason`, etc.) — nécessaire au-delà d'un certain `max_tokens`,
+        le SDK Anthropic refuse un appel non streamé au-delà (« Streaming is
+        required for operations that may take longer than 10 minutes »)."""
         if model.startswith(_PREFIXES_SANS_ECHANTILLONNAGE):
             retires = [p for p in _PARAMETRES_ECHANTILLONNAGE if p in kwargs]
             for parametre in retires:
@@ -376,6 +410,9 @@ class ClaudeClient:
                     "%s n'accepte plus %s — paramètre(s) retiré(s) de l'appel.",
                     model, ", ".join(retires),
                 )
+        if stream:
+            with self.client.messages.stream(model=model, **kwargs) as flux:
+                return flux.get_final_message()
         return self.client.messages.create(model=model, **kwargs)
 
     @staticmethod
@@ -393,14 +430,20 @@ class ClaudeClient:
 
     # ── Transcription ──────────────────────────────────────────────────────────
 
-    def transcribe(self, copy_id: str, image_paths: list[Path]) -> ClaudeResponse:
+    def transcribe(
+        self, copy_id: str, image_paths: list[Path], model: str | None = None
+    ) -> ClaudeResponse:
+        modele = model or self._modele_heavy
         logger.info("[%s] Claude transcription — modèle : %s | pages : %d",
-                    copy_id, settings.claude_model_heavy, len(image_paths))
+                    copy_id, modele, len(image_paths))
         if len(image_paths) <= _MAX_PAGES_PER_BATCH:
-            return self._transcribe_batch(copy_id, image_paths, page_offset=0)
-        return self._transcribe_batched(copy_id, image_paths)
+            return self._transcribe_batch(copy_id, image_paths, page_offset=0, model=modele)
+        return self._transcribe_batched(copy_id, image_paths, model=modele)
 
-    def _transcribe_batched(self, copy_id: str, image_paths: list[Path]) -> ClaudeResponse:
+    def _transcribe_batched(
+        self, copy_id: str, image_paths: list[Path], model: str | None = None
+    ) -> ClaudeResponse:
+        modele = model or self._modele_heavy
         batches = [
             (start, image_paths[start : start + _MAX_PAGES_PER_BATCH])
             for start in range(0, len(image_paths), _MAX_PAGES_PER_BATCH)
@@ -409,7 +452,7 @@ class ClaudeClient:
         batch_results: list[tuple[int, ClaudeResponse]] = []
         with ThreadPoolExecutor(max_workers=len(batches)) as pool:
             future_to_offset = {
-                pool.submit(self._transcribe_batch, copy_id, batch, offset): offset
+                pool.submit(self._transcribe_batch, copy_id, batch, offset, modele): offset
                 for offset, batch in batches
             }
             for fut in as_completed(future_to_offset):
@@ -453,7 +496,8 @@ class ClaudeClient:
 
     @_retry
     def _transcribe_batch(
-        self, copy_id: str, image_paths: list[Path], page_offset: int = 0
+        self, copy_id: str, image_paths: list[Path], page_offset: int = 0,
+        model: str | None = None,
     ) -> ClaudeResponse:
         page_hint = (
             f"\nCes images sont les pages {page_offset + 1} à {page_offset + len(image_paths)}."
@@ -485,7 +529,7 @@ class ClaudeClient:
         ]
 
         response = self._creer_message(
-            model=settings.claude_model_heavy,
+            model=model or self._modele_heavy,
             max_tokens=_TOKENS_PER_BATCH,
             temperature=0,
             tools=[_TRANSCRIPTION_TOOL],
@@ -506,9 +550,11 @@ class ClaudeClient:
         expert_instructions: str = "",
         official_answers: str = "",
         temperature: float = 0,
+        model: str | None = None,
     ) -> ClaudeResponse:
+        modele = model or self._modele_heavy
         logger.info("[%s] Claude correction — modèle : %s",
-                    transcription.copy_id, settings.claude_model_heavy)
+                    transcription.copy_id, modele)
         expert_block = (
             f"\n\nINSTRUCTIONS EXPERT:\n{expert_instructions}"
             if expert_instructions.strip() else ""
@@ -543,9 +589,11 @@ class ClaudeClient:
             f"\n\nTRANSCRIPTION:\n{transcription.model_dump_json(indent=2)}"
         )
 
+        # 16000 : le champ `analyse` (un brouillon par question) double à peu
+        # près la sortie — 8192 ne tenait plus sur un barème de 46 items.
         response = self._creer_message(
-            model=settings.claude_model_heavy,
-            max_tokens=8192,
+            model=modele,
+            max_tokens=16000,
             temperature=temperature,
             tools=[_GRADING_TOOL],
             tool_choice={"type": "tool", "name": "save_grading"},
@@ -571,9 +619,12 @@ class ClaudeClient:
     # ── Diagnostic ────────────────────────────────────────────────────────────
 
     @_retry
-    def diagnose(self, grades: CopyGrade, curriculum_context: str = "") -> ClaudeResponse:
+    def diagnose(
+        self, grades: CopyGrade, curriculum_context: str = "", model: str | None = None
+    ) -> ClaudeResponse:
+        modele_diag = model or self._modele_opus
         logger.info("[%s] Claude diagnostic — modèle : %s",
-                    grades.copy_id, settings.claude_model_opus)
+                    grades.copy_id, modele_diag)
         base_prompt = self._diagnostic_prompt.replace(
             "{{CURRICULUM_CONTEXT}}", curriculum_context or ""
         )
@@ -588,11 +639,13 @@ class ClaudeClient:
                 if q.teacher_score is not None and q.teacher_decision.value == "refused"
                 else q.score
             )
-            if effective == 0:
+            if effective < 1:
+                # Échec (0) ou réussite partielle (taux < 1, ex. démarche
+                # absente) : le détail est transmis pour que le diagnostic
+                # puisse nommer ce qui a manqué.
                 all_question_details.append({
                     "question_id": q.rubric_item_id,
-                    "score": 0,
-                    "max_score": q.score if q.score > 0 else 1,  # points disponibles
+                    "score": round(effective, 2),
                     "correct_answer": q.correct_answer or "—",
                     "observed_answer": q.observed_answer,
                     "comment_ia": q.comment,
@@ -616,9 +669,25 @@ class ClaudeClient:
         )
 
         def _call_diagnose(model: str) -> object:
+            # 64000 plutôt que 16384 : `claude_model_opus` pointe en pratique
+            # vers une famille de modèles qui préfixe sa réponse d'un bloc
+            # `thinking` non affiché ici (voir `_texte_reponse`) — sur une
+            # copie où beaucoup de questions échouent (donc un diagnostic
+            # long à produire), le budget peut être épuisé par la pensée
+            # interne avant qu'aucun texte ne soit émis (`stop_reason=
+            # max_tokens`, `_texte_reponse` lève `ValueError`). Constaté en
+            # conditions réelles même à 32000 sur une copie à 45/45 questions
+            # échouées (le pire cas du référentiel) — 64000 réduit le risque
+            # sans l'éliminer complètement ; le fallback GPT-5 ci-dessous
+            # (lui aussi élargi, `openai_client.py`) reste le filet de
+            # sécurité si ça arrive malgré tout.
+            # `stream=True` : à ce niveau de `max_tokens`, le SDK Anthropic
+            # refuse un appel non streamé (« Streaming is required for
+            # operations that may take longer than 10 minutes »).
             return self._creer_message(
                 model=model,
-                max_tokens=16384,
+                stream=True,
+                max_tokens=64000,
                 temperature=0,
                 messages=[
                     {
@@ -636,11 +705,13 @@ class ClaudeClient:
 
         import anthropic as _anthropic
         try:
-            response = _call_diagnose(settings.claude_model_opus)
-        except _anthropic.BadRequestError:
+            response = _call_diagnose(modele_diag)
+        except _anthropic.BadRequestError as refus:
+            # 400 ne veut pas toujours dire « modèle invalide » : un crédit
+            # épuisé répond aussi 400 — le motif réel est journalisé.
             logger.warning(
-                "[%s] claude_model_opus '%s' invalide (400) — fallback diagnostic → %s",
-                grades.copy_id, settings.claude_model_opus, settings.claude_model_heavy,
+                "[%s] diagnostic '%s' refusé (400 : %s) — fallback diagnostic → %s",
+                grades.copy_id, modele_diag, refus, settings.claude_model_heavy,
             )
             try:
                 response = _call_diagnose(settings.claude_model_heavy)
@@ -759,12 +830,12 @@ class ClaudeClient:
 
         try:
             response = _appeler(settings.claude_model_opus)
-        except _anthropic.BadRequestError:
+        except _anthropic.BadRequestError as refus:
             # Même repli que `diagnose()` : un identifiant de modèle invalide ne
             # doit pas priver la copie de son diagnostic.
             logger.warning(
-                "[%s] claude_model_opus '%s' invalide (400) — repli sur %s",
-                copy_id, settings.claude_model_opus, settings.claude_model_heavy,
+                "[%s] claude_model_opus '%s' refusé (400 : %s) — repli sur %s",
+                copy_id, settings.claude_model_opus, refus, settings.claude_model_heavy,
             )
             try:
                 response = _appeler(settings.claude_model_heavy)
@@ -882,9 +953,18 @@ class ClaudeClient:
             f"{request.model_dump_json(indent=2)}"
         )
 
+        # `stream=True` + `max_tokens` large : même raison que `_call_diagnose`.
+        # `claude_model_heavy` pointe vers une famille (Sonnet 5) qui préfixe sa
+        # réponse d'un bloc `thinking` non affiché, et l'échantillonnage
+        # (`temperature`) lui est retiré par `_creer_message`. Avec 8192, sur
+        # une dizaine d'hypothèses, la pensée interne épuisait tout le budget
+        # avant qu'aucun texte JSON ne soit émis (`stop_reason=max_tokens`,
+        # `_texte_reponse` lève `ValueError`) — le sujet T1 n'était jamais
+        # généré. Constaté en conditions réelles (copie-b8e7f8db4f78, 2026-09-09).
         response = self._creer_message(
             model=settings.claude_model_heavy,
-            max_tokens=8192,
+            stream=True,
+            max_tokens=64000,
             temperature=0,
             messages=[
                 {
@@ -902,7 +982,19 @@ class ClaudeClient:
             ],
         )
 
-        raw = self._texte_reponse(response)
+        if getattr(response, "stop_reason", None) == "max_tokens":
+            logger.warning(
+                "[%s] Sujet T1 tronqué (stop_reason=max_tokens) — tentative de réparation JSON.",
+                request.copy_id,
+            )
+        try:
+            raw = self._texte_reponse(response)
+        except ValueError as exc:
+            # Budget encore épuisé par le `thinking` : échec propre plutôt que
+            # remontée d'exception — l'appelant (`taches._generer_sujet_confirmation`)
+            # est best-effort.
+            logger.warning("[%s] Sujet T1 non généré — %s", request.copy_id, exc)
+            return ClaudeResponse(success=False, data=None, confidence=0.0, raw_response="", error=str(exc))
         return self._parse_response(raw, ConfirmationSubject)
 
     # ── Sujet de vérification / rétention (T3, T4, T5, module 5 étendu) ───────
@@ -937,9 +1029,13 @@ class ClaudeClient:
             f"{request.model_dump_json(indent=2)}"
         )
 
+        # `stream=True` + `max_tokens` large : voir `generate_confirmation_subject`
+        # et `_call_diagnose` — le `thinking` de Sonnet 5 épuise sinon le budget
+        # avant tout texte JSON, et le sujet n'est jamais produit.
         response = self._creer_message(
             model=settings.claude_model_heavy,
-            max_tokens=8192,
+            stream=True,
+            max_tokens=64000,
             temperature=0,
             messages=[
                 {
@@ -957,7 +1053,16 @@ class ClaudeClient:
             ],
         )
 
-        raw = self._texte_reponse(response)
+        if getattr(response, "stop_reason", None) == "max_tokens":
+            logger.warning(
+                "[%s] Sujet %s tronqué (stop_reason=max_tokens) — tentative de réparation JSON.",
+                request.copy_id, request.type_evaluation,
+            )
+        try:
+            raw = self._texte_reponse(response)
+        except ValueError as exc:
+            logger.warning("[%s] Sujet %s non généré — %s", request.copy_id, request.type_evaluation, exc)
+            return ClaudeResponse(success=False, data=None, confidence=0.0, raw_response="", error=str(exc))
         return self._parse_response(raw, VerificationSubject)
 
     # ── Sujet d'enrichissement (score parfait) ────────────────────────────────
@@ -983,9 +1088,11 @@ class ClaudeClient:
             " par { et finissant par }. Aucun texte avant ou après."
         )
 
+        # `stream=True` + `max_tokens` large : voir `generate_confirmation_subject`.
         response = self._creer_message(
             model=settings.claude_model_heavy,
-            max_tokens=8192,
+            stream=True,
+            max_tokens=64000,
             temperature=0,
             messages=[
                 {
@@ -1507,6 +1614,7 @@ class ClaudeClient:
 
         text = _TRAILING_COMMA.sub(r"\1", text)
 
+        derniere_erreur: Exception | None = None
         for candidate in (text, _close_json(text)):
             candidate = _TRAILING_COMMA.sub(r"\1", candidate)
             try:
@@ -1527,16 +1635,29 @@ class ClaudeClient:
                     raw_response=raw_text,
                     error=None,
                 )
-            except (json.JSONDecodeError, Exception):
+            except Exception as exc:  # noqa: BLE001 — capturée pour être loggée, pas silencieusement perdue
+                derniere_erreur = exc
                 continue
 
-        logger.error("JSON irréparable (%s). Début : %.300s", model_cls.__name__, raw_text)
+        # La raison réelle (JSON malformé vs modèle Pydantic invalide, et le
+        # message précis) était jusqu'ici jetée — seul un extrait de 300
+        # caractères du texte brut survivait, sans dire pourquoi le parsing
+        # avait échoué. Elle est maintenant loggée en entier (DEBUG, peut
+        # être volumineux) pour permettre un post-mortem.
+        logger.error(
+            "JSON irréparable (%s) — %s : %s. Début : %.300s",
+            model_cls.__name__,
+            type(derniere_erreur).__name__ if derniere_erreur else "?",
+            derniere_erreur,
+            raw_text,
+        )
+        logger.debug("[%s] Texte brut complet de la réponse échouée :\n%s", model_cls.__name__, raw_text)
         return ClaudeResponse(
             success=False,
             data=None,
             confidence=0.0,
             raw_response=raw_text,
-            error=f"JSON invalide. Début : {raw_text[:200]}",
+            error=f"JSON invalide ({type(derniere_erreur).__name__ if derniere_erreur else '?'}) : {derniere_erreur}",
         )
 
     def _estimate_confidence(self, result: Any) -> float:

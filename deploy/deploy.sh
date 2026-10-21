@@ -1,46 +1,63 @@
-#!/usr/bin/env bash
-# Script de mise à jour — Hakili Lab sur VPS Hetzner.
+#!/bin/bash
+# Déploiement / mise à jour de Hakili Lab sur le VPS Hetzner PARTAGÉ
+# (167.233.234.219 — Docker + Caddy déjà en place pour plusieurs apps, voir
+# deploy/README.md). Aucun provisionnement : une app de plus dans le Docker
+# déjà présent, un conteneur, un port interne, un bloc Caddy.
 #
-# À exécuter à chaque nouvelle version, en root (il bascule lui-même sur
-# l'utilisateur applicatif pour les étapes qui n'en ont pas besoin) :
-#   ssh root@VOTRE_IP
-#   bash /opt/hakili/Hakili_Lab/deploy/deploy.sh
+# Usage, depuis le dossier du clone (ex. ~/hakili-lab) :
+#   bash deploy/deploy.sh [branche]        (défaut : fastapi-react)
 #
-# Équivalent du `release:` + `web:` du Procfile (Render/Railway), mais fait à
-# la main puisqu'un VPS n'a pas de mécanisme de déploiement intégré.
+# Pré-requis, une seule fois (voir deploy/README.md, étape 1) :
+#   - dossier = clone du dépôt, `.env` rempli (cp .env.example .env, SECRET_KEY
+#     générée, DEBUG=false), `credentials/service_account.json` déposé par scp
+#   - node/npm disponibles sur l'hôte (build du frontend hors conteneur)
+#   - schéma Neon adopté par Alembic une fois (deploy/bascule_neon.md)
 
 set -euo pipefail
 
-APP_USER="hakili"
-APP_DIR="/opt/hakili/Hakili_Lab"
-SERVICE_NAME="hakili"
-BRANCH="${1:-main}"
+BRANCHE="${1:-fastapi-react}"
+PORT="${HAKILI_PORT:-8011}"          # port interne, doit rester libre sur le VPS
+CONTENEUR="hakili"
+IMAGE="hakili:latest"
 
-if [[ $EUID -ne 0 ]]; then
-    echo "Ce script doit être exécuté en root (sudo)." >&2
-    exit 1
-fi
+cd "$(git rev-parse --show-toplevel)"
 
-run_as_app() {
-    sudo -u "${APP_USER}" -H bash -c "cd '${APP_DIR}' && $1"
-}
+echo "== 1/5  Code (branche $BRANCHE) =="
+git fetch origin
+git checkout "$BRANCHE"
+git pull --ff-only origin "$BRANCHE"
 
-echo "==> git pull (branche ${BRANCH})"
-run_as_app "git fetch origin && git checkout ${BRANCH} && git pull origin ${BRANCH}"
+echo "== 2/5  Build du frontend (npm, hors Docker — voir deploy/Dockerfile) =="
+( cd frontend && npm ci && npm run build )
 
-echo "==> Installation des dépendances"
-run_as_app ".venv/bin/pip install --upgrade pip"
-run_as_app ".venv/bin/pip install -r requirements.txt"
+echo "== 3/5  Build de l'image Docker =="
+docker build -f deploy/Dockerfile -t "$IMAGE" .
 
-echo "==> collectstatic"
-run_as_app ".venv/bin/python manage.py collectstatic --noinput"
+echo "== 4/5  Redémarrage du conteneur =="
+docker stop "$CONTENEUR" 2>/dev/null || true
+docker rm   "$CONTENEUR" 2>/dev/null || true
+docker run -d \
+    --name "$CONTENEUR" \
+    --env-file .env \
+    -p "127.0.0.1:${PORT}:8011" \
+    -v "$(pwd)/credentials:/app/credentials:ro" \
+    -v "$(pwd)/runs:/app/runs" \
+    -v "$(pwd)/logs:/app/logs" \
+    --restart unless-stopped \
+    "$IMAGE"
 
-echo "==> migrate"
-run_as_app ".venv/bin/python manage.py migrate --noinput"
+echo "== 5/5  Vérification santé =="
+for i in $(seq 1 15); do
+    if curl -sf "http://127.0.0.1:${PORT}/api/sante" >/dev/null; then
+        echo "  API en ligne sur 127.0.0.1:${PORT} — OK"
+        echo "== Fait =="
+        echo "Premier déploiement seulement (admin) : installer le vhost nginx"
+        echo "deploy/nginx_maya.hakililab.com puis certbot — voir deploy/README.md, étape 2."
+        exit 0
+    fi
+    sleep 2
+done
 
-echo "==> Redémarrage du service ${SERVICE_NAME}"
-systemctl restart "${SERVICE_NAME}"
-systemctl --no-pager --lines=15 status "${SERVICE_NAME}"
-
-echo ""
-echo "==> Déploiement terminé."
+echo "  ÉCHEC : l'API ne répond pas. Journaux :" >&2
+docker logs "$CONTENEUR" --tail 40 >&2
+exit 1

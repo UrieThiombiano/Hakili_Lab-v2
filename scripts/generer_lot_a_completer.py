@@ -15,7 +15,7 @@ Le classeur est **pré-rempli** : chaque ligne porte déjà le code de question,
 intitulé, sa compétence, son format et son barème. Il ne reste qu'à écrire la
 réponse attendue — du remplissage, pas de la recherche.
 
-Une fois rempli, `scripts/integrer_corriges.py` réinjecte le travail dans le
+Une fois rempli, le travail était réinjecté par `scripts/integrer_corriges.py` (retiré le 2026-10-16 avec les anciens tests) dans le
 projet, et il devient insensible aux régénérations de barèmes.
 """
 from __future__ import annotations

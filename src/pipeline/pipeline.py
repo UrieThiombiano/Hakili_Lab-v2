@@ -16,10 +16,11 @@ Flux en deux phases :
     run_phase_a() [= run_transcription() + run_grading() enchaînés]
     → tableau de validation → run_phase_b().
 
-Routage multi-providers (contrôlé par .env) :
-  Transcription  → VISION_PROVIDER      : "gemini" | "claude"
-  Correction     → GRADING_PROVIDER     : "deepseek" | "claude"
-  Diagnostic     → DIAGNOSTIC_PROVIDER  : "deepseek" | "mistral" | "claude"
+Routage multi-providers (Paramètres → Modèles IA, `data/preferences_modeles.json`,
+prime sur .env — D-CEO-44) :
+  Transcription  → tâche "transcription" : "claude" | "gemini" | "openai"
+  Correction     → tâche "correction"    : "deepseek" | "claude" | "gemini"
+  Diagnostic     → tâche "analyse"        : "gemini" | "claude" | "openai" | "deepseek"
 
   Fallback automatique sur GPT-5 (OpenAI) si le provider principal de l'étape
   échoue — transcription, nom élève, correction, diagnostic.
@@ -40,7 +41,7 @@ from __future__ import annotations
 import json
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Callable
@@ -49,6 +50,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 from src.api.claude_client import ClaudeClient
 from src.api.openai_client import OpenAIClient
+from src.core import preferences_modeles
 from src.core.config import settings
 from src.knowledge.curriculum_retriever import CurriculumRetriever
 from src.models.domain import (
@@ -61,10 +63,12 @@ from src.models.domain import (
     TeacherDecision,
     TranscriptionResult,
 )
+from src.pipeline.ancrage_incertitudes import ancrer_incertitudes
 from src.pipeline.depot import depot
 from src.pipeline.ingestion import ingest_images, ingest_pdf
 from src.pipeline.orchestrator import (
     ValidationIssue,
+    consolider_corrections,
     validate_diagnostic,
     validate_grading,
     validate_transcription,
@@ -88,37 +92,43 @@ logger = logging.getLogger(__name__)
 
 # ── Factories de clients ───────────────────────────────────────────────────────
 
+# Le fournisseur de chaque étape vient de Paramètres → Modèles IA
+# (`data/preferences_modeles.json`, D-CEO-44), avec repli sur les valeurs `.env`.
+# Le repli client reste Claude partout : c'est le seul provider sans trou de
+# couverture (transcription, correction, diagnostic).
+
 def _make_transcription_client():
-    provider = settings.vision_provider.lower()
-    if provider == "gemini" and settings.google_api_key:
+    r = preferences_modeles.resoudre("transcription")
+    if r.fournisseur == "gemini" and settings.google_api_key:
         from src.api.gemini_client import GeminiTranscriptionClient
         return GeminiTranscriptionClient()
-    if provider == "mistral" and settings.mistral_api_key:
-        from src.api.mistral_client import MistralTranscriptionClient
-        return MistralTranscriptionClient()
-    return ClaudeClient()
+    if r.fournisseur == "openai" and settings.openai_api_key:
+        return OpenAIClient()
+    return ClaudeClient(modele_heavy=r.modele)
 
 
 def _make_grading_client():
-    provider = settings.grading_provider.lower()
-    if provider == "deepseek" and settings.deepseek_api_key:
+    r = preferences_modeles.resoudre("correction")
+    if r.fournisseur == "deepseek" and settings.deepseek_api_key:
         from src.api.deepseek_client import DeepSeekClient
         return DeepSeekClient()
-    return ClaudeClient()
+    if r.fournisseur == "gemini" and settings.google_api_key:
+        from src.api.gemini_client import GeminiTranscriptionClient
+        return GeminiTranscriptionClient()
+    return ClaudeClient(modele_heavy=r.modele)
 
 
 def _make_diagnostic_client():
-    provider = settings.diagnostic_provider.lower()
-    if provider == "deepseek" and settings.deepseek_api_key:
+    r = preferences_modeles.resoudre("analyse")
+    if r.fournisseur == "deepseek" and settings.deepseek_api_key:
         from src.api.deepseek_client import DeepSeekClient
         return DeepSeekClient()
-    if provider == "mistral" and settings.mistral_api_key:
-        try:
-            from src.api.mistral_client import MistralRemediationClient
-            return MistralRemediationClient()
-        except (ImportError, Exception) as e:
-            logger.warning("Mistral diagnostic indisponible (%s) — fallback Claude", e)
-    return ClaudeClient()
+    if r.fournisseur == "gemini" and settings.google_api_key:
+        from src.api.gemini_client import GeminiTranscriptionClient
+        return GeminiTranscriptionClient()
+    if r.fournisseur == "openai" and settings.openai_api_key:
+        return OpenAIClient()
+    return ClaudeClient(modele_opus=r.modele)
 
 
 def _fallback_openai_client() -> OpenAIClient | None:
@@ -145,8 +155,8 @@ def _client_label(client, step: str = "") -> str:
     if cls == "OpenAIClient":
         return f"GPT-5 · {settings.openai_model}"
     if step == "diagnostic":
-        return f"Claude Opus · {settings.claude_model_opus}"
-    return f"Claude · {settings.claude_model_heavy}"
+        return f"Claude · {getattr(client, '_modele_opus', settings.claude_model_opus)}"
+    return f"Claude · {getattr(client, '_modele_heavy', settings.claude_model_heavy)}"
 
 
 # ── Persistance base de données (best-effort — ne bloque jamais le pipeline) ──
@@ -581,7 +591,9 @@ def _run_transcription(
     if not vt.valid:
         result.errors.append(f"Transcription invalide : {vt.summary}")
         return result
-    result.transcription = vt.data
+    # Les doutes listés par le modèle sans `⟦…⟧` dans le texte deviennent des
+    # zones surlignées, corrigeables au double-clic en relecture.
+    result.transcription = ancrer_incertitudes(vt.data)
 
     # Point d'injection 5 — classe réelle extraite de l'en-tête transcrit
     # (écrase le placeholder posé au point 1).
@@ -652,7 +664,7 @@ def _run_grading(
         logger.warning("[%s] Aucun barème disponible — correction déléguée à Claude (auto-résolution)", copy_id)
         result.model_routing["Correction (proposition IA)"] = f"Claude · {settings.claude_model_heavy} (auto)"
 
-    grade_resp = _grading.grade(
+    grading_kwargs = dict(
         transcription=result.transcription,
         rubric=rubric,
         subject_text=result.subject_text,
@@ -660,34 +672,47 @@ def _run_grading(
         official_answers=result.official_answers,
         temperature=0,
     )
-    if not grade_resp.success or grade_resp.data is None:
-        if type(_grading).__name__ != "OpenAIClient":
-            fallback = _fallback_openai_client()
-            if fallback is not None:
-                logger.warning("[%s] Fallback correction → GPT-5", copy_id)
-                grade_resp = fallback.grade(
-                    transcription=result.transcription,
-                    rubric=rubric,
-                    subject_text=result.subject_text,
-                    expert_instructions=result.expert_instructions,
-                    official_answers=result.official_answers,
-                    temperature=0,
-                )
-                result.model_routing["Correction (proposition IA)"] += " → GPT-5 (fallback)"
-    if not grade_resp.success or grade_resp.data is None:
-        result.errors.append(f"Correction échouée : {grade_resp.error}")
+    repli_utilise: list[bool] = []
+
+    def _corriger_une_fois():
+        """Une correction complète (repli GPT-5 compris), validée."""
+        grade_resp = _grading.grade(**grading_kwargs)
+        if not grade_resp.success or grade_resp.data is None:
+            if type(_grading).__name__ != "OpenAIClient":
+                fallback = _fallback_openai_client()
+                if fallback is not None:
+                    logger.warning("[%s] Fallback correction → GPT-5", copy_id)
+                    grade_resp = fallback.grade(**grading_kwargs)
+                    repli_utilise.append(True)
+        if not grade_resp.success or grade_resp.data is None:
+            return None, f"Correction échouée : {grade_resp.error}", []
+        grade = grade_resp.data
+        grade.copy_id = copy_id
+        vg = validate_grading(grade, rubric_provided=bool(rubric.items), rubric=rubric)
+        if not vg.valid:
+            return None, f"Correction invalide : {vg.summary}", vg.issues
+        return vg.data, "", vg.issues
+
+    # Barème détaillé (tests du référentiel) : plusieurs corrections
+    # indépendantes, consolidées par médiane — voir consolider_corrections.
+    bareme_detaille = any(item.points_corrige for item in rubric.items)
+    nb_passages = max(1, settings.nb_corrections_ia) if bareme_detaille else 1
+    with ThreadPoolExecutor(max_workers=nb_passages) as pool:
+        passages = list(pool.map(lambda _i: _corriger_une_fois(), range(nb_passages)))
+    if repli_utilise:
+        result.model_routing["Correction (proposition IA)"] += " → GPT-5 (fallback)"
+
+    reussis = [p for p in passages if p[0] is not None]
+    if not reussis:
+        _, erreur, issues = passages[0]
+        result.validation_issues.extend(issues)
+        result.errors.append(erreur)
         return result
 
-    grade = grade_resp.data
-    grade.copy_id = copy_id
-
-    vg = validate_grading(grade, rubric_provided=bool(rubric.items), rubric=rubric)
-    result.validation_issues.extend(vg.issues)
-    if not vg.valid:
-        result.errors.append(f"Correction invalide : {vg.summary}")
-        return result
-
-    result.grade = vg.data
+    result.validation_issues.extend(reussis[0][2])
+    if len(reussis) > 1:
+        result.model_routing["Correction (proposition IA)"] += f" · {len(reussis)} passages, médiane"
+    result.grade = consolider_corrections([p[0] for p in reussis], rubric)
 
     # Injecter les bonnes réponses officielles du corrigé dans chaque question
     if result.bareme_id:
@@ -836,10 +861,17 @@ def _run_phase_b(
         else:
             logger.warning("[%s] Enrichissement échoué (non bloquant) : %s", copy_id, enrich_resp.error)
     else:
-        # Questions échouées après validation enseignant (score final = 0)
+        # Le diagnostic raisonne en taux de réussite (0 = échouée, 1 = complète) :
+        # avec les barèmes détaillés, une question vaut 0,333 ou 0,667 point
+        # sur 20 et une réussite partielle n'est ni 0 ni 1.
+        grade_diag = _grade_en_taux(grade, rubric)
+
+        # Questions non réussies entièrement après validation enseignant : les
+        # réponses partielles (démarche absente, conclusion manquante) sont des
+        # lacunes à ancrer au même titre que les échecs.
         failed_ids = [
-            q.rubric_item_id for q in grade.questions
-            if _effective_score(q) == 0
+            q.rubric_item_id for q in grade_diag.questions
+            if _effective_score(q) < 1
         ]
 
         # 4. Ancrage sur le programme officiel
@@ -884,16 +916,16 @@ def _run_phase_b(
 
         # 5. Diagnostic
         _progress("diagnostic", 75)
-        diag_resp = diagnostic_client.diagnose(grade, curriculum_context=curriculum_context)
+        diag_resp = diagnostic_client.diagnose(grade_diag, curriculum_context=curriculum_context)
         if not diag_resp.success or diag_resp.data is None:
             if type(diagnostic_client).__name__ != "OpenAIClient":
                 fallback = _fallback_openai_client()
                 if fallback is not None:
                     logger.warning("[%s] Fallback diagnostic → GPT-5", copy_id)
-                    diag_resp = fallback.diagnose(grade, curriculum_context=curriculum_context)
+                    diag_resp = fallback.diagnose(grade_diag, curriculum_context=curriculum_context)
         if diag_resp.success and diag_resp.data is not None:
             diag_resp.data.competency_gaps = competency_gaps
-            vd = validate_diagnostic(diag_resp.data, grade)
+            vd = validate_diagnostic(diag_resp.data, grade_diag)
             result.validation_issues.extend(vd.issues)
             result.diagnostic = vd.data
         else:
@@ -919,6 +951,8 @@ def _run_phase_b(
         "grade": grade.model_dump(),
         "diagnostic": result.diagnostic.model_dump() if result.diagnostic else None,
         "remediation_subject": result.remediation_subject.model_dump() if result.remediation_subject else None,
+        "errors": list(result.errors or []),
+        "validation_issues": [asdict(i) for i in (result.validation_issues or [])],
     }
     json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     result.json_path = json_path
@@ -975,6 +1009,29 @@ def _run_phase_b(
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _grade_en_taux(grade, rubric):
+    """Copie de la correction où chaque score devient un taux de réussite
+    (score effectif / maximum de la question, arrondi au centième) — l'échelle
+    attendue par les consignes de diagnostic. Sans barème, inchangée."""
+    from src.models.domain import TeacherDecision
+
+    maxima = {item.id: item.max_score for item in (rubric.items if rubric else [])}
+    if not maxima:
+        return grade
+    questions = []
+    for q in grade.questions:
+        maximum = maxima.get(q.rubric_item_id)
+        if not maximum:
+            questions.append(q)
+            continue
+        taux = round(min(max(_effective_score(q) / maximum, 0.0), 1.0), 2)
+        questions.append(q.model_copy(update={
+            "score": taux,
+            "teacher_score": taux if q.teacher_decision == TeacherDecision.refused and q.teacher_score is not None else q.teacher_score,
+        }))
+    return grade.model_copy(update={"questions": questions})
+
 
 def _effective_score(q) -> float:
     """Score effectif d'une question : décision enseignant si disponible, sinon IA."""
