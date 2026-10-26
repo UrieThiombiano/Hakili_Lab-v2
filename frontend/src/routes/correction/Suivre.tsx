@@ -40,7 +40,7 @@ import {
 const DOC_COPIE: Record<string, { icon: LucideIcon; titre: string; description: string }> = {
   scan: { icon: ScanText, titre: "Copie de l'élève", description: "Le scan de la copie qui vient d'être corrigée." },
   rapport: { icon: FileCheck2, titre: "Rapport de correction", description: "Note question par question, réponse attendue et réponse observée." },
-  remediation: { icon: Wrench, titre: "Sujet de remédiation", description: "Exercices ciblés sur les lacunes détectées." },
+  remediation: { icon: Wrench, titre: "Plan de remédiation", description: "Le cahier de l'élève : séances, rappels de cours et exercices corrigés." },
   sujet_confirmation: {
     icon: ClipboardList,
     titre: "Sujet du test de confirmation (T1)",
@@ -74,6 +74,12 @@ export default function Suivre() {
     },
   })
 
+  const reprendrePlan = useMutation({
+    mutationFn: () => correctionsApi.reprendrePlan(jeton),
+    onSuccess: (statut) => queryClient.setQueryData(["correction", jeton], statut),
+    onError: () => notifier("La reprise du plan n'a pas pu être lancée.", "erreur"),
+  })
+
   if (!data) return <AppShell><Spinner label="Chargement…" /></AppShell>
 
   const eleve = data.resultat?.student_name ?? ""
@@ -86,6 +92,13 @@ export default function Suivre() {
     <AppShell titre={eleve ? `Correction — ${eleve}` : "Correction"}>
       <div className={cn("flex flex-col gap-5", contrainte)}>
         {(data.en_cours || data.etat === "creee") && <Progression etape={data.etape} progression={data.progression} />}
+        {data.plan_a_reprendre && (
+          <PlanAReprendre
+            motif={data.resultat?.plan_erreur ?? ""}
+            enCours={reprendrePlan.isPending}
+            onReprendre={() => reprendrePlan.mutate()}
+          />
+        )}
         {data.etat === "echec" && <Echec erreurs={data.erreurs} onSupprimer={() => supprimer.mutate()} />}
         {data.etat === "relecture" && data.resultat && <Relecture jeton={jeton} resultat={data.resultat} onValide={() => queryClient.invalidateQueries({ queryKey: ["correction", jeton] })} />}
         {data.etat === "validation" && data.resultat && (
@@ -107,6 +120,30 @@ export default function Suivre() {
         )}
       </div>
     </AppShell>
+  )
+}
+
+/** Le plan de remédiation manque (une section n'a pas abouti, ou son PDF) :
+ * les sections déjà rédigées sont gardées, la reprise n'écrit que le reste. */
+function PlanAReprendre({ motif, enCours, onReprendre }: { motif: string; enCours: boolean; onReprendre: () => void }) {
+  return (
+    <Card className="border-orange/40 bg-orange-pale">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="inline-flex items-center gap-1.5 font-semibold text-marine">
+            <TriangleAlert className="size-4 text-orange" /> Plan de remédiation incomplet
+          </p>
+          <p className="mt-1 text-petit text-texte-doux">
+            Une partie du plan n'a pas pu être rédigée. Les sections déjà écrites sont conservées : la reprise
+            ne rédige que celles qui manquent, sans refaire l'analyse de la copie.
+          </p>
+          {motif && <p className="mt-1.5 break-words text-petit text-texte-faible">{motif}</p>}
+        </div>
+        <Button onClick={onReprendre} disabled={enCours}>
+          {enCours ? "Lancement…" : "Relancer la rédaction du plan"}
+        </Button>
+      </div>
+    </Card>
   )
 }
 

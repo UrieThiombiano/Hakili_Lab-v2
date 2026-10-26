@@ -13,6 +13,7 @@ from src.models.domain import (
     ClaudeResponse,
     ConfirmationRequest,
     ConfirmationSubject,
+    EMPLACEMENTS_EXERCICES,
     ContenuAcquis,
     ContenuSection,
     CopyGrade,
@@ -217,16 +218,16 @@ _OUTIL_SECTION_PLAN: dict[str, Any] = _outil_strict({
             "methode_titre": {"type": "string"},
             "methode": _TEXTES,
             "consigne_exercices": {"type": ["string", "null"]},
+            # Un emplacement par exercice (`EMPLACEMENTS_EXERCICES`) : en mode
+            # strict, aucun ne peut manquer, et le niveau découle de la clé.
             "exercices": {
-                "type": "array", "minItems": 5, "maxItems": 5,
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "enonce": {"type": "string"},
-                        "niveau": {"type": "integer", "enum": [1, 2, 3]},
-                        "reponse": {"type": "string"},
-                    },
-                    "required": ["enonce", "niveau", "reponse"],
+                "type": "object",
+                "properties": {
+                    nom: {
+                        "type": "object",
+                        "properties": {"enonce": {"type": "string"}, "reponse": {"type": "string"}},
+                    }
+                    for nom in EMPLACEMENTS_EXERCICES
                 },
             },
         },
@@ -1211,7 +1212,8 @@ class ClaudeClient:
 
     @_retry
     def generate_plan_section(self, demande: "DemandePlan", section: "SectionPlanDemande",
-                              refus: str = "", modele: str | None = None) -> ClaudeResponse:
+                              refus: str = "", modele: str | None = None,
+                              max_tokens: int = 32000) -> ClaudeResponse:
         """Rédige une section du plan de remédiation. Le squelette (compétence,
         durée, questions, prérequis) est fixé par l'appelant ; le modèle n'écrit
         que le contenu (`ContenuSection`).
@@ -1242,13 +1244,13 @@ class ClaudeClient:
                 f"{refus}\n"
                 "Rédige à nouveau la section entière en corrigeant ce point, et "
                 "rends-la en appelant l'outil `rediger_section` : tous les champs "
-                "obligatoires remplis (listes non vides, exactement cinq exercices)."
+                "obligatoires remplis (listes non vides, les cinq emplacements d'exercice, aucun texte vide)."
             )
         try:
             response = self._appel_outil(
                 copy_id=demande.copy_id, etape=f"plan section {section.ordre}",
                 prompt_fixe=self._plan_remediation_prompt, prompt_variable=prompt_variable,
-                outil=_OUTIL_SECTION_PLAN, max_tokens=32000, modele=modele,
+                outil=_OUTIL_SECTION_PLAN, max_tokens=max_tokens, modele=modele,
             )
         except Exception as exc:  # noqa: BLE001
             if _is_retryable(exc):

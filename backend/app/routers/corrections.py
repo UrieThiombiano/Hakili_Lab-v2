@@ -67,6 +67,7 @@ def _statut(db: SQLASession, correction: Correction) -> CorrectionStatut:
         erreurs=list(correction.erreurs or []),
         resultat=correction.resultat,
         documents=documents,
+        plan_a_reprendre=taches.plan_a_reprendre(correction),
         jeton_session=jeton(str(session.id)) if session else None,
         seuil_sans_t1=(
             SEUIL_CONFIRMATION_T1
@@ -512,6 +513,26 @@ def valider_notes(
     db.add(correction)
     db.commit()
     taches.lancer_diagnostic(db, correction)
+    return _statut(db, correction)
+
+
+@router.post("/{jeton_copie}/plan", response_model=CorrectionStatut)
+def reprendre_plan(
+    jeton_copie: str,
+    db: SQLASession = Depends(get_session),
+    utilisateur: dict = Depends(utilisateur_requis),
+) -> CorrectionStatut:
+    """Termine un plan de remédiation resté incomplet : seules les sections
+    manquantes sont rédigées, sans refaire l'analyse."""
+    copy_id = valeur_depuis_jeton(jeton_copie)
+    if copy_id is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lien invalide")
+    correction = correction_autorisee(db, utilisateur, copy_id)
+    if correction.en_cours:
+        return _statut(db, correction)
+    if not taches.plan_a_reprendre(correction):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Aucun plan de remédiation à reprendre pour cette copie.")
+    taches.lancer_reprise_plan(db, correction)
     return _statut(db, correction)
 
 

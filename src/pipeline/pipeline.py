@@ -53,6 +53,7 @@ from src.knowledge.curriculum_retriever import CurriculumRetriever
 from src.models.domain import (
     CompetencyGap,
     CopyGrade,
+    ContenuSection,
     DemandePlan,
     DiagnosticResult,
     IngestionResult,
@@ -382,6 +383,12 @@ class PipelineResult:
     plan_remediation: PlanRemediation | None = None
     #: Motif d'absence de plan alors qu'il en fallait un (note < 19) — vide sinon.
     plan_erreur: str = ""
+    #: Squelette du plan, gardé pour pouvoir reprendre un plan incomplet
+    #: (`reprendre_plan`) sans refaire l'analyse.
+    demande_plan: DemandePlan | None = None
+    #: Plan incomplet : sections déjà rédigées (par numéro d'ordre) et acquis.
+    plan_sections_redigees: dict[int, ContenuSection] = field(default_factory=dict)
+    plan_acquis_rediges: list[str] = field(default_factory=list)
     pdf_path: Path | None = None
     #: PDF du plan de remédiation (`plan_remediation.pdf`), None sans plan.
     remediation_pdf_path: Path | None = None
@@ -935,16 +942,14 @@ def _run_phase_b(
     # le rapport de correction reste produit, et le motif est conservé pour
     # être montré à l'enseignant.
     if plan_requis(grade.final_score_on_20):
+        result.demande_plan = demande_plan
         if demande_plan is None:
-            result.plan_erreur = "Pas de plan : ce test n'est pas rattaché au référentiel."
+            result.plan_erreur = "Pas de plan : le diagnostic de la copie n'a pas pu être établi."
         elif not demande_plan.sections:
             result.plan_erreur = "Pas de plan : le diagnostic n'a relevé aucune compétence à reprendre."
         else:
             _progress("plan", 80)
-            try:
-                result.plan_remediation = generer_plan(demande_plan, claude_client)
-            except PlanIncomplet as exc:
-                result.plan_erreur = f"Plan de remédiation non produit — {exc}"
+            _rediger_plan(result, claude_client)
         if result.plan_erreur:
             logger.warning("[%s] %s", copy_id, result.plan_erreur)
 
@@ -1017,6 +1022,59 @@ def _run_phase_b(
         grade.final_score_on_20 or 0,
         n_sections,
     )
+    return result
+
+
+# ── Plan de remédiation : rédaction et reprise ────────────────────────────────
+
+
+def _rediger_plan(result: PipelineResult, claude_client) -> None:
+    """Rédige le plan (ou ses sections manquantes) et met `result` à jour.
+    Un plan incomplet garde ses sections écrites pour `reprendre_plan`."""
+    try:
+        result.plan_remediation = generer_plan(
+            result.demande_plan, claude_client,
+            deja=result.plan_sections_redigees, acquis_deja=result.plan_acquis_rediges,
+        )
+    except PlanIncomplet as exc:
+        result.plan_remediation = None
+        result.plan_sections_redigees = exc.contenus
+        result.plan_acquis_rediges = exc.acquis
+        result.plan_erreur = f"Plan de remédiation non produit — {exc}"
+        return
+    result.plan_sections_redigees = {}
+    result.plan_acquis_rediges = []
+    result.plan_erreur = ""
+
+
+def reprendre_plan(result: PipelineResult, claude_client=None) -> PipelineResult:
+    """Termine un plan resté incomplet à la fin de l'analyse : seules les
+    sections manquantes sont rédigées, les autres sont reprises telles
+    quelles ; puis le PDF est produit. Rien d'autre de l'analyse n'est refait."""
+    if result.demande_plan is None or not result.demande_plan.sections:
+        raise ValueError("Aucun plan à reprendre pour cette copie.")
+    if result.plan_remediation is not None and result.remediation_pdf_path:
+        return result
+
+    if result.plan_remediation is None:
+        _rediger_plan(result, claude_client or ClaudeClient())
+        if result.plan_remediation is None:
+            return result
+
+    dossier = result.json_path.parent if result.json_path else Path(result.runs_dir or settings.runs_dir) / result.copy_id
+    dossier.mkdir(parents=True, exist_ok=True)
+    chemin = dossier / "plan_remediation.pdf"
+    try:
+        generate_plan_remediation_pdf(chemin, result.plan_remediation)
+    except Exception as exc:  # noqa: BLE001 — le plan rédigé reste dans le résultat
+        logger.exception("[%s] PDF du plan de remédiation non produit : %s", result.copy_id, exc)
+        result.plan_erreur = f"PDF du plan de remédiation non produit — {exc}"
+        return result
+    result.remediation_pdf_path = chemin
+    result.plan_erreur = ""
+    _db_add_document(result.copy_id, "remediation", chemin)
+    logger.warning("[%s] ✓ Plan de remédiation repris : %d compétence(s)",
+                   result.copy_id, len(result.plan_remediation.competences))
     return result
 
 

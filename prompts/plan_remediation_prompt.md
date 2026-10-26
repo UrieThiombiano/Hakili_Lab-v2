@@ -84,7 +84,9 @@ donnée (une fonction décrite, une figure) : « Pour les exercices 1 à 3 : …
 Sinon `null`.
 
 **`exercices`** — exactement **cinq**, du plus simple au plus proche d'une situation
-réelle, niveaux **1, 1, 2, 2, 3** dans cet ordre :
+réelle, un par emplacement : `niveau_1_a` et `niveau_1_b` (niveau 1), `niveau_2_a`
+et `niveau_2_b` (niveau 2), `niveau_3` (niveau 3). Chacun a son `enonce` et sa
+`reponse`, jamais vides :
 - niveau 1 : application directe de la règle (souvent plusieurs petits calculs
   séparés par « ; ») ;
 - niveau 2 : la même chose que la question ratée, avec d'autres nombres ;
@@ -161,33 +163,28 @@ Imite leur ton, leur longueur et leur précision — pas leur contenu.
     "Regrouper les coefficients."
   ],
   "consigne_exercices": null,
-  "exercices": [
-    {
+  "exercices": {
+    "niveau_1_a": {
       "enonce": "Ecrire sous la forme \\(a\\sqrt{b}\\) : \\(\\sqrt{50}\\) ; \\(\\sqrt{48}\\) ; \\(\\sqrt{72}\\).",
-      "niveau": 1,
       "reponse": "\\(5\\sqrt{2}\\) ; \\(4\\sqrt{3}\\) ; \\(6\\sqrt{2}\\)"
     },
-    {
+    "niveau_1_b": {
       "enonce": "Calculer \\((\\sqrt{2})^2\\) ; \\((3\\sqrt{2})^2\\) ; \\((2\\sqrt{3})^2\\).",
-      "niveau": 1,
       "reponse": "\\(2\\) ; \\(18\\) ; \\(12\\)"
     },
-    {
+    "niveau_2_a": {
       "enonce": "Réduire \\(\\sqrt{18} + \\sqrt{8} - \\sqrt{32}\\).",
-      "niveau": 2,
       "reponse": "\\(3\\sqrt{2} + 2\\sqrt{2} - 4\\sqrt{2} = \\sqrt{2}\\)"
     },
-    {
+    "niveau_2_b": {
       "enonce": "Réduire \\(2\\sqrt{45} - \\sqrt{20} + \\sqrt{80}\\).",
-      "niveau": 2,
       "reponse": "\\(6\\sqrt{5} - 2\\sqrt{5} + 4\\sqrt{5} = 8\\sqrt{5}\\)"
     },
-    {
+    "niveau_3": {
       "enonce": "Un champ carré à Koudougou a 20 m de côté. Calculer la longueur exacte de sa diagonale sous la forme \\(a\\sqrt{2}\\). Une corde de 28 m suffit-elle pour aller d'un coin au coin opposé ? On donne \\(28^2 = 784\\).",
-      "niveau": 3,
       "reponse": "Diagonale \\(20\\sqrt{2}\\) m ; \\((20\\sqrt{2})^2 = 800 \\gt 784\\), donc la corde ne suffit pas."
     }
-  ]
+  }
 }
 ```
 
@@ -234,33 +231,28 @@ Imite leur ton, leur longueur et leur précision — pas leur contenu.
     "Réduire l'expression obtenue."
   ],
   "consigne_exercices": null,
-  "exercices": [
-    {
+  "exercices": {
+    "niveau_1_a": {
       "enonce": "Ecrire avec un intervalle : \\(x \\ge -2\\) ; \\(x \\lt 7\\) ; \\(-1 \\lt x \\le 4\\).",
-      "niveau": 1,
       "reponse": "\\([-2\\pv +\\infty\\ro\\) ; \\(\\lo -\\infty\\pv 7\\ro\\) ; \\(\\lo -1\\pv 4]\\)"
     },
-    {
+    "niveau_1_b": {
       "enonce": "Ecrire sous forme d'intervalle l'ensemble des réels \\(x\\) tels que : a) \\(|x-4| \\lt 1\\) ; b) \\(|x+3| \\le 2\\).",
-      "niveau": 1,
       "reponse": "a) \\(\\lo 3\\pv 5\\ro\\) ; b) \\([-5\\pv -1]\\)"
     },
-    {
+    "niveau_2_a": {
       "enonce": "On suppose \\(1 \\lt x \\lt 4\\). Ecrire \\(A = |x-1| + |x-4|\\) sans valeur absolue, puis donner la valeur de \\(A\\).",
-      "niveau": 2,
       "reponse": "\\(A = (x-1) + (4-x) = 3\\)"
     },
-    {
+    "niveau_2_b": {
       "enonce": "On sait que \\(2 \\lt x \\lt 3\\) et \\(1 \\lt y \\lt 5\\). Encadrer \\(x + y\\), puis \\(3x - y\\).",
-      "niveau": 2,
       "reponse": "\\(3 \\lt x + y \\lt 8\\) ; \\(1 \\lt 3x - y \\lt 8\\)"
     },
-    {
+    "niveau_3": {
       "enonce": "A Bobo-Dioulasso, un commerçant vend le sac de riz entre 18 000 et 20 000 FCFA (bornes comprises). Il vend 5 sacs. Encadrer sa recette. Peut-il être sûr de dépasser 95 000 FCFA ?",
-      "niveau": 3,
       "reponse": "\\(90\\,000 \\le R \\le 100\\,000\\) ; non, il n'est pas sûr de dépasser 95 000 FCFA."
     }
-  ]
+  }
 }
 ```
 
@@ -299,33 +291,28 @@ Imite leur ton, leur longueur et leur précision — pas leur contenu.
     "Ecrire les intervalles correspondants."
   ],
   "consigne_exercices": "Pour les exercices 1 à 3 : \\(f\\) est définie sur \\([-3\\pv 5]\\). Sa courbe, tracée d'un seul trait, décroît du point \\((-3\\pv 4)\\) au point \\((0\\pv -2)\\), puis croît jusqu'au point \\((5\\pv 3)\\). Elle coupe l'axe des abscisses en \\(-1\\) et en 2.",
-  "exercices": [
-    {
+  "exercices": {
+    "niveau_1_a": {
       "enonce": "Faire un croquis, puis donner \\(f(0)\\) et \\(f(-1)\\).",
-      "niveau": 1,
       "reponse": "\\(f(0) = -2\\) ; \\(f(-1) = 0\\)"
     },
-    {
+    "niveau_1_b": {
       "enonce": "Résoudre \\(f(x) \\ge 0\\).",
-      "niveau": 1,
       "reponse": "\\([-3\\pv -1] \\cup [2\\pv 5]\\)"
     },
-    {
+    "niveau_2_a": {
       "enonce": "Quel est le signe de \\(f(1)\\) ? Justifier.",
-      "niveau": 2,
       "reponse": "\\(1 \\in \\lo -1\\pv 2\\ro\\) : \\(f(1)\\) est négatif"
     },
-    {
+    "niveau_2_b": {
       "enonce": "\\(g(x) = -x^2 + 2x + 3\\). Calculer \\(g(0)\\), \\(g(1{,}5)\\) et \\(g(-1)\\).",
-      "niveau": 2,
       "reponse": "\\(3\\) ; \\(3{,}75\\) ; \\(0\\)"
     },
-    {
+    "niveau_3": {
       "enonce": "Un ballon suit la trajectoire \\(h(x) = -0{,}5x^2 + 2x + 1\\) (en mètres). Un fil tendu à 2,2 m de hauteur se trouve à \\(x = 3\\) m. Le ballon passe-t-il au-dessus du fil ? Conclure par une phrase.",
-      "niveau": 3,
       "reponse": "\\(h(3) = -4{,}5 + 6 + 1 = 2{,}5 \\gt 2{,}2\\) : le ballon passe au-dessus du fil, avec 30 cm de marge."
     }
-  ]
+  }
 }
 ```
 
@@ -361,32 +348,27 @@ Imite leur ton, leur longueur et leur précision — pas leur contenu.
   "methode_titre": "Méthode",
   "methode": [],
   "consigne_exercices": null,
-  "exercices": [
-    {
+  "exercices": {
+    "niveau_1_a": {
       "enonce": "Calculer : \\(3 - (-5)\\) ; \\(-2 - (-7)\\) ; \\(-4 - 6\\).",
-      "niveau": 1,
       "reponse": "\\(8\\) ; \\(5\\) ; \\(-10\\)"
     },
-    {
+    "niveau_1_b": {
       "enonce": "Calculer \\(AB\\) pour \\(A(1\\pv -3)\\) et \\(B(4\\pv 1)\\).",
-      "niveau": 1,
       "reponse": "\\(\\V{AB}\\,(3\\pv 4)\\), \\(AB = 5\\)"
     },
-    {
+    "niveau_2_a": {
       "enonce": "Calculer \\(AB\\) pour \\(A(-2\\pv 5)\\) et \\(B(3\\pv -7)\\).",
-      "niveau": 2,
       "reponse": "\\(\\V{AB}\\,(5\\pv -12)\\), \\(AB = 13\\)"
     },
-    {
+    "niveau_2_b": {
       "enonce": "Le cercle de centre \\(I(1\\pv 2)\\) a pour rayon 5. Déterminer les points de ce cercle d'abscisse 4.",
-      "niveau": 2,
       "reponse": "\\(9 + (y-2)^2 = 25\\) : \\((4\\pv 6)\\) et \\((4\\pv -2)\\)"
     },
-    {
+    "niveau_3": {
       "enonce": "Même cercle. Moussa affirme qu'un point de ce cercle a pour abscisse 7. A-t-il raison ? Justifier.",
-      "niveau": 3,
       "reponse": "\\((7-1)^2 = 36 \\gt 25\\) : aucun point. Moussa a tort."
     }
-  ]
+  }
 }
 ```

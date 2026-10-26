@@ -15,6 +15,7 @@ const { correctionsApiMock, elevesApiMock, sessionsApiMock } = vi.hoisted(() => 
   correctionsApiMock: {
     statut: vi.fn(),
     supprimer: vi.fn(),
+    reprendrePlan: vi.fn(),
     validerTranscription: vi.fn(),
     validerNotes: vi.fn(),
     pageImageUrl: (_jeton: string, page: number) => `#page-${page}`,
@@ -63,6 +64,7 @@ function statutBase(overrides: Partial<CorrectionStatut> = {}): CorrectionStatut
     documents: [],
     jeton_session: null,
     seuil_sans_t1: null,
+    plan_a_reprendre: false,
     ...overrides,
   }
 }
@@ -339,5 +341,32 @@ describe("Suivre — Suppression d'un document", () => {
     await user.click(screen.getByRole("button", { name: "Supprimer Copie de l'élève" }))
     await user.click(screen.getByRole("button", { name: "Annuler" }))
     expect(elevesApiMock.supprimerDocument).not.toHaveBeenCalled()
+  })
+})
+
+describe("Suivre — plan de remédiation incomplet", () => {
+  it("propose de relancer la rédaction du plan, sans refaire l'analyse", async () => {
+    correctionsApiMock.statut.mockResolvedValue(
+      statutBase({
+        plan_a_reprendre: true,
+        resultat: { ...resultatBase(), plan_erreur: "Plan de remédiation non produit — section 4 (G.COL) : réponse vide" },
+      }),
+    )
+    correctionsApiMock.reprendrePlan.mockResolvedValue(statutBase({ etat: "diagnostic", terminee: false, en_cours: true, etape: "Rédaction du plan de remédiation", progression: 80 }))
+    rendre()
+
+    expect(await screen.findByText("Plan de remédiation incomplet")).toBeInTheDocument()
+    expect(screen.getByText(/section 4 \(G\.COL\)/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Relancer la rédaction du plan" }))
+    await waitFor(() => expect(correctionsApiMock.reprendrePlan).toHaveBeenCalledWith("jeton-copie"))
+    // L'écran repasse en progression (polling) le temps de la reprise.
+    expect(await screen.findByText("80%")).toBeInTheDocument()
+  })
+
+  it("n'affiche rien quand le plan est complet", async () => {
+    correctionsApiMock.statut.mockResolvedValue(statutBase())
+    rendre()
+    expect(await screen.findByText("Correction terminée")).toBeInTheDocument()
+    expect(screen.queryByText("Plan de remédiation incomplet")).not.toBeInTheDocument()
   })
 })

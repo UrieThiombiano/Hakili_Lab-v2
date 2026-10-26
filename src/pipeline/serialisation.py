@@ -56,6 +56,12 @@ def serialiser(resultat) -> dict:
             else None
         ),
         "plan_erreur": resultat.plan_erreur,
+        # Reprise d'un plan incomplet : le squelette et ce qui est déjà rédigé.
+        "demande_plan": resultat.demande_plan.model_dump() if resultat.demande_plan else None,
+        "plan_sections_redigees": {
+            str(ordre): contenu.model_dump() for ordre, contenu in (resultat.plan_sections_redigees or {}).items()
+        },
+        "plan_acquis_rediges": list(resultat.plan_acquis_rediges or []),
         "rubric": resultat.rubric.model_dump() if resultat.rubric else None,
         "pdf_path": _chemin(resultat.pdf_path),
         "remediation_pdf_path": _chemin(resultat.remediation_pdf_path),
@@ -78,7 +84,9 @@ def deserialiser(donnees: dict):
     figer un schéma de plus.
     """
     from src.models.domain import (
+        ContenuSection,
         CopyGrade,
+        DemandePlan,
         DiagnosticResult,
         IngestionResult,
         PlanRemediation,
@@ -110,6 +118,12 @@ def deserialiser(donnees: dict):
         # ignoré, ces corrections sont terminées et leur PDF déjà produit.
         plan_remediation=_modele(PlanRemediation, "plan_remediation"),
         plan_erreur=donnees.get("plan_erreur", ""),
+        demande_plan=_modele(DemandePlan, "demande_plan"),
+        plan_sections_redigees={
+            int(ordre): ContenuSection.model_validate(contenu)
+            for ordre, contenu in (donnees.get("plan_sections_redigees") or {}).items()
+        },
+        plan_acquis_rediges=list(donnees.get("plan_acquis_rediges") or []),
         rubric=_modele(Rubric, "rubric"),
         pdf_path=Path(donnees["pdf_path"]) if donnees.get("pdf_path") else None,
         remediation_pdf_path=(

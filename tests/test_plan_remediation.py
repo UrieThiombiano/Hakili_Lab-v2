@@ -8,6 +8,7 @@ structure ou de libellé se juge d'abord contre lui.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -113,21 +114,24 @@ def _demande(n: int = 3) -> DemandePlan:
 
 
 class _ClientFactice:
-    def __init__(self, echecs: dict[int, int] | None = None, acquis_ok: bool = True):
+    def __init__(self, echecs: dict[int, int] | None = None, acquis_ok: bool = True, erreur: str | None = None):
         self.echecs = dict(echecs or {})  # ordre de section → nombre d'échecs avant succès
+        self.erreur = erreur
         self.acquis_ok = acquis_ok
         self.appels: list[int] = []
         self.tentatives: list[tuple[int, str, str | None]] = []  # (section, refus reçu, modèle)
+        self.budgets: list[int] = []
 
     modele_repli = "modele-de-repli"
 
-    def generate_plan_section(self, demande, section, refus="", modele=None):
+    def generate_plan_section(self, demande, section, refus="", modele=None, max_tokens=32000):
         self.appels.append(section.ordre)
         self.tentatives.append((section.ordre, refus, modele))
+        self.budgets.append(max_tokens)
         if self.echecs.get(section.ordre, 0) > 0:
             self.echecs[section.ordre] -= 1
             return ClaudeResponse(success=False, data=None, confidence=0, raw_response="",
-                                  error="1 validation error for ContenuSection\ncauses\n  List should have at least 1 item\n"
+                                  error=self.erreur or "1 validation error for ContenuSection\ncauses\n  List should have at least 1 item\n"
                                         "    For further information visit https://errors.pydantic.dev/2.13/v/too_short")
         return ClaudeResponse(success=True, data=_contenu(section.ordre - 1), confidence=1, raw_response="")
 
@@ -136,6 +140,13 @@ class _ClientFactice:
             raise RuntimeError("API indisponible")
         return ClaudeResponse(success=True, data=ContenuAcquis(acquis=["Lire un graphique (R1)."]),
                               confidence=1, raw_response="")
+
+
+@pytest.fixture(autouse=True)
+def _sans_pause(monkeypatch):
+    import src.pipeline.plan_remediation as module
+
+    monkeypatch.setattr(module, "PAUSE_AVANT_REPRISE", 0)
 
 
 def test_plan_requis_sous_19_seulement():
@@ -179,9 +190,77 @@ def test_motif_du_refus_rendu_au_modele_puis_modele_de_repli():
     assert [m for _, m in tentatives] == [None, None, None, "modele-de-repli"]
 
 
-def test_section_en_echec_a_chaque_tentative_pas_de_plan():
-    with pytest.raises(PlanIncomplet, match="section 2"):
-        generer_plan(_demande(), _ClientFactice(echecs={2: 4}))
+def test_section_reprise_apres_pause_quand_les_quatre_tentatives_echouent():
+    client = _ClientFactice(echecs={2: 4})
+    plan = generer_plan(_demande(), client)
+    assert len(plan.competences) == 3
+    assert client.appels.count(2) == 5  # quatre tentatives, puis la reprise
+
+
+def test_section_en_echec_a_chaque_tentative_pas_de_plan_mais_sections_gardees():
+    client = _ClientFactice(echecs={2: 8})
+    with pytest.raises(PlanIncomplet, match="section 2") as info:
+        generer_plan(_demande(), client)
+    assert sorted(info.value.contenus) == [1, 3]
+    assert info.value.acquis == ["Lire un graphique (R1)."]
+
+    # Reprise : seule la section 2 est redemandée, les autres sont réutilisées.
+    reprise = _ClientFactice()
+    plan = generer_plan(_demande(), reprise, deja=info.value.contenus, acquis_deja=info.value.acquis)
+    assert reprise.appels == [2]
+    assert [c.code_competence for c in plan.competences] == ["C1", "C2", "C3"]
+    assert plan.acquis == ["Lire un graphique (R1)."]
+
+
+def test_reponse_coupee_redemandee_avec_un_budget_double():
+    client = _ClientFactice(echecs={1: 1}, erreur="Réponse tronquée avant l'appel outil (stop_reason=max_tokens).")
+    generer_plan(_demande(1), client)
+    assert client.budgets == [32000, 64000]
+    assert "faute de place" in client.tentatives[1][1]
+
+
+def test_refus_de_securite_bascule_aussitot_sur_le_modele_de_repli():
+    client = _ClientFactice(echecs={1: 1}, erreur="Réponse tronquée avant l'appel outil (stop_reason=refusal).")
+    generer_plan(_demande(1), client)
+    assert [m for _, _, m in client.tentatives] == [None, "modele-de-repli"]
+
+
+def test_exercices_par_emplacement_convertis_dans_l_ordre():
+    contenu = _contenu(0).model_dump()
+    noms = ["niveau_1_a", "niveau_1_b", "niveau_2_a", "niveau_2_b", "niveau_3"]
+    contenu["exercices"] = {nom: {"enonce": e["enonce"], "reponse": e["reponse"]}
+                            for nom, e in zip(noms, contenu["exercices"])}
+    section = ContenuSection.model_validate(contenu)
+    assert [e.niveau for e in section.exercices] == [1, 1, 2, 2, 3]
+    assert section.exercices[4].enonce == _contenu(0).exercices[4].enonce
+
+    del contenu["exercices"]["niveau_2_b"]
+    with pytest.raises(ValidationError, match="niveau_2_b"):
+        ContenuSection.model_validate(contenu)
+
+
+@pytest.mark.parametrize("champ, chemin", [
+    ("ce_qui_ne_va_pas", "ce_qui_ne_va_pas"),
+    ("causes", "causes[1]"),
+    ("exercice", "exercices.niveau_3.reponse"),
+])
+def test_texte_vide_refuse_avec_son_emplacement(champ, chemin):
+    contenu = _contenu(0).model_dump()
+    if champ == "causes":
+        contenu["causes"][0] = "  "
+    elif champ == "exercice":
+        contenu["exercices"][4]["reponse"] = ""
+    else:
+        contenu[champ] = " "
+    with pytest.raises(ValidationError, match=re.escape(chemin)):
+        ContenuSection.model_validate(contenu)
+
+
+def test_niveaux_dans_le_desordre_refuses():
+    contenu = _contenu(0).model_dump()
+    contenu["exercices"][0]["niveau"], contenu["exercices"][4]["niveau"] = 3, 1
+    with pytest.raises(ValidationError, match="1, 1, 2, 2, 3"):
+        ContenuSection.model_validate(contenu)
 
 
 def test_objet_vide_dans_une_liste_de_textes_retire():
@@ -219,3 +298,37 @@ def test_pdf_chromium(plan, tmp_path):
     import fitz
 
     assert fitz.open(sortie).page_count == 39
+
+
+def test_reprise_du_plan_apres_serialisation(tmp_path, monkeypatch):
+    """Analyse terminée sans plan complet : le résultat sérialisé en base
+    garde squelette et sections écrites ; la reprise n'écrit que le reste et
+    produit le PDF."""
+    import src.pipeline.pipeline as pipeline
+    from src.models.domain import IngestionResult
+    from src.pipeline.serialisation import deserialiser, serialiser
+
+    demande = _demande()
+    with pytest.raises(PlanIncomplet) as info:
+        generer_plan(demande, _ClientFactice(echecs={2: 8}))
+    resultat = pipeline.PipelineResult(
+        copy_id="c1", student_name="Amale",
+        ingestion=IngestionResult(copy_id="c1", total_pages=0, pages=[], output_dir=tmp_path),
+        demande_plan=demande, plan_sections_redigees=info.value.contenus,
+        plan_acquis_rediges=info.value.acquis, plan_erreur="Plan de remédiation non produit — section 2",
+        json_path=tmp_path / "c1" / "result.json",
+    )
+    resultat = deserialiser(serialiser(resultat))
+    assert sorted(resultat.plan_sections_redigees) == [1, 3]
+
+    pdfs, documents = [], []
+    monkeypatch.setattr(pipeline, "generate_plan_remediation_pdf", lambda chemin, plan: pdfs.append((chemin, plan)))
+    monkeypatch.setattr(pipeline, "_db_add_document", lambda copy_id, type_doc, chemin: documents.append(type_doc))
+    client = _ClientFactice()
+    resultat = pipeline.reprendre_plan(resultat, client)
+
+    assert client.appels == [2]
+    assert resultat.plan_erreur == "" and resultat.plan_sections_redigees == {}
+    assert len(resultat.plan_remediation.competences) == 3
+    assert resultat.remediation_pdf_path == tmp_path / "c1" / "plan_remediation.pdf"
+    assert len(pdfs) == 1 and documents == ["remediation"]

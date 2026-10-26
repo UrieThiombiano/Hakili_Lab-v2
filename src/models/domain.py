@@ -426,8 +426,21 @@ class DemandePlan(BaseModel):
     questions_reussies: list[QuestionPlan] = Field(default_factory=list)
 
 
+#: Les cinq exercices d'une section, un par emplacement nommé : l'outil de
+#: rédaction les demande ainsi, pour qu'aucun ne puisse manquer ni changer de
+#: niveau (le mode strict garantit la présence de chaque clé).
+EMPLACEMENTS_EXERCICES: dict[str, int] = {
+    "niveau_1_a": 1, "niveau_1_b": 1, "niveau_2_a": 2, "niveau_2_b": 2, "niveau_3": 3,
+}
+
+
 class ContenuSection(BaseModel):
-    """Ce que le modèle rédige pour une section — rien d'autre."""
+    """Ce que le modèle rédige pour une section — rien d'autre.
+
+    Une section acceptée est complète : aucun texte obligatoire vide (une
+    cellule blanche dans le cahier d'un élève est un trou, pas un détail),
+    cinq exercices de niveaux 1, 1, 2, 2, 3. Les messages d'erreur sont
+    rendus au modèle tels quels : ils disent quoi corriger."""
     titre: str
     titre_tableau: str | None = None
     titre_court: str
@@ -439,6 +452,47 @@ class ContenuSection(BaseModel):
     methode: list[str] = Field(default_factory=list)
     consigne_exercices: str | None = None
     exercices: list[ExercicePlan] = Field(min_length=5, max_length=5)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _exercices_par_emplacement(cls, data: Any) -> Any:
+        if isinstance(data, dict) and isinstance(data.get("exercices"), dict):
+            emplacements = data["exercices"]
+            manquants = [nom for nom in EMPLACEMENTS_EXERCICES if not isinstance(emplacements.get(nom), dict)]
+            if manquants:
+                raise ValueError(f"exercices : emplacement(s) manquant(s) : {', '.join(manquants)}")
+            data = {**data, "exercices": [
+                {**emplacements[nom], "niveau": niveau} for nom, niveau in EMPLACEMENTS_EXERCICES.items()
+            ]}
+        return data
+
+    @model_validator(mode="after")
+    def _complete(self) -> "ContenuSection":
+        vides: list[str] = []
+
+        def verifier(champ: str, valeur: str | None) -> None:
+            if not (valeur or "").strip():
+                vides.append(champ)
+
+        for champ in ("titre", "titre_court", "ce_qui_ne_va_pas", "methode_titre"):
+            verifier(champ, getattr(self, champ))
+        for i, ligne in enumerate(self.ecrits, start=1):
+            verifier(f"ecrits[{i}].question", ligne.question)
+            verifier(f"ecrits[{i}].reponse_attendue", ligne.reponse_attendue)
+            if not ligne.reussie:
+                verifier(f"ecrits[{i}].reponse_eleve", ligne.reponse_eleve)
+        for champ in ("causes", "a_retenir", "methode"):
+            for i, texte in enumerate(getattr(self, champ), start=1):
+                verifier(f"{champ}[{i}]", texte)
+        noms = list(EMPLACEMENTS_EXERCICES)
+        for nom, exercice in zip(noms, self.exercices):
+            verifier(f"exercices.{nom}.enonce", exercice.enonce)
+            verifier(f"exercices.{nom}.reponse", exercice.reponse)
+        if vides:
+            raise ValueError(f"texte vide : {', '.join(vides)}")
+        if [e.niveau for e in self.exercices] != list(EMPLACEMENTS_EXERCICES.values()):
+            raise ValueError("exercices : niveaux attendus 1, 1, 2, 2, 3 dans cet ordre")
+        return self
 
 
 class ContenuAcquis(BaseModel):

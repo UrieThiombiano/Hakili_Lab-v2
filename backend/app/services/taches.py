@@ -321,6 +321,54 @@ def _executer_diagnostic(correction_id: int) -> None:
         db.close()
 
 
+# ── Reprise d'un plan de remédiation incomplet ───────────────────────────────
+
+
+def plan_a_reprendre(correction: Correction) -> bool:
+    """Analyse terminée dont le plan manque (section non rédigée, PDF non
+    produit) alors que son squelette existe."""
+    resultat = correction.resultat or {}
+    demande = resultat.get("demande_plan") or {}
+    return (
+        correction.etat in ("terminee", "echec")
+        and bool(demande.get("sections"))
+        and not (resultat.get("plan_remediation") and resultat.get("remediation_pdf_path"))
+    )
+
+
+def lancer_reprise_plan(db: SQLASession, correction: Correction) -> None:
+    correction.etat = "diagnostic"
+    correction.etape = _LIBELLES_ETAPE["plan"]
+    correction.progression = 80
+    db.add(correction)
+    db.commit()
+    _dans_un_thread(_executer_reprise_plan, correction.id)
+
+
+def _executer_reprise_plan(correction_id: int) -> None:
+    from src.pipeline.pipeline import reprendre_plan
+    from src.pipeline.serialisation import deserialiser, serialiser
+
+    db = SessionLocal()
+    try:
+        correction = db.get(Correction, correction_id)
+        resultat = deserialiser(correction.resultat)
+        _liberer_connexion(db)
+        try:
+            resultat = reprendre_plan(resultat)
+        except Exception as exc:  # noqa: BLE001 — la copie reste consultable
+            logger.exception("[%s] Reprise du plan interrompue : %s", correction.copy_id, exc)
+            resultat.plan_erreur = f"Reprise du plan interrompue — {exc}"
+        correction.resultat = serialiser(resultat)
+        correction.etat = "echec" if resultat.errors else "terminee"
+        correction.etape = "Terminée"
+        correction.progression = 100
+        db.add(correction)
+        db.commit()
+    finally:
+        db.close()
+
+
 def _client_diagnostic_module4():
     """Absent plutôt qu'en échec : une clé d'API absente ne doit pas
     empêcher la part mécanique (QCM) de tourner."""
@@ -369,6 +417,13 @@ def _preparer_plan(db: SQLASession, correction: Correction, resultat):
         return None, None
 
     ancre = correction.type_evaluation == "T0" and correction.bareme_id.startswith("socle_")
+    if not ancre:
+        from src.pipeline.plan_remediation import plan_requis
+
+        if resultat.grade.final_score_on_20 is None:
+            resultat.grade.compute_final_score()
+        if not plan_requis(resultat.grade.final_score_on_20):
+            return None, None  # hors référentiel, le diagnostic ne sert qu'au plan
     try:
         if ancre:
             from src.knowledge.test_registry import get_registry

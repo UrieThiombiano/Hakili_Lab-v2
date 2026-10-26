@@ -270,6 +270,8 @@ export interface ResultatPipeline {
   rubric: { subject: string; total_points: number; items: RubricItem[] } | null
   pdf_path: string | null
   remediation_pdf_path: string | null
+  /** Motif d'absence du plan de remédiation alors qu'il est dû — vide sinon. */
+  plan_erreur?: string
   errors: string[]
 }
 
@@ -289,6 +291,8 @@ export interface CorrectionStatut {
   jeton_session: string | null
   /** Note /20 sous laquelle l'élève passe directement en remédiation, sans T1 (D-CEO-46) — null si la règle ne s'applique pas. */
   seuil_sans_t1: number | null
+  /** Plan de remédiation manquant mais reprenable sans refaire l'analyse (`POST /corrections/{jeton}/plan`). */
+  plan_a_reprendre: boolean
 }
 
 export interface CorrectionResume {

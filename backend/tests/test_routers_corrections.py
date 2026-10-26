@@ -497,3 +497,56 @@ def test_liste_corrections(tmp_path, monkeypatch):
     assert len(r.json()) == 1
     assert r.json()[0]["eleve_nom"] == "Sanou"
     app.dependency_overrides.clear()
+
+
+def test_reprise_du_plan_incomplet(tmp_path, monkeypatch):
+    """Analyse terminée, plan resté incomplet : le statut le signale, et
+    `POST /{jeton}/plan` le termine sans refaire l'analyse."""
+    client, SessionLocal = _client_avec_base(tmp_path)
+
+    from app.auth.tokens import jeton
+    from app.models import Correction
+    from src.models.domain import DemandePlan, QuestionPlan, SectionPlanDemande
+    from src.pipeline.serialisation import serialiser
+    import src.pipeline.pipeline as pipeline_mod
+
+    resultat = _pipeline_result(copy_id="copie-plan", avec_grade=True)
+    resultat.demande_plan = DemandePlan(
+        copy_id="copie-plan", eleve_nom="SANOU Feryel", prenom="Feryel", classe="2nde C",
+        test_libelle="évaluation en 2nde C", date="26 octobre 2026",
+        sections=[SectionPlanDemande(ordre=1, code_competence="N.RAC", libelle_competence="Radicaux",
+                                     duree_h=2.0, questions=[QuestionPlan(code="1")])],
+    )
+    resultat.plan_erreur = "Plan de remédiation non produit — section 1 (N.RAC) : réponse vide"
+    db = SessionLocal()
+    db.add(Correction(copy_id="copie-plan", identifiant_hakili="eleve-1", etat="terminee", resultat=serialiser(resultat)))
+    db.add(Correction(copy_id="copie-sans-plan", identifiant_hakili="eleve-1", etat="terminee",
+                      resultat=serialiser(_pipeline_result(copy_id="copie-sans-plan", avec_grade=True))))
+    db.commit()
+    db.close()
+
+    statut = client.get(f"/api/corrections/{jeton('copie-plan')}").json()
+    assert statut["plan_a_reprendre"] is True
+
+    reprises = []
+
+    def _fausse_reprise(resultat):
+        reprises.append(resultat.copy_id)
+        resultat.plan_erreur = ""
+        resultat.remediation_pdf_path = tmp_path / "plan_remediation.pdf"
+        resultat.plan_remediation = None  # le contenu n'est pas l'objet de ce test
+        return resultat
+
+    monkeypatch.setattr(pipeline_mod, "reprendre_plan", _fausse_reprise)
+    r = client.post(f"/api/corrections/{jeton('copie-plan')}/plan")
+    assert r.status_code == 200, r.text
+    assert reprises == ["copie-plan"]
+    apres = client.get(f"/api/corrections/{jeton('copie-plan')}").json()
+    assert apres["etat"] == "terminee" and apres["resultat"]["plan_erreur"] == ""
+
+    # Rien à reprendre : 409, rien n'est lancé.
+    r = client.post(f"/api/corrections/{jeton('copie-sans-plan')}/plan")
+    assert r.status_code == 409
+    assert reprises == ["copie-plan"]
+
+    app.dependency_overrides.clear()

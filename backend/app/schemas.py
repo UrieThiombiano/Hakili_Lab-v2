@@ -216,6 +216,9 @@ class CorrectionStatut(BaseModel):
     #: remédiation" qui pointait presque toujours vers un document jamais
     #: généré (404) : le frontend n'affiche plus que ce qui existe vraiment.
     documents: list[str] = []
+    #: Le plan de remédiation manque alors qu'il est dû (section non rédigée,
+    #: PDF non produit) : `POST /{jeton}/plan` le termine sans refaire l'analyse.
+    plan_a_reprendre: bool = False
     #: Jeton du parcours (session) de l'élève, si un existe déjà — permet
     #: d'afficher le plan provisoire et le rapport diagnostique sans
     #: attendre que l'enseignant aille chercher l'écran « Parcours ».
