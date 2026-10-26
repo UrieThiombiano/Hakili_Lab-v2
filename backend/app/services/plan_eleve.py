@@ -25,6 +25,7 @@ from src.models.domain import (
     CopyGrade,
     DemandePlan,
     DiagnosticContraint,
+    ProblemeDetecte,
     QuestionPlan,
     Rubric,
     SectionPlanDemande,
@@ -84,6 +85,97 @@ def _duree(db: SQLASession, competence: Competence, types: list[TypeErreur]) -> 
             cout = cout_remediation(volume, Decimal(type_erreur.coefficient))
         total += cout
     return total
+
+
+# ── Copies hors référentiel de questions : mode libre, T1, T3… ────────────────
+
+#: Classe canonique (`classe_normalizer`) → niveau du référentiel.
+_NIVEAU_DE_CLASSE = {
+    "CP": "Primaire", "CE": "Primaire", "CM": "Primaire",
+    "6e": "6eme", "5e": "5eme", "4e": "4eme", "3e": "3eme",
+    "2nde": "2ndeC", "1ere": "1ereD", "Tle": "tleD",
+}
+#: Classe inconnue : tout le référentiel plutôt qu'aucun plan.
+NIVEAU_PAR_DEFAUT = "tleD"
+#: Libellé d'un exercice de sujet T1/T3… : « compétence × type d'erreur »
+#: (`generation.persister_sujet_verification`, `_persister_sujet_confirmation`).
+SEPARATEUR_SUJET = " × "
+
+
+def niveau_de_classe(classe: str | None) -> str:
+    from src.core.classe_normalizer import normalize_classe
+
+    return _NIVEAU_DE_CLASSE.get(normalize_classe(classe) or "", NIVEAU_PAR_DEFAUT)
+
+
+def rattacher_par_libelle(db: SQLASession, grade: CopyGrade, rubric: Rubric) -> tuple[list[ProblemeDetecte], list[str]]:
+    """Questions ratées d'un sujet T1/T3… : chaque exercice cible un problème
+    nommé « compétence × type d'erreur », retrouvé dans le référentiel sans
+    appel de modèle. Rend les problèmes et les questions ratées restées sans
+    rattachement (libellé inconnu : mode libre, sujet ancien)."""
+    competences = {c.libelle: c.code for c in db.query(Competence).all()}
+    types = {t.libelle: t.code for t in db.query(TypeErreur).all()}
+    problemes: list[ProblemeDetecte] = []
+    restantes: list[str] = []
+    for q in _questions_de_la_copie(grade, rubric).values():
+        if q.reussie:
+            continue
+        libelle_competence, _, libelle_type = q.intitule.partition(SEPARATEUR_SUJET)
+        competence = competences.get(libelle_competence.strip())
+        type_erreur = types.get(libelle_type.strip())
+        if competence and type_erreur:
+            problemes.append(ProblemeDetecte(
+                code_question=q.code, code_competence=competence, code_type_erreur=type_erreur,
+                citation=q.reponse_eleve,
+            ))
+        else:
+            restantes.append(q.code)
+    return problemes, restantes
+
+
+def diagnostic_hors_referentiel(
+    db: SQLASession,
+    *,
+    copy_id: str,
+    classe: str,
+    evaluation: str,
+    grade: CopyGrade,
+    rubric: Rubric,
+    client,
+) -> DiagnosticContraint:
+    """Diagnostic d'une copie dont les questions ne sont pas au référentiel.
+    Les exercices T1/T3… se rattachent par leur libellé ; les autres questions
+    ratées passent par le diagnostic sans ancrage (`diagnostiquer_sans_ancrage`),
+    contraint au catalogue des compétences du niveau de l'élève. Dans les deux
+    cas, aucun code n'est inventé."""
+    from app.services.diagnostic_referentiel import ProductionEleve, diagnostiquer_sans_ancrage
+
+    niveau = niveau_de_classe(classe)
+    problemes, restantes = rattacher_par_libelle(db, grade, rubric)
+    diagnostic = DiagnosticContraint(copy_id=copy_id, niveau_test=niveau, problemes=problemes,
+                                     questions_diagnostiquees=[p.code_question for p in problemes])
+    if not restantes:
+        return diagnostic
+
+    questions = _questions_de_la_copie(grade, rubric)
+    productions = [
+        ProductionEleve(
+            repere=code,
+            enonce=" — ".join(filter(None, [questions[code].intitule,
+                                            f"réponse attendue : {questions[code].reponse_attendue}"
+                                            if questions[code].reponse_attendue else ""])),
+            production="" if questions[code].reponse_eleve == MARQUEUR_ABSENCE else questions[code].reponse_eleve,
+        )
+        for code in restantes
+    ]
+    libre = diagnostiquer_sans_ancrage(db, niveau_test=niveau, productions=productions, client=client,
+                                       copy_id=copy_id, inclus=True, evaluation=evaluation)
+    diagnostic.problemes += libre.problemes
+    diagnostic.questions_diagnostiquees += libre.questions_diagnostiquees
+    diagnostic.questions_ecartees.update(libre.questions_ecartees)
+    diagnostic.rejets += libre.rejets
+    diagnostic.appels_modele += libre.appels_modele
+    return diagnostic
 
 
 def demande_plan(

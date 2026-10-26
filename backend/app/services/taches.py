@@ -333,33 +333,66 @@ def _client_diagnostic_module4():
         return None
 
 
-def _preparer_plan(db: SQLASession, correction: Correction, resultat):
-    """Diagnostic contraint (module 4) d'une copie T0 au référentiel, et le
-    squelette de son plan de remédiation tiré de ce diagnostic. Calculé avant
-    la Phase B, qui fait rédiger le plan, et réutilisé ensuite pour écrire les
-    hypothèses — un seul appel de diagnostic par copie.
+#: Intitulé du plan pour une copie hors test du référentiel, par type.
+_EVALUATION_HORS_REFERENTIEL = {
+    "T0": "Évaluation",
+    "T1": "Test de confirmation",
+    "T3": "Test de vérification",
+    "T4": "Test de rétention",
+    "T5": "Test de rétention",
+}
 
-    Rend `(None, None)` hors référentiel (mode libre) ou pour une copie
-    T1/T3…, et en cas d'échec : la correction se termine alors sans plan, avec
-    son motif (`PipelineResult.plan_erreur`). Lecture seule."""
-    if correction.type_evaluation != "T0" or not correction.bareme_id.startswith("socle_"):
-        return None, None
+
+def _classe_eleve(identifiant_hakili: str) -> str:
+    """Classe déclarée dans le Sheet élèves ; vide si injoignable."""
+    try:
+        from src.integrations.google_sheets import get_eleve_by_identifiant
+
+        return ((get_eleve_by_identifiant(identifiant_hakili) or {}).get("classe") or "").strip()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[plan] Classe de l'élève %s non lue (%s)", identifiant_hakili, exc)
+        return ""
+
+
+def _preparer_plan(db: SQLASession, correction: Correction, resultat):
+    """Diagnostic contraint (module 4) de la copie, et le squelette de son
+    plan de remédiation tiré de ce diagnostic. Calculé avant la Phase B, qui
+    fait rédiger le plan, et réutilisé ensuite pour écrire les hypothèses — un
+    seul appel de diagnostic par copie.
+
+    Toute copie a son plan : un T0 au référentiel par le diagnostic ancré sur
+    ses questions ; le mode libre et les copies T1/T3… par
+    `plan_eleve.diagnostic_hors_referentiel`. Rend `(None, None)` en cas
+    d'échec : la correction se termine alors sans plan, avec son motif
+    (`PipelineResult.plan_erreur`). Lecture seule."""
     if resultat.grade is None or resultat.rubric is None:
         return None, None
 
-    niveau = _niveau_test(correction.bareme_id)
+    ancre = correction.type_evaluation == "T0" and correction.bareme_id.startswith("socle_")
     try:
-        from src.knowledge.test_registry import get_registry
+        if ancre:
+            from src.knowledge.test_registry import get_registry
 
-        test = get_registry().get_test(correction.bareme_id)
-        reponses = diag_ref.reponses_depuis_correction(resultat.grade, resultat.rubric)
-        diagnostic = diag_ref.diagnostiquer(db, niveau_test=niveau, reponses=reponses, client=_client_diagnostic_module4(), copy_id=correction.copy_id)
+            niveau = _niveau_test(correction.bareme_id)
+            test = get_registry().get_test(correction.bareme_id)
+            titre = test.label if test else ""
+            reponses = diag_ref.reponses_depuis_correction(resultat.grade, resultat.rubric)
+            diagnostic = diag_ref.diagnostiquer(db, niveau_test=niveau, reponses=reponses, client=_client_diagnostic_module4(), copy_id=correction.copy_id)
+        else:
+            niveau = ""  # pas de question du référentiel à rattacher
+            classe = _classe_eleve(correction.identifiant_hakili)
+            evaluation = _EVALUATION_HORS_REFERENTIEL.get(correction.type_evaluation, "Évaluation")
+            titre = f"{evaluation} en {classe}" if classe else evaluation
+            diagnostic = plan_eleve.diagnostic_hors_referentiel(
+                db, copy_id=correction.copy_id, classe=classe, evaluation=evaluation,
+                grade=resultat.grade, rubric=resultat.rubric, client=_client_diagnostic_module4(),
+            )
         demande = plan_eleve.demande_plan(
             db,
             copy_id=correction.copy_id,
             nom=correction.eleve_nom,
             prenom=correction.eleve_prenom,
-            titre_test=test.label if test else "",
+            titre_test=titre,
             niveau_test=niveau,
             grade=resultat.grade,
             rubric=resultat.rubric,

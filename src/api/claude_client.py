@@ -160,10 +160,36 @@ _GRADING_TOOL: dict[str, Any] = {
 
 _TEXTES = {"type": "array", "items": {"type": "string"}}
 
+#: Contraintes que le mode strict n'accepte pas (documentation Anthropic,
+#: « JSON Schema limitations ») — revalidées par Pydantic côté client.
+_HORS_STRICT = ("minItems", "maxItems", "minimum", "maximum", "minLength", "maxLength")
+
+
+def _outil_strict(outil: dict[str, Any]) -> dict[str, Any]:
+    """Version `strict: true` d'un outil : la sortie suit le schéma à coup
+    sûr (essai réel du 2026-10-26 : sans lui, Opus rendait parfois
+    `causes: [{}]`). Le mode strict veut `additionalProperties: false` et
+    toutes les propriétés requises (une propriété facultative y est
+    nullable), et refuse les bornes numériques et de longueur : elles sont
+    retirées ici, Pydantic les vérifie, et un refus est renvoyé au modèle."""
+    def convertir(noeud: Any) -> Any:
+        if isinstance(noeud, list):
+            return [convertir(n) for n in noeud]
+        if not isinstance(noeud, dict):
+            return noeud
+        resultat = {k: convertir(v) for k, v in noeud.items() if k not in _HORS_STRICT}
+        if resultat.get("type") == "object" and "properties" in resultat:
+            resultat["additionalProperties"] = False
+            resultat["required"] = list(resultat["properties"])
+        return resultat
+
+    return {**outil, "input_schema": convertir(outil["input_schema"]), "strict": True}
+
+
 #: Outil de rédaction d'une section du plan de remédiation — mêmes champs que
-#: `ContenuSection`. Les bornes (5 exercices, niveaux 1 à 3) sont dans le
-#: schéma pour que le modèle les respecte, et revalidées par Pydantic.
-_OUTIL_SECTION_PLAN: dict[str, Any] = {
+#: `ContenuSection`. Envoyé en mode strict (`_outil_strict`) : les bornes
+#: (5 exercices, listes non vides) sont vérifiées par Pydantic.
+_OUTIL_SECTION_PLAN: dict[str, Any] = _outil_strict({
     "name": "rediger_section",
     "description": "Enregistre le contenu rédigé d'une section du plan de remédiation.",
     "input_schema": {
@@ -197,7 +223,7 @@ _OUTIL_SECTION_PLAN: dict[str, Any] = {
                     "type": "object",
                     "properties": {
                         "enonce": {"type": "string"},
-                        "niveau": {"type": "integer", "minimum": 1, "maximum": 3},
+                        "niveau": {"type": "integer", "enum": [1, 2, 3]},
                         "reponse": {"type": "string"},
                     },
                     "required": ["enonce", "niveau", "reponse"],
@@ -207,9 +233,9 @@ _OUTIL_SECTION_PLAN: dict[str, Any] = {
         "required": ["titre", "titre_court", "ecrits", "ce_qui_ne_va_pas", "causes",
                      "a_retenir", "methode_titre", "methode", "exercices"],
     },
-}
+})
 
-_OUTIL_ACQUIS_PLAN: dict[str, Any] = {
+_OUTIL_ACQUIS_PLAN: dict[str, Any] = _outil_strict({
     "name": "rediger_acquis",
     "description": "Enregistre l'encadré « Ce que tu sais déjà faire ».",
     "input_schema": {
@@ -217,7 +243,7 @@ _OUTIL_ACQUIS_PLAN: dict[str, Any] = {
         "properties": {"acquis": _TEXTES},
         "required": ["acquis"],
     },
-}
+})
 
 
 def _diagnostic_contraint_tool(
@@ -926,6 +952,7 @@ class ClaudeClient:
         catalogue: list[dict[str, Any]],
         codes_types: list[str],
         corrections: str = "",
+        evaluation: str = "Évaluation d'entrée",
     ) -> ClaudeResponse:
         """Diagnostic sans ancrage de question — la mesure « plancher ».
 
@@ -964,7 +991,7 @@ class ClaudeClient:
         prompt = (
             f"{self._diagnostic_plancher_prompt}"
             f"\n\n## Copie analysée\n"
-            f"Évaluation d'entrée en {niveau_test} (copie {copy_id}).\n"
+            f"{evaluation} en {niveau_test} (copie {copy_id}).\n"
             f"\n## Compétences du référentiel déjà enseignées à ce niveau\n"
             f"```json\n{_json.dumps(catalogue, ensure_ascii=False, indent=2)}\n```"
             f"\n\n## Ce que l'élève a écrit\n"
@@ -1134,7 +1161,7 @@ class ClaudeClient:
     # ── Plan de remédiation (cahier élève) ────────────────────────────────────
 
     def _appel_outil(self, *, copy_id: str, etape: str, prompt_fixe: str, prompt_variable: str,
-                     outil: dict[str, Any], max_tokens: int) -> Any:
+                     outil: dict[str, Any], max_tokens: int, modele: str | None = None) -> Any:
         """Appel à sortie par outil, Opus puis repli Sonnet sur 400 (même
         repli que `diagnose_constrained`). La partie fixe du prompt (consignes
         + exemples) est mise en cache : elle est identique pour toutes les
@@ -1145,7 +1172,10 @@ class ClaudeClient:
         calculs avant d'écrire les exercices (essai réel du 2026-10-26 :
         réponses incohérentes et exercices hors sujet sans elle). Le prompt
         demande l'appel ; une réponse sans bloc `tool_use` est un échec, que
-        l'appelant redemande."""
+        l'appelant redemande.
+
+        `modele` : impose le modèle (dernière tentative d'une section, sur le
+        modèle de repli), sans repli supplémentaire."""
         import anthropic as _anthropic
 
         def _appeler(model: str) -> Any:
@@ -1166,6 +1196,8 @@ class ClaudeClient:
                 }],
             )
 
+        if modele:
+            return _appeler(modele)
         try:
             return _appeler(self._modele_opus)
         except _anthropic.BadRequestError as refus:
@@ -1173,15 +1205,23 @@ class ClaudeClient:
                            copy_id, etape, self._modele_opus, refus, self._modele_heavy)
             return _appeler(self._modele_heavy)
 
+    @property
+    def modele_repli(self) -> str:
+        return self._modele_heavy
+
     @_retry
-    def generate_plan_section(self, demande: "DemandePlan", section: "SectionPlanDemande") -> ClaudeResponse:
+    def generate_plan_section(self, demande: "DemandePlan", section: "SectionPlanDemande",
+                              refus: str = "", modele: str | None = None) -> ClaudeResponse:
         """Rédige une section du plan de remédiation. Le squelette (compétence,
         durée, questions, prérequis) est fixé par l'appelant ; le modèle n'écrit
-        que le contenu (`ContenuSection`)."""
+        que le contenu (`ContenuSection`).
+
+        `refus` : motif du rejet de la tentative précédente, rendu au modèle
+        pour qu'il le corrige plutôt que de retenter à l'aveugle."""
         import json as _json
 
         logger.info("[%s] Plan — section %d (%s), modèle : %s",
-                    demande.copy_id, section.ordre, section.code_competence, self._modele_opus)
+                    demande.copy_id, section.ordre, section.code_competence, modele or self._modele_opus)
         contexte = {
             "eleve": {"prenom": demande.prenom, "classe": demande.classe},
             "test": demande.test_libelle,
@@ -1196,11 +1236,19 @@ class ClaudeClient:
             "travaillées dans les sections précédentes.\n"
             f"```json\n{_json.dumps(contexte, ensure_ascii=False, indent=2)}\n```"
         )
+        if refus:
+            prompt_variable += (
+                "\n\n## Ta réponse précédente a été refusée\n"
+                f"{refus}\n"
+                "Rédige à nouveau la section entière en corrigeant ce point, et "
+                "rends-la en appelant l'outil `rediger_section` : tous les champs "
+                "obligatoires remplis (listes non vides, exactement cinq exercices)."
+            )
         try:
             response = self._appel_outil(
                 copy_id=demande.copy_id, etape=f"plan section {section.ordre}",
                 prompt_fixe=self._plan_remediation_prompt, prompt_variable=prompt_variable,
-                outil=_OUTIL_SECTION_PLAN, max_tokens=32000,
+                outil=_OUTIL_SECTION_PLAN, max_tokens=32000, modele=modele,
             )
         except Exception as exc:  # noqa: BLE001
             if _is_retryable(exc):

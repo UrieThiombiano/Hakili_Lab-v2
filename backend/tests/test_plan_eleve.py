@@ -123,3 +123,88 @@ def test_decision_enseignant_prime_sur_la_note_ia(db, referentiel):
 
 def test_date_fr():
     assert plan_eleve.date_fr(date(2026, 10, 24)) == "24 octobre 2026"
+
+
+# ── Hors référentiel de questions : T1/T3 (libellés), mode libre (sans ancrage) ─
+
+from src.models.domain import ClaudeResponse, SortieDiagnosticContraint  # noqa: E402
+
+
+def _copie_libre(items: list[tuple[str, str]], reussies: set[str]) -> tuple[CopyGrade, Rubric]:
+    rubric = Rubric(subject="mathematics", total_points=len(items),
+                    items=[RubricItem(id=i, label=label) for i, label in items])
+    grade = CopyGrade(copy_id="c2", total_score=0, total_possible=len(items), questions=[
+        QuestionGrade(rubric_item_id=i, score=1.0 if i in reussies else 0.0, confidence=1, comment="",
+                      observed_answer=f"réponse {i}", correct_answer=f"attendu {i}", requires_review=False)
+        for i, _ in items
+    ])
+    return grade, rubric
+
+
+class _ClientSansAncrage:
+    def __init__(self, problemes: list[dict]):
+        self.problemes = problemes
+        self.appels: list[dict] = []
+
+    def diagnose_unanchored(self, **kwargs):
+        self.appels.append(kwargs)
+        return ClaudeResponse(success=True, data=SortieDiagnosticContraint(problemes=self.problemes),
+                              confidence=1, raw_response="")
+
+
+def test_niveau_de_classe():
+    assert plan_eleve.niveau_de_classe("2nde C") == "2ndeC"
+    assert plan_eleve.niveau_de_classe("1ère D") == "1ereD"
+    assert plan_eleve.niveau_de_classe("Tle D") == "tleD"
+    assert plan_eleve.niveau_de_classe("") == plan_eleve.NIVEAU_PAR_DEFAUT
+
+
+def test_sujet_t1_rattache_par_libelle_sans_modele(db, referentiel):
+    grade, rubric = _copie_libre(
+        [("1", "Radicaux × Conceptuelle"), ("2", "Second degré × Procédurale"), ("3", "Vecteurs × Conceptuelle")],
+        reussies={"3"},
+    )
+    client = _ClientSansAncrage([])
+    diagnostic = plan_eleve.diagnostic_hors_referentiel(
+        db, copy_id="c2", classe="1ère D", evaluation="Test de confirmation",
+        grade=grade, rubric=rubric, client=client,
+    )
+    assert client.appels == []  # tout rattaché : aucun appel de modèle
+    assert {(p.code_question, p.code_competence, p.code_type_erreur) for p in diagnostic.problemes} == {
+        ("1", "RAD", "CPT"), ("2", "EQ2", "PRC"),
+    }
+    demande = plan_eleve.demande_plan(
+        db, copy_id="c2", nom="Nikiema", prenom="K. Amale", titre_test="Test de confirmation en 1ère D",
+        niveau_test="", grade=grade, rubric=rubric, diagnostic=diagnostic,
+    )
+    assert [s.code_competence for s in demande.sections] == ["RAD", "EQ2"]
+    assert demande.classe == "1ère D" and demande.test_libelle == "test de confirmation en 1ère D"
+
+
+def test_mode_libre_diagnostic_sans_ancrage_au_niveau_de_l_eleve(db, referentiel):
+    grade, rubric = _copie_libre([("Ex1", "Calculer √12 + √27"), ("Ex2", "Résoudre x² − 5x + 6 = 0")], reussies=set())
+    client = _ClientSansAncrage([
+        {"code_question": "Ex1", "code_competence": "RAD", "code_type_erreur": "PRC", "citation": "réponse Ex1"},
+        {"code_question": "Ex2", "code_competence": "EQ2", "code_type_erreur": "CPT", "citation": "réponse Ex2"},
+    ])
+    diagnostic = plan_eleve.diagnostic_hors_referentiel(
+        db, copy_id="c2", classe="1ère D", evaluation="Évaluation",
+        grade=grade, rubric=rubric, client=client,
+    )
+    appel = client.appels[0]
+    # Programme de la classe compris (EQ2 introduite en 1ère D), pas seulement l'antérieur.
+    assert {c["code"] for c in appel["catalogue"]} == {"RAD", "EQ2", "VEC"}
+    assert appel["evaluation"] == "Évaluation"
+    assert appel["productions"][0]["enonce"] == "Calculer √12 + √27 — réponse attendue : attendu Ex1"
+    assert [p.code_competence for p in diagnostic.problemes] == ["RAD", "EQ2"]
+
+
+def test_code_hors_catalogue_rejete_en_mode_libre(db, referentiel):
+    grade, rubric = _copie_libre([("Ex1", "Une question")], reussies=set())
+    client = _ClientSansAncrage([
+        {"code_question": "Ex1", "code_competence": "INVENTE", "code_type_erreur": "PRC", "citation": "x"},
+    ])
+    diagnostic = plan_eleve.diagnostic_hors_referentiel(
+        db, copy_id="c2", classe="2nde C", evaluation="Évaluation", grade=grade, rubric=rubric, client=client,
+    )
+    assert diagnostic.problemes == [] and diagnostic.rejets

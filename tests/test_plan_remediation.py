@@ -117,12 +117,18 @@ class _ClientFactice:
         self.echecs = dict(echecs or {})  # ordre de section → nombre d'échecs avant succès
         self.acquis_ok = acquis_ok
         self.appels: list[int] = []
+        self.tentatives: list[tuple[int, str, str | None]] = []  # (section, refus reçu, modèle)
 
-    def generate_plan_section(self, demande, section):
+    modele_repli = "modele-de-repli"
+
+    def generate_plan_section(self, demande, section, refus="", modele=None):
         self.appels.append(section.ordre)
+        self.tentatives.append((section.ordre, refus, modele))
         if self.echecs.get(section.ordre, 0) > 0:
             self.echecs[section.ordre] -= 1
-            return ClaudeResponse(success=False, data=None, confidence=0, raw_response="", error="refus")
+            return ClaudeResponse(success=False, data=None, confidence=0, raw_response="",
+                                  error="1 validation error for ContenuSection\ncauses\n  List should have at least 1 item\n"
+                                        "    For further information visit https://errors.pydantic.dev/2.13/v/too_short")
         return ClaudeResponse(success=True, data=_contenu(section.ordre - 1), confidence=1, raw_response="")
 
     def generate_plan_acquis(self, demande):
@@ -160,9 +166,22 @@ def test_section_en_echec_redemandee_une_fois():
     assert client.appels.count(2) == 2
 
 
+def test_motif_du_refus_rendu_au_modele_puis_modele_de_repli():
+    client = _ClientFactice(echecs={2: 3})
+    plan = generer_plan(_demande(), client)
+    assert len(plan.competences) == 3
+    tentatives = [(refus, modele) for ordre, refus, modele in client.tentatives if ordre == 2]
+    assert tentatives[0] == ("", None)
+    # Le motif est rendu, sans le lien de documentation de pydantic.
+    assert "List should have at least 1 item" in tentatives[1][0]
+    assert "errors.pydantic.dev" not in tentatives[1][0]
+    # Trois tentatives sur le modèle principal, la quatrième sur le repli.
+    assert [m for _, m in tentatives] == [None, None, None, "modele-de-repli"]
+
+
 def test_section_en_echec_a_chaque_tentative_pas_de_plan():
     with pytest.raises(PlanIncomplet, match="section 2"):
-        generer_plan(_demande(), _ClientFactice(echecs={2: 3}))
+        generer_plan(_demande(), _ClientFactice(echecs={2: 4}))
 
 
 def test_objet_vide_dans_une_liste_de_textes_retire():

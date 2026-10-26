@@ -315,16 +315,23 @@ class ProductionEleve:
     production: str
 
 
-def catalogue_competences(db: SQLASession, niveau_test: str) -> list[dict]:
-    competences = [c for c in db.query(Competence).order_by(Competence.domaine, Competence.code).all() if deja_enseigne(c.niveau_intro, niveau_test)]
+def catalogue_competences(db: SQLASession, niveau_test: str, inclus: bool = False) -> list[dict]:
+    """Compétences déjà enseignées avant `niveau_test` ; `inclus` y ajoute
+    celles de ce niveau — une évaluation en cours d'année (mode libre, T1,
+    T3…) porte sur le programme de la classe, pas seulement sur l'antérieur."""
+    def admise(c: Competence) -> bool:
+        return deja_enseigne(c.niveau_intro, niveau_test) or (inclus and c.niveau_intro == niveau_test)
+
+    competences = [c for c in db.query(Competence).order_by(Competence.domaine, Competence.code).all() if admise(c)]
     return [
         {"code": c.code, "libelle": c.libelle, "description": c.description or "", "domaine": c.domaine, "introduite_en": c.niveau_intro}
         for c in competences
     ]
 
 
-def diagnostiquer_sans_ancrage(db: SQLASession, *, niveau_test: str, productions: list[ProductionEleve], client, copy_id: str = "") -> DiagnosticContraint:
-    catalogue = catalogue_competences(db, niveau_test)
+def diagnostiquer_sans_ancrage(db: SQLASession, *, niveau_test: str, productions: list[ProductionEleve], client, copy_id: str = "",
+                               inclus: bool = False, evaluation: str = "") -> DiagnosticContraint:
+    catalogue = catalogue_competences(db, niveau_test, inclus=inclus)
     codes_admis = {c["code"] for c in catalogue}
     codes_types = {t[0] for t in db.query(TypeErreur.code).all()}
 
@@ -348,6 +355,7 @@ def diagnostiquer_sans_ancrage(db: SQLASession, *, niveau_test: str, productions
             catalogue=catalogue,
             codes_types=sorted(codes_types),
             corrections=corrections,
+            **({"evaluation": evaluation} if evaluation else {}),
         )
         resultat.appels_modele += 1
 

@@ -30,6 +30,10 @@ logger = logging.getLogger(__name__)
 #: Appels simultanés au modèle — au-delà, les limites de débit de l'API
 #: transforment le gain de temps en relances.
 SECTIONS_EN_PARALLELE = 6
+#: Tentatives sur le modèle principal, puis une dernière sur le modèle de
+#: repli. Chaque nouvelle tentative reçoit le motif du refus précédent : une
+#: sortie incomplète (liste vide, exercice manquant) est corrigée, pas
+#: retirée au sort.
 TENTATIVES_PAR_SECTION = 3
 
 
@@ -42,16 +46,25 @@ def plan_requis(note_sur_20: float | None) -> bool:
     return note_sur_20 is None or note_sur_20 < SEUIL_SANS_PLAN
 
 
+def _motif(erreur: str) -> str:
+    """Motif de refus lisible par le modèle : le message de validation, sans
+    les liens de documentation de pydantic ni la sortie recopiée."""
+    lignes = [l for l in erreur.splitlines()
+              if l.strip() and "errors.pydantic.dev" not in l and not l.startswith("tool_block")]
+    return "\n".join(lignes)[:1500] or "réponse vide"
+
+
 def _rediger(client, demande: DemandePlan, section: SectionPlanDemande) -> ContenuSection:
-    erreur = ""
-    for tentative in range(1, TENTATIVES_PAR_SECTION + 1):
-        reponse = client.generate_plan_section(demande, section)
+    modeles = [None] * TENTATIVES_PAR_SECTION + [getattr(client, "modele_repli", None)]
+    refus = ""
+    for tentative, modele in enumerate(modeles, start=1):
+        reponse = client.generate_plan_section(demande, section, refus=refus, modele=modele)
         if reponse.success and reponse.data is not None:
             return reponse.data
-        erreur = reponse.error or "réponse vide"
+        refus = _motif(reponse.error or "")
         logger.warning("[%s] Plan — section %d, tentative %d en échec : %s",
-                       demande.copy_id, section.ordre, tentative, erreur)
-    raise PlanIncomplet(f"section {section.ordre} ({section.code_competence}) : {erreur}")
+                       demande.copy_id, section.ordre, tentative, refus)
+    raise PlanIncomplet(f"section {section.ordre} ({section.code_competence}) : {refus}")
 
 
 def _assembler(section: SectionPlanDemande, contenu: ContenuSection) -> CompetencePlan:
