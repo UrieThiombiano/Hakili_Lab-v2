@@ -76,7 +76,7 @@ def test_genere_le_sujet_t1_meme_sans_hypothese_neuve(db, _module4_mocke):
     from app.services import taches
 
     correction = _correction(db)
-    taches._ecrire_hypotheses_module4(db, correction, _resultat_correction())
+    taches._ecrire_hypotheses_module4(db, correction, _resultat_correction(), generer_t1=True)
 
     assert len(_module4_mocke) == 1
 
@@ -94,7 +94,7 @@ def test_ne_regenere_pas_si_un_sujet_t1_existe_deja(db, _module4_mocke):
     db.commit()
 
     correction = _correction(db)
-    taches._ecrire_hypotheses_module4(db, correction, _resultat_correction())
+    taches._ecrire_hypotheses_module4(db, correction, _resultat_correction(), generer_t1=True)
 
     assert _module4_mocke == []
 
@@ -142,6 +142,15 @@ def test_a_10_et_plus_le_sujet_t1_est_genere(db, _module4_mocke, monkeypatch):
 
     monkeypatch.setattr(taches.diag_suivi, "confirmer_sans_t1", lambda *a: pytest.fail("pas de confirmation d'office à 10/20"))
 
-    taches._ecrire_hypotheses_module4(db, _correction(db), _resultat_note(10.0))
+    taches._ecrire_hypotheses_module4(db, _correction(db), _resultat_note(10.0), generer_t1=True)
 
     assert len(_module4_mocke) == 1
+
+
+def test_sans_demande_expresse_aucun_sujet_t1_n_est_genere(db, _module4_mocke):
+    """Le T1 ne se génère qu'à la demande de l'enseignant (plan unique)."""
+    from app.services import taches
+
+    taches._ecrire_hypotheses_module4(db, _correction(db), _resultat_correction())
+
+    assert _module4_mocke == []

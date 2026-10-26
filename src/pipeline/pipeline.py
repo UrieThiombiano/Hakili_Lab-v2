@@ -53,6 +53,7 @@ from src.models.domain import (
     CopyGrade,
     ContenuSection,
     DemandePlan,
+    DiagnosticContraint,
     DiagnosticResult,
     IngestionResult,
     PlanRemediation,
@@ -256,6 +257,9 @@ class PipelineResult:
     transcription: TranscriptionResult | None = None
     grade: CopyGrade | None = None
     diagnostic: DiagnosticResult | None = None
+    #: Diagnostic contraint (module 4) calculé pour le plan ; gardé pour écrire
+    #: les hypothèses à la sauvegarde sans refaire l'appel IA.
+    diagnostic_module4: DiagnosticContraint | None = None
     plan_remediation: PlanRemediation | None = None
     #: Motif d'absence de plan alors qu'il en fallait un (note < 19) — vide sinon.
     plan_erreur: str = ""

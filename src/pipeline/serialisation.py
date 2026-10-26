@@ -50,6 +50,7 @@ def serialiser(resultat) -> dict:
         "transcription": resultat.transcription.model_dump() if resultat.transcription else None,
         "grade": grade.model_dump() if grade else None,
         "diagnostic": resultat.diagnostic.model_dump() if resultat.diagnostic else None,
+        "diagnostic_module4": resultat.diagnostic_module4.model_dump() if resultat.diagnostic_module4 else None,
         "plan_remediation": (
             resultat.plan_remediation.model_dump()
             if resultat.plan_remediation
@@ -88,6 +89,7 @@ def deserialiser(donnees: dict):
         ContenuSection,
         CopyGrade,
         DemandePlan,
+        DiagnosticContraint,
         DiagnosticResult,
         IngestionResult,
         PlanRemediation,
@@ -117,6 +119,7 @@ def deserialiser(donnees: dict):
         diagnostic=_modele(DiagnosticResult, "diagnostic"),
         # Les résultats d'avant le plan unique portent `remediation_subject` :
         # ignoré, ces corrections sont terminées et leur PDF déjà produit.
+        diagnostic_module4=_modele(DiagnosticContraint, "diagnostic_module4"),
         plan_remediation=_modele(PlanRemediation, "plan_remediation"),
         plan_erreur=donnees.get("plan_erreur", ""),
         demande_plan=_modele(DemandePlan, "demande_plan"),

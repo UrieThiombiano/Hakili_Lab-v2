@@ -171,6 +171,7 @@ export const correctionsApi = {
   validerNotes: (jetonCopie: string, decisions: Record<string, { decision: string; note?: string | null }>) =>
     postJson<CorrectionStatut>(`/corrections/${jetonCopie}/notes`, { decisions }),
   supprimer: (jetonCopie: string) => del<{ ok: boolean }>(`/corrections/${jetonCopie}`),
+  sauvegarder: (jetonCopie: string) => postJson<CorrectionStatut>(`/corrections/${jetonCopie}/sauvegarder`, {}),
   reprendrePlan: (jetonCopie: string) => postJson<CorrectionStatut>(`/corrections/${jetonCopie}/plan`, {}),
 }
 

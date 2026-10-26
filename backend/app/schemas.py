@@ -219,6 +219,9 @@ class CorrectionStatut(BaseModel):
     #: Le plan de remédiation manque alors qu'il est dû (section non rédigée,
     #: PDF non produit) : `POST /{jeton}/plan` le termine sans refaire l'analyse.
     plan_a_reprendre: bool = False
+    #: L'enseignant a sauvegardé l'analyse (copie, rapport, plan et hypothèses
+    #: en base) — avant cela, rien n'est conservé hors de l'espace de travail.
+    sauvegardee: bool = False
     #: Jeton du parcours (session) de l'élève, si un existe déjà — permet
     #: d'afficher le plan provisoire et le rapport diagnostique sans
     #: attendre que l'enseignant aille chercher l'écran « Parcours ».

@@ -89,6 +89,7 @@ def _statut(db: SQLASession, correction: Correction) -> CorrectionStatut:
         resultat=correction.resultat,
         documents=documents,
         plan_a_reprendre=taches.plan_a_reprendre(correction),
+        sauvegardee=db.get(Copie, correction.copy_id) is not None,
         jeton_session=jeton(str(session.id)) if session else None,
         seuil_sans_t1=(
             SEUIL_CONFIRMATION_T1
@@ -579,6 +580,24 @@ def reprendre_plan(
     if not taches.plan_a_reprendre(correction):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Aucun plan de remédiation à reprendre pour cette copie.")
     taches.lancer_reprise_plan(db, correction)
+    return _statut(db, correction)
+
+
+@router.post("/{jeton_copie}/sauvegarder", response_model=CorrectionStatut)
+def sauvegarder(
+    jeton_copie: str,
+    db: SQLASession = Depends(get_session),
+    utilisateur: dict = Depends(utilisateur_requis),
+) -> CorrectionStatut:
+    """Conserve l'analyse : copie, note, rapport, plan et hypothèses passent
+    en base. Rien n'y est écrit avant ce geste de l'enseignant."""
+    copy_id = valeur_depuis_jeton(jeton_copie)
+    if copy_id is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lien invalide")
+    correction = correction_autorisee(db, utilisateur, copy_id)
+    if not correction.terminee:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="L'analyse n'est pas terminée : rien à sauvegarder.")
+    taches.sauvegarder(db, correction)
     return _statut(db, correction)
 
 

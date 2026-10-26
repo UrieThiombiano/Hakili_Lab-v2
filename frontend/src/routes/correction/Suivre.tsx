@@ -80,6 +80,15 @@ export default function Suivre() {
     onError: () => notifier("La reprise du plan n'a pas pu être lancée.", "erreur"),
   })
 
+  const sauvegarder = useMutation({
+    mutationFn: () => correctionsApi.sauvegarder(jeton),
+    onSuccess: (statut) => {
+      queryClient.setQueryData(["correction", jeton], statut)
+      notifier("Analyse sauvegardée.")
+    },
+    onError: () => notifier("La sauvegarde n'a pas pu être faite.", "erreur"),
+  })
+
   if (!data) return <AppShell><Spinner label="Chargement…" /></AppShell>
 
   const eleve = data.resultat?.student_name ?? ""
@@ -98,6 +107,9 @@ export default function Suivre() {
             enCours={reprendrePlan.isPending}
             onReprendre={() => reprendrePlan.mutate()}
           />
+        )}
+        {data.terminee && (
+          <Sauvegarde sauvegardee={data.sauvegardee} enCours={sauvegarder.isPending} onSauvegarder={() => sauvegarder.mutate()} />
         )}
         {data.etat === "echec" && <Echec erreurs={data.erreurs} onSupprimer={() => supprimer.mutate()} />}
         {data.etat === "relecture" && data.resultat && <Relecture jeton={jeton} resultat={data.resultat} onValide={() => queryClient.invalidateQueries({ queryKey: ["correction", jeton] })} />}
@@ -120,6 +132,27 @@ export default function Suivre() {
         )}
       </div>
     </AppShell>
+  )
+}
+
+/** Rien n'est conservé tant que l'enseignant n'a pas sauvegardé : l'analyse vit
+ * dans l'espace de travail, et le rapport et le plan y restent consultables. */
+function Sauvegarde({ sauvegardee, enCours, onSauvegarder }: { sauvegardee: boolean; enCours: boolean; onSauvegarder: () => void }) {
+  return (
+    <Card className={sauvegardee ? "border-vert/40 bg-vert-pale" : "border-bleu/30"}>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <p className="min-w-0 flex-1 text-petit text-texte">
+          {sauvegardee
+            ? "Analyse sauvegardée : la note, le rapport, le plan et le diagnostic sont conservés dans le dossier de l'élève."
+            : "Cette analyse n'est pas encore conservée. Sauvegardez-la pour l'ajouter au dossier de l'élève (note, rapport, plan, diagnostic)."}
+        </p>
+        {!sauvegardee && (
+          <Button onClick={onSauvegarder} disabled={enCours}>
+            {enCours ? "Sauvegarde…" : "Sauvegarder"}
+          </Button>
+        )}
+      </div>
+    </Card>
   )
 }
 

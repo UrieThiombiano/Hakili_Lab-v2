@@ -25,7 +25,7 @@ from pathlib import Path
 from sqlalchemy.orm import Session as SQLASession
 
 from app.db import SessionLocal
-from app.models import Correction, Evaluation, Probleme
+from app.models import Copie, Correction, Document, Evaluation, Probleme
 from app.models.correction import ETATS_EN_COURS
 from app.services import diagnostic_referentiel as diag_ref
 from app.services import diagnostic_suivi as diag_suivi
@@ -319,7 +319,9 @@ def _executer_diagnostic(correction_id: int) -> None:
             _supprimer_scans(correction.copy_id)
             return
 
-        _ecrire_hypotheses_module4(db, correction, resultat, diagnostic)
+        # Rien n'est écrit en base ici : hypothèses, copie et documents le sont
+        # à la sauvegarde explicite de l'enseignant (`sauvegarder`).
+        resultat.diagnostic_module4 = diagnostic
 
         correction.resultat = serialiser(resultat)
         correction.erreurs = list(resultat.errors or [])
@@ -476,7 +478,43 @@ def _preparer_plan(db: SQLASession, correction: Correction, resultat):
     return diagnostic, demande
 
 
-def _ecrire_hypotheses_module4(db: SQLASession, correction: Correction, resultat, diagnostic=None) -> None:
+def sauvegarder(db: SQLASession, correction: Correction) -> None:
+    """Sauvegarde explicite de l'analyse (bouton « Sauvegarder ») : la copie
+    (classe, note), le rapport et le plan en base, puis les hypothèses du
+    diagnostic. Seul moment où l'analyse écrit en base. Rejouable : une copie
+    déjà sauvegardée n'est pas réécrite."""
+    from src.pipeline.pipeline import _CLASSE_PLACEHOLDER
+    from src.pipeline.serialisation import deserialiser
+
+    if not correction.terminee or not correction.resultat:
+        raise ValueError("L'analyse n'est pas terminée : rien à sauvegarder.")
+    if db.get(Copie, correction.copy_id) is not None:
+        return
+
+    resultat = deserialiser(correction.resultat)
+    note = None
+    if resultat.grade is not None:
+        if resultat.grade.final_score_on_20 is None:
+            resultat.grade.compute_final_score()
+        note = resultat.grade.final_score_on_20
+
+    db.add(Copie(
+        copy_id=correction.copy_id,
+        identifiant_hakili=correction.identifiant_hakili,
+        classe=resultat.classe or _classe_eleve(correction.identifiant_hakili) or _CLASSE_PLACEHOLDER,
+        annee_scolaire=str(datetime.now().year),
+        notes_finales=note,
+    ))
+    db.flush()
+    for type_document, chemin in (("rapport", resultat.pdf_path), ("remediation", resultat.remediation_pdf_path)):
+        if chemin and Path(chemin).is_file():
+            db.add(Document(copy_id=correction.copy_id, type=type_document, fichier=Path(chemin).read_bytes()))
+    db.commit()
+
+    _ecrire_hypotheses_module4(db, correction, resultat, resultat.diagnostic_module4)
+
+
+def _ecrire_hypotheses_module4(db: SQLASession, correction: Correction, resultat, diagnostic=None, generer_t1: bool = False) -> None:
     """Point d'injection module 4 : écrit les lacunes de cette copie comme
     hypothèses, ou pour une copie T1, tranche automatiquement les hypothèses
     déjà ouvertes. Best-effort : un échec ici ne fait jamais échouer une
@@ -528,7 +566,7 @@ def _ecrire_hypotheses_module4(db: SQLASession, correction: Correction, resultat
     # (cas courant en test, et en production quand un collègue a déjà lancé un
     # T0) ne crée rien de neuf (`ecriture.crees` vide, tout est « déjà suivi »)
     # mais doit quand même produire le sujet si aucun n'existe.
-    if correction.type_evaluation == "T0" and (ecriture.crees or not _session_a_un_sujet_t1(db, evaluation.session_id)):
+    if generer_t1 and correction.type_evaluation == "T0" and (ecriture.crees or not _session_a_un_sujet_t1(db, evaluation.session_id)):
         _generer_sujet_confirmation(db, correction, evaluation)
 
 

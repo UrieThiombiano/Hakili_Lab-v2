@@ -16,6 +16,7 @@ const { correctionsApiMock, elevesApiMock, sessionsApiMock } = vi.hoisted(() => 
     statut: vi.fn(),
     supprimer: vi.fn(),
     reprendrePlan: vi.fn(),
+    sauvegarder: vi.fn(),
     validerTranscription: vi.fn(),
     validerNotes: vi.fn(),
     pageImageUrl: (_jeton: string, page: number) => `#page-${page}`,
@@ -66,6 +67,7 @@ function statutBase(overrides: Partial<CorrectionStatut> = {}): CorrectionStatut
     jeton_session: null,
     seuil_sans_t1: null,
     plan_a_reprendre: false,
+    sauvegardee: false,
     ...overrides,
   }
 }
@@ -310,6 +312,21 @@ describe("Suivre — Validation des notes (D-CEO-46)", () => {
     await user.click(await screen.findByRole("button", { name: "Valider les notes" }))
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument()
     await waitFor(() => expect(correctionsApiMock.validerNotes).toHaveBeenCalled())
+  })
+})
+
+describe("Suivre — Sauvegarde", () => {
+  it("bouton Sauvegarder tant que l'analyse n'est pas conservée, puis confirmation", async () => {
+    const user = userEvent.setup()
+    correctionsApiMock.statut.mockResolvedValue(statutBase())
+    correctionsApiMock.sauvegarder.mockResolvedValue(statutBase({ sauvegardee: true }))
+
+    rendre()
+
+    await user.click(await screen.findByRole("button", { name: "Sauvegarder" }))
+    await waitFor(() => expect(correctionsApiMock.sauvegarder).toHaveBeenCalled())
+    expect(await screen.findByText(/Analyse sauvegardée :/)).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Sauvegarder" })).not.toBeInTheDocument()
   })
 })
 

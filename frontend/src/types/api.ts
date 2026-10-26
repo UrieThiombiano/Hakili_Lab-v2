@@ -293,6 +293,8 @@ export interface CorrectionStatut {
   seuil_sans_t1: number | null
   /** Plan de remédiation manquant mais reprenable sans refaire l'analyse (`POST /corrections/{jeton}/plan`). */
   plan_a_reprendre: boolean
+  /** Analyse conservée en base (« Sauvegarder ») — sinon elle n'existe que dans l'espace de travail. */
+  sauvegardee: boolean
 }
 
 export interface CorrectionResume {
