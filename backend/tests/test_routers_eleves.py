@@ -15,7 +15,7 @@ from sqlalchemy.pool import StaticPool
 from app.auth.deps import utilisateur_requis
 from app.db import get_session
 from app.main import app
-from app.models import Base, Copie
+from app.models import Base, Copie, Document
 from tests.conftest import preparer_client_csrf
 
 _ADMIN = {"nom": "Test", "prenom": "Admin", "role_enum": "administrateur"}
@@ -94,6 +94,23 @@ def test_eleve_detail_avec_copie():
     corps = r.json()
     assert corps["nb_copies"] == 1
     assert corps["entrees"][0]["copy_id"] == "C1"
+    app.dependency_overrides.clear()
+
+
+def test_profil_liste_rapport_et_plan_de_remediation():
+    """Les deux PDF de l'analyse sauvegardée apparaissent au dossier de l'élève."""
+    client, SessionLocal = _client_avec_base()
+    db = SessionLocal()
+    db.add(Copie(copy_id="C1", identifiant_hakili="eleve-1", classe="6eA", annee_scolaire="2026", date_soumission=date(2026, 1, 1), notes_finales=12))
+    db.commit()
+    db.add(Document(copy_id="C1", type="remediation", fichier=b"%PDF plan"))
+    db.add(Document(copy_id="C1", type="rapport", fichier=b"%PDF rapport"))
+    db.commit()
+
+    from app.auth.tokens import jeton
+
+    r = client.get(f"/api/eleves/{jeton('eleve-1')}")
+    assert [d["type"] for d in r.json()["entrees"][0]["documents"]] == ["rapport", "remediation"]
     app.dependency_overrides.clear()
 
 

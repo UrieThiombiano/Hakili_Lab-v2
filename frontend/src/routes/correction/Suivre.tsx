@@ -22,8 +22,6 @@ import {
   CircleCheck,
   ClipboardList,
   FileCheck2,
-  GraduationCap,
-  ListChecks,
   Pencil,
   ScanText,
   SquareCheck,
@@ -652,26 +650,6 @@ function Resultats({
     })
   }
   if (session && jetonSession) {
-    docs.push({
-      cle: "rapport-diagnostique",
-      icon: GraduationCap,
-      titre: "Rapport diagnostique complet",
-      description: "Profil scolaire, lacunes rattachées au programme et causes profondes, en détail.",
-      hrefVoir: sessionsApi.rapportDiagnostiqueUrl(jetonSession),
-      hrefTelecharger: sessionsApi.rapportDiagnostiqueUrl(jetonSession, true),
-    })
-    if (plan && plan.etapes.length > 0) {
-      docs.push({
-        cle: "plan",
-        icon: ListChecks,
-        titre: planProvisoire ? "Plan de remédiation provisoire" : "Plan de remédiation",
-        description: planProvisoire
-          ? "Estimation avant le test de confirmation — non contractuelle."
-          : "Ordre des séances, volume horaire et palier.",
-        hrefVoir: planProvisoire ? sessionsApi.planProvisoireUrl(jetonSession) : sessionsApi.planUrl(jetonSession),
-        hrefTelecharger: planProvisoire ? sessionsApi.planProvisoireUrl(jetonSession, true) : sessionsApi.planUrl(jetonSession, true),
-      })
-    }
     if (session.sujet_t1_disponible && session.sujet_t1_jeton_copie && !documents.includes("sujet_confirmation")) {
       const jetonT1 = session.sujet_t1_jeton_copie
       docs.push({

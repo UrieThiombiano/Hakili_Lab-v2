@@ -2,11 +2,9 @@
 trancher_evaluation, relancer, inscrire, plan_remediation, generer_sujet) —
 le parcours de remédiation d'un élève.
 
-Les endpoints `problemes/{probleme_id}/fiche` (module 7 — la fiche de
-travail d'UN problème) s'ajoutent à ceux déjà là ; ne pas les confondre avec
-`{jeton_session}/plan` (module 6 — le plan chiffré de toute la session), qui
-s'appelait `/fiche` jusqu'à D-CEO-43 et créait la même confusion de nommage
-dans l'API que dans le code."""
+Plus de PDF de session (plan, plan provisoire, rapport diagnostique, fiches de
+travail) : le rapport de correction et le plan de remédiation sont les deux
+seuls PDF de l'analyse (plan de remédiation unique, 2026-10-26)."""
 from __future__ import annotations
 
 import uuid
@@ -18,10 +16,9 @@ from sqlalchemy.orm import Session as SQLASession
 from app.auth.deps import utilisateur_requis
 from app.auth.tokens import jeton, valeur_depuis_jeton
 from app.db import get_session
-from app.models import Document, Evaluation, FicheRemediation, Probleme, Session, SignatureErreur
+from app.models import Document, Evaluation, Probleme, Session, SignatureErreur
 from app.schemas import (
     EtapePlanSchema,
-    FicheRemediationCorrection,
     InscrireRequete,
     PlanSchema,
     ProblemeSchema,
@@ -30,7 +27,7 @@ from app.schemas import (
     TrancherReponse,
     TrancherRequete,
 )
-from app.services import etats, fiche_remediation as fiche_service, generation, plan as plan_service, session_service as svc
+from app.services import etats, generation, plan as plan_service, session_service as svc
 from app.services.eleves import eleve_autorise
 from app.services.evaluations import creer_evaluation
 from src.core.config import settings
@@ -266,194 +263,6 @@ def inscrire(
     nb_en_remediation = db.query(Probleme).filter(Probleme.session_id == session.id, Probleme.etat == "en_remediation").count()
     total = svc.cout_total_confirme(db, session)
     return {"nb_problemes_en_remediation": nb_en_remediation, "cout_total_confirme": str(total)}
-
-
-@router.get("/{jeton_session}/plan")
-def plan_remediation(
-    jeton_session: str,
-    telecharger: bool = Query(default=False),
-    db: SQLASession = Depends(get_session),
-    utilisateur: dict = Depends(utilisateur_requis),
-) -> Response:
-    """Télécharge le plan de remédiation (module 6) en PDF : quoi travailler,
-    dans quel ordre, combien d'heures. Générée à la demande, jamais stockée —
-    le plan bouge tant que des problèmes passent de confirmé à résolu, un PDF
-    figé irait vite périmé.
-
-    Anciennement `/fiche` : renommé pour ne plus se confondre avec la vraie
-    fiche de travail du module 7 (`/problemes/{probleme_id}/fiche`
-    ci-dessous), qui décrit comment travailler UN problème — voir D-CEO-43."""
-    from src.pipeline.pdf_plan_html import generate_plan_pdf
-
-    session = _session_autorisee(db, utilisateur, jeton_session)
-    eleve = eleve_autorise(utilisateur, session.identifiant_hakili)
-
-    plan = plan_service.construire(db, session)
-    if not plan["etapes"]:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Aucun problème confirmé — il n'y a pas encore de plan à exporter.")
-
-    student_name = f"{eleve.get('nom', '')} {eleve.get('prenom', '')}".strip()
-    pdf_path = Path(settings.runs_dir) / "plans_remediation" / f"{uuid.uuid4().hex}.pdf"
-    generate_plan_pdf(pdf_path, student_name, session, plan)
-    donnees = pdf_path.read_bytes()
-    pdf_path.unlink(missing_ok=True)
-
-    disposition = "attachment" if telecharger else "inline"
-    nom = f"plan_remediation_{eleve.get('nom', 'eleve')}".replace(" ", "_")
-    return Response(content=donnees, media_type="application/pdf", headers={"Content-Disposition": f'{disposition}; filename="{nom}.pdf"'})
-
-
-@router.get("/{jeton_session}/plan-provisoire")
-def plan_provisoire(
-    jeton_session: str,
-    telecharger: bool = Query(default=False),
-    db: SQLASession = Depends(get_session),
-    utilisateur: dict = Depends(utilisateur_requis),
-) -> Response:
-    """Télécharge une estimation provisoire du plan de remédiation, à partir
-    des lacunes encore à l'état d'hypothèse — **avant** le test de
-    confirmation T1, donc non contractuelle. Contrairement à `/plan`, ne
-    refuse jamais faute de problème : aucune hypothèse ouverte est un état
-    normal juste après T0, pas une erreur."""
-    from src.pipeline.pdf_plan_html import generate_plan_pdf
-
-    session = _session_autorisee(db, utilisateur, jeton_session)
-    eleve = eleve_autorise(utilisateur, session.identifiant_hakili)
-
-    plan = plan_service.construire(db, session, etats=("hypothese",))
-
-    student_name = f"{eleve.get('nom', '')} {eleve.get('prenom', '')}".strip()
-    pdf_path = Path(settings.runs_dir) / "plans_remediation" / f"{uuid.uuid4().hex}.pdf"
-    generate_plan_pdf(pdf_path, student_name, session, plan, provisoire=True)
-    donnees = pdf_path.read_bytes()
-    pdf_path.unlink(missing_ok=True)
-
-    disposition = "attachment" if telecharger else "inline"
-    nom = f"plan_provisoire_{eleve.get('nom', 'eleve')}".replace(" ", "_")
-    return Response(content=donnees, media_type="application/pdf", headers={"Content-Disposition": f'{disposition}; filename="{nom}.pdf"'})
-
-
-@router.get("/{jeton_session}/rapport-diagnostique")
-def rapport_diagnostique(
-    jeton_session: str,
-    telecharger: bool = Query(default=False),
-    db: SQLASession = Depends(get_session),
-    utilisateur: dict = Depends(utilisateur_requis),
-) -> Response:
-    """Télécharge le rapport diagnostique des lacunes (module 9) : l'état
-    des lieux complet de la session — hypothèses, confirmées, écartées,
-    résolues — construit à partir du diagnostic structuré (module 4), pas
-    du texte libre. Contrairement à `/plan`, a du sens même sans aucun
-    problème (juste après T0, ou une session entièrement résolue)."""
-    from app.services import diagnostic_rapport
-    from src.pipeline.pdf_diagnostic_html import generate_diagnostic_pdf
-
-    session = _session_autorisee(db, utilisateur, jeton_session)
-    eleve = eleve_autorise(utilisateur, session.identifiant_hakili)
-
-    rapport = diagnostic_rapport.construire(db, session)
-
-    student_name = f"{eleve.get('nom', '')} {eleve.get('prenom', '')}".strip()
-    pdf_path = Path(settings.runs_dir) / "rapports_diagnostiques" / f"{uuid.uuid4().hex}.pdf"
-    generate_diagnostic_pdf(pdf_path, student_name, rapport)
-    donnees = pdf_path.read_bytes()
-    pdf_path.unlink(missing_ok=True)
-
-    disposition = "attachment" if telecharger else "inline"
-    nom = f"rapport_diagnostique_{eleve.get('nom', 'eleve')}".replace(" ", "_")
-    return Response(content=donnees, media_type="application/pdf", headers={"Content-Disposition": f'{disposition}; filename="{nom}.pdf"'})
-
-
-def _probleme_confirme(db: SQLASession, session: Session, probleme_id: int) -> Probleme:
-    probleme = db.get(Probleme, probleme_id)
-    if probleme is None or probleme.session_id != session.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Problème inconnu")
-    if probleme.etat not in ("confirme", "en_remediation"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="La fiche de travail n'est disponible que pour un problème confirmé.",
-        )
-    return probleme
-
-
-@router.get("/{jeton_session}/problemes/{probleme_id}/fiche")
-def fiche_travail(
-    jeton_session: str,
-    probleme_id: int,
-    telecharger: bool = Query(default=False),
-    db: SQLASession = Depends(get_session),
-    utilisateur: dict = Depends(utilisateur_requis),
-) -> Response:
-    """Télécharge la fiche de travail (module 7) d'UN problème confirmé : une
-    séance prête à l'emploi pour le tuteur — méthode, exemple résolu,
-    exercices gradués corrigés, critère de réussite. Cataloguée par couple
-    compétence × type d'erreur × niveau (`app/services/fiche_remediation.py`)
-    : deux élèves avec le même problème téléchargent le même document."""
-    from src.pipeline.pdf_fiche_travail_html import generate_fiche_travail_pdf
-
-    session = _session_autorisee(db, utilisateur, jeton_session)
-    eleve_autorise(utilisateur, session.identifiant_hakili)
-    probleme = _probleme_confirme(db, session, probleme_id)
-
-    try:
-        fiche = fiche_service.obtenir_ou_generer(db, probleme)
-    except fiche_service.ErreurFicheIndisponible as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
-
-    pdf_path = Path(settings.runs_dir) / "fiches_travail" / f"{uuid.uuid4().hex}.pdf"
-    generate_fiche_travail_pdf(pdf_path, fiche)
-    donnees = pdf_path.read_bytes()
-    pdf_path.unlink(missing_ok=True)
-
-    disposition = "attachment" if telecharger else "inline"
-    nom = f"fiche_travail_{probleme.competence_id}_{probleme.type_erreur_id}".replace(" ", "_")
-    return Response(content=donnees, media_type="application/pdf", headers={"Content-Disposition": f'{disposition}; filename="{nom}.pdf"'})
-
-
-@router.patch("/{jeton_session}/problemes/{probleme_id}/fiche")
-def corriger_fiche_travail(
-    jeton_session: str,
-    probleme_id: int,
-    corps: FicheRemediationCorrection,
-    db: SQLASession = Depends(get_session),
-    utilisateur: dict = Depends(utilisateur_requis),
-) -> dict:
-    """Enregistre la correction d'un tuteur — cette version remplace la
-    version générée dans le catalogue (guide-v2.md, module 7 :
-    « versionnement »). La fiche doit déjà exister (avoir été générée au
-    moins une fois via le GET ci-dessus) ; ce endpoint ne crée pas de fiche
-    pour un couple que `remediation/` ne couvre pas encore."""
-    session = _session_autorisee(db, utilisateur, jeton_session)
-    eleve_autorise(utilisateur, session.identifiant_hakili)
-    probleme = _probleme_confirme(db, session, probleme_id)
-
-    fiche = (
-        db.query(FicheRemediation)
-        .filter(
-            FicheRemediation.competence_id == probleme.competence_id,
-            FicheRemediation.type_erreur_id == probleme.type_erreur_id,
-            FicheRemediation.niveau == probleme.competence.niveau_intro,
-        )
-        .first()
-    )
-    if fiche is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Aucune fiche générée pour ce problème — télécharger la fiche au moins une fois avant de la corriger.",
-        )
-
-    contenu = corps.model_dump()
-    contenu.update({
-        "competence_code": fiche.competence_id,
-        "competence_libelle": probleme.competence.libelle,
-        "type_erreur_code": fiche.type_erreur_id,
-        "type_erreur_libelle": probleme.type_erreur.libelle,
-        "niveau": fiche.niveau,
-        "matiere_disponible": True,
-    })
-    tuteur = f"{utilisateur.get('nom', '')} {utilisateur.get('prenom', '')}".strip() or "tuteur"
-    fiche_service.corriger(db, fiche, contenu, tuteur)
-    return {"ok": True, "version": fiche.version, "corrigee_par": fiche.corrigee_par}
 
 
 def _type_sujet_courant(

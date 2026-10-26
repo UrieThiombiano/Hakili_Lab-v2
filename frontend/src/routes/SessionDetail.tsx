@@ -18,10 +18,8 @@ import {
   Clock,
   FilePlus2,
   FlaskConical,
-  GraduationCap,
   ListChecks,
   UploadCloud,
-  Wrench,
   type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -476,37 +474,9 @@ export default function SessionDetail() {
           <Card>
             <CardTitre className="mb-1">Documents &amp; sujets</CardTitre>
             <p className="text-petit text-texte-doux mb-1">
-              Tous les fichiers du parcours. Les rapports et plans sont régénérés à l'ouverture et reflètent l'état actuel.
+              Les fichiers conservés pour ce parcours. Le rapport de correction et le plan de remédiation sont dans le dossier de chaque copie sauvegardée.
             </p>
             <div className="grid gap-x-10 sm:grid-cols-2">
-              <LigneDocument
-                icon={GraduationCap}
-                titre="Rapport diagnostique"
-                description="État des lieux complet : hypothèses, confirmées, écartées, résolues."
-                hrefVoir={sessionsApi.rapportDiagnostiqueUrl(jeton)}
-                hrefTelecharger={sessionsApi.rapportDiagnostiqueUrl(jeton, true)}
-              />
-
-              {data.plan.etapes.length > 0 && (
-                <LigneDocument
-                  icon={ListChecks}
-                  titre="Plan de remédiation"
-                  description="Ordre des séances, volume horaire et palier."
-                  hrefVoir={sessionsApi.planUrl(jeton)}
-                  hrefTelecharger={sessionsApi.planUrl(jeton, true)}
-                />
-              )}
-
-              {data.hypotheses.length > 0 && (
-                <LigneDocument
-                  icon={ListChecks}
-                  titre="Plan de remédiation provisoire"
-                  description="Estimation avant le test de confirmation — non contractuelle."
-                  hrefVoir={sessionsApi.planProvisoireUrl(jeton)}
-                  hrefTelecharger={sessionsApi.planProvisoireUrl(jeton, true)}
-                />
-              )}
-
               {data.sujet_t1_disponible && data.sujet_t1_jeton_copie && (
                 <LigneDocument
                   icon={ClipboardList}
@@ -522,17 +492,6 @@ export default function SessionDetail() {
                   }
                 />
               )}
-
-              {data.plan.etapes.map((etape) => (
-                <LigneDocument
-                  key={`fiche-${etape.probleme_id}`}
-                  icon={Wrench}
-                  titre={`Fiche de travail — ${etape.competence_id}`}
-                  description={`${etape.competence_libelle} · ${etape.type_erreur_id}`}
-                  hrefVoir={sessionsApi.ficheTravailUrl(jeton, etape.probleme_id)}
-                  hrefTelecharger={sessionsApi.ficheTravailUrl(jeton, etape.probleme_id, true)}
-                />
-              ))}
             </div>
 
             <p className="mt-4 pt-4 border-t border-bord text-petit text-texte-doux inline-flex items-start gap-2">

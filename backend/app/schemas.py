@@ -107,30 +107,6 @@ class PlanSchema(BaseModel):
     repose_sur_estimation: bool
 
 
-class ExerciceGradueSchema(BaseModel):
-    numero: int
-    etoiles: int
-    enonce: str
-    correction: str
-
-
-class FicheRemediationCorrection(BaseModel):
-    """Corps du PATCH de correction d'une fiche de travail (module 7) — les
-    seuls champs qu'un tuteur édite ; `competence`/`type_erreur`/`niveau`
-    restent ceux du couple déjà catalogué, jamais réécrits par ce chemin."""
-
-    objectif: str
-    prerequis_a_verifier: list[dict] = []
-    methode: dict | None = None
-    retenir: list[str] = []
-    exemple_resolu: str | None = None
-    erreurs_frequentes: list[dict] = []
-    declic: str | None = None
-    deroule_minutes: dict[str, int] = {}
-    exercices: list[ExerciceGradueSchema] = []
-    critere_reussite: str
-
-
 class SessionDetailReponse(BaseModel):
     id: int
     etat: str

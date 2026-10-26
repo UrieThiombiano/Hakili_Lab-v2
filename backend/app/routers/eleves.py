@@ -32,10 +32,11 @@ from src.services.identite_service import filtrer_par_recherche, nom_fichier_doc
 router = APIRouter(prefix="/api/eleves", tags=["eleves"])
 
 #: Ordre d'affichage des documents — même ordre que `suivi_web/views.py`.
-_DOC_ORDRE = ["scan", "rapport", "sujet_confirmation"]
+_DOC_ORDRE = ["rapport", "remediation", "sujet_confirmation", "scan"]
 _DOC_LIBELLES = {
     "scan": "Copie de l'élève",
     "rapport": "Rapport d'analyse",
+    "remediation": "Plan de remédiation",
     "sujet_confirmation": "Sujet de confirmation (T1)",
 }
 
@@ -114,7 +115,7 @@ def eleve_detail(
     entrees: list[CopieEntree] = []
     for copie in copies:
         documents = sorted(
-            (d for d in db.query(Document).filter(Document.copy_id == copie.copy_id).all() if d.type != "remediation"),
+            db.query(Document).filter(Document.copy_id == copie.copy_id).all(),
             key=lambda d: _DOC_ORDRE.index(d.type) if d.type in _DOC_ORDRE else 9,
         )
         evaluation = evaluations_par_copie.get(copie.copy_id)

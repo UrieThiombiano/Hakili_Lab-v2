@@ -133,13 +133,6 @@ export const sessionsApi = {
     postJson<{ ok: boolean }>(`/sessions/${jetonSession}/problemes/${problemeId}/relancer`, { motif }),
   inscrire: (jetonSession: string, forcer: boolean, motif: string) =>
     postJson<{ nb_problemes_en_remediation: number; cout_total_confirme: string }>(`/sessions/${jetonSession}/inscrire`, { forcer, motif }),
-  planUrl: (jetonSession: string, telecharger = false) => `${BASE}/sessions/${jetonSession}/plan${telecharger ? "?telecharger=true" : ""}`,
-  planProvisoireUrl: (jetonSession: string, telecharger = false) =>
-    `${BASE}/sessions/${jetonSession}/plan-provisoire${telecharger ? "?telecharger=true" : ""}`,
-  rapportDiagnostiqueUrl: (jetonSession: string, telecharger = false) =>
-    `${BASE}/sessions/${jetonSession}/rapport-diagnostique${telecharger ? "?telecharger=true" : ""}`,
-  ficheTravailUrl: (jetonSession: string, problemeId: number, telecharger = false) =>
-    `${BASE}/sessions/${jetonSession}/problemes/${problemeId}/fiche${telecharger ? "?telecharger=true" : ""}`,
   sujetUrl: (jetonSession: string, typeEvaluation: string, telecharger = false) =>
     `${BASE}/sessions/${jetonSession}/sujets/${typeEvaluation}${telecharger ? "?telecharger=true" : ""}`,
   /** « Un sujet de test » adapté au profil actuel — le backend choisit le

@@ -26,9 +26,6 @@ const { correctionsApiMock, elevesApiMock, sessionsApiMock } = vi.hoisted(() => 
   elevesApiMock: { documentUrl: (_jeton: string, type: string) => `#doc-${type}`, supprimerDocument: vi.fn() },
   sessionsApiMock: {
     detail: vi.fn(),
-    planUrl: () => "#plan",
-    planProvisoireUrl: () => "#plan-provisoire",
-    rapportDiagnostiqueUrl: () => "#rapport-diagnostique",
   },
 }))
 vi.mock("@/lib/api", () => ({
@@ -227,7 +224,6 @@ describe("Suivre — Resultats", () => {
     await waitFor(() => expect(screen.getByText("Plan de remédiation")).toBeInTheDocument())
     expect(screen.getByText("D.PROP")).toBeInTheDocument()
     expect(screen.getByText(/Estimation provisoire/)).toBeInTheDocument()
-    expect(screen.getByText("Plan de remédiation provisoire")).toBeInTheDocument()
   })
 
   it("propose le sujet T1 quand il est disponible", async () => {
@@ -381,16 +377,13 @@ describe("Suivre — Suppression d'un document", () => {
     expect(screen.queryByRole("button", { name: "Supprimer Plan de remédiation" })).not.toBeInTheDocument()
   })
 
-  it("annuler ne supprime rien ; le plan et le rapport diagnostique n'ont pas de corbeille", async () => {
+  it("annuler ne supprime rien", async () => {
     const user = userEvent.setup()
-    correctionsApiMock.statut.mockResolvedValue(statutBase({ documents: ["scan"], jeton_session: "jeton-session" }))
-    sessionsApiMock.detail.mockResolvedValue(sessionBase())
+    correctionsApiMock.statut.mockResolvedValue(statutBase({ documents: ["scan"] }))
 
     rendre()
 
-    await screen.findByText("Rapport diagnostique complet")
-    expect(screen.queryByRole("button", { name: "Supprimer Rapport diagnostique complet" })).not.toBeInTheDocument()
-
+    await screen.findByText("Copie de l'élève")
     await user.click(screen.getByRole("button", { name: "Supprimer Copie de l'élève" }))
     await user.click(screen.getByRole("button", { name: "Annuler" }))
     expect(elevesApiMock.supprimerDocument).not.toHaveBeenCalled()

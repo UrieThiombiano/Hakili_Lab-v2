@@ -19,10 +19,6 @@ const { sessionsApiMock, elevesApiMock } = vi.hoisted(() => ({
     trancher: vi.fn(),
     relancer: vi.fn(),
     inscrire: vi.fn(),
-    planUrl: () => "#",
-    planProvisoireUrl: () => "#",
-    rapportDiagnostiqueUrl: () => "#",
-    ficheTravailUrl: () => "#",
     sujetUrl: () => "#",
   },
   elevesApiMock: {
