@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import logging
 import re
+import shutil
 import threading
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -30,6 +31,7 @@ from app.services import diagnostic_referentiel as diag_ref
 from app.services import diagnostic_suivi as diag_suivi
 from app.services import plan_eleve
 from app.services.contexte import contexte_diagnostic, lacunes_competences
+from src.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +86,14 @@ def _rapporteur(correction_id: int):
 
 def _dans_un_thread(cible, *args) -> None:
     threading.Thread(target=cible, args=args, daemon=True).start()
+
+
+def _supprimer_scans(copy_id: str) -> None:
+    """Fin d'analyse : les scans (`depot/`, `pages/`) ne sont jamais conservés
+    — décision du 2026-10-26. Rapport et plan restent dans `runs/<copy_id>/`
+    jusqu'à la sauvegarde explicite de l'enseignant."""
+    for nom in ("depot", "pages"):
+        shutil.rmtree(Path(settings.runs_dir) / copy_id / nom, ignore_errors=True)
 
 
 def _echouer(db: SQLASession, correction: Correction, message: str) -> None:
@@ -306,6 +316,7 @@ def _executer_diagnostic(correction_id: int) -> None:
         except Exception as exc:  # noqa: BLE001
             logger.exception("[%s] Diagnostic interrompu : %s", correction.copy_id, exc)
             _echouer(db, correction, f"Diagnostic interrompu : {exc}")
+            _supprimer_scans(correction.copy_id)
             return
 
         _ecrire_hypotheses_module4(db, correction, resultat, diagnostic)
@@ -317,6 +328,7 @@ def _executer_diagnostic(correction_id: int) -> None:
         correction.progression = 100
         db.add(correction)
         db.commit()
+        _supprimer_scans(correction.copy_id)
     finally:
         db.close()
 
@@ -365,6 +377,7 @@ def _executer_reprise_plan(correction_id: int) -> None:
         correction.progression = 100
         db.add(correction)
         db.commit()
+        _supprimer_scans(correction.copy_id)
     finally:
         db.close()
 

@@ -165,6 +165,8 @@ export const correctionsApi = {
   statut: (jetonCopie: string) => get<CorrectionStatut>(`/corrections/${jetonCopie}`),
   validerTranscription: (jetonCopie: string, pages: Record<number, string>) =>
     postJson<CorrectionStatut>(`/corrections/${jetonCopie}/transcription`, { pages }),
+  fichierUrl: (jetonCopie: string, docType: string, telecharger = false) =>
+    `${BASE}/corrections/${jetonCopie}/fichiers/${docType}${telecharger ? "?telecharger=true" : ""}`,
   pageImageUrl: (jetonCopie: string, page: number) => `${BASE}/corrections/${jetonCopie}/pages/${page}`,
   validerNotes: (jetonCopie: string, decisions: Record<string, { decision: string; note?: string | null }>) =>
     postJson<CorrectionStatut>(`/corrections/${jetonCopie}/notes`, { decisions }),

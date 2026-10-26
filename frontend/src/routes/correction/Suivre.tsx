@@ -576,15 +576,17 @@ function Resultats({
   for (const type of documents) {
     const meta = DOC_COPIE[type]
     if (!meta) continue
+    const enEspaceTravail = type === "rapport" || type === "remediation"
     docs.push({
       cle: `copie-${type}`,
       icon: meta.icon,
       titre: meta.titre,
       description: meta.description,
-      hrefVoir: elevesApi.documentUrl(jeton, type),
-      hrefTelecharger: elevesApi.documentUrl(jeton, type, true),
+      hrefVoir: enEspaceTravail ? correctionsApi.fichierUrl(jeton, type) : elevesApi.documentUrl(jeton, type),
+      hrefTelecharger: enEspaceTravail ? correctionsApi.fichierUrl(jeton, type, true) : elevesApi.documentUrl(jeton, type, true),
       extra: type === "sujet_confirmation" ? deposerT1 : undefined,
-      onSupprimer: () => supprimerDocument(jeton, type, meta.titre),
+      // Rapport et plan ne sont pas en base : rien à supprimer avant « Sauvegarder ».
+      onSupprimer: enEspaceTravail ? undefined : () => supprimerDocument(jeton, type, meta.titre),
     })
   }
   if (session && jetonSession) {

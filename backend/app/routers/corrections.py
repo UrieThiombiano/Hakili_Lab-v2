@@ -42,9 +42,30 @@ router = APIRouter(prefix="/api/corrections", tags=["corrections"])
 _TYPES_EVALUATION = {"T0", "T1", "T3", "T4", "T5"}
 
 
+#: Documents lus dans l'espace de travail `runs/<copy_id>/` (clé du résultat
+#: qui porte leur chemin) — jamais en base avant la sauvegarde explicite.
+_FICHIERS_ESPACE_TRAVAIL = {"rapport": "pdf_path", "remediation": "remediation_pdf_path"}
+
+
+def _fichier_espace_travail(correction: Correction, doc_type: str) -> Path | None:
+    cle = _FICHIERS_ESPACE_TRAVAIL.get(doc_type)
+    chemin = ((correction.resultat or {}).get(cle) if cle else None)
+    if not chemin:
+        return None
+    dossier = (Path(settings.runs_dir) / correction.copy_id).resolve()
+    fichier = Path(chemin)
+    # Seulement un fichier rangé sous le dossier de cette copie — jamais un
+    # chemin arbitraire lu dans le JSON du résultat.
+    if fichier.resolve().is_relative_to(dossier) and fichier.is_file():
+        return fichier
+    return None
+
+
 def _statut(db: SQLASession, correction: Correction) -> CorrectionStatut:
-    documents = [
+    documents = [t for t in _FICHIERS_ESPACE_TRAVAIL if _fichier_espace_travail(correction, t)]
+    documents += [
         d for (d,) in db.query(Document.type).filter(Document.copy_id == correction.copy_id).all()
+        if d not in documents
     ]
     # Le parcours (session) de l'élève existe dès qu'une correction a déjà
     # écrit une hypothèse (module 4) — pas forcément celle-ci, une session
@@ -441,6 +462,31 @@ def valider_transcription(
     db.commit()
     taches.lancer_correction(db, correction)
     return _statut(db, correction)
+
+
+@router.get("/{jeton_copie}/fichiers/{doc_type}")
+def fichier_espace_travail(
+    jeton_copie: str,
+    doc_type: str,
+    telecharger: bool = Query(default=False),
+    db: SQLASession = Depends(get_session),
+    utilisateur: dict = Depends(utilisateur_requis),
+) -> Response:
+    """Rapport de correction ou plan de remédiation, lus dans l'espace de
+    travail de l'analyse (pas en base : rien n'y est écrit avant « Sauvegarder »)."""
+    copy_id = valeur_depuis_jeton(jeton_copie)
+    if copy_id is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lien invalide")
+    correction = correction_autorisee(db, utilisateur, copy_id)
+    fichier = _fichier_espace_travail(correction, doc_type)
+    if fichier is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document inconnu")
+    disposition = "attachment" if telecharger else "inline"
+    return Response(
+        content=fichier.read_bytes(),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'{disposition}; filename="{fichier.name}"'},
+    )
 
 
 @router.get("/{jeton_copie}/pages/{page_number}")

@@ -19,6 +19,7 @@ const { correctionsApiMock, elevesApiMock, sessionsApiMock } = vi.hoisted(() => 
     validerTranscription: vi.fn(),
     validerNotes: vi.fn(),
     pageImageUrl: (_jeton: string, page: number) => `#page-${page}`,
+    fichierUrl: (_jeton: string, type: string) => `#fichier-${type}`,
   },
   elevesApiMock: { documentUrl: (_jeton: string, type: string) => `#doc-${type}`, supprimerDocument: vi.fn() },
   sessionsApiMock: {
@@ -315,17 +316,27 @@ describe("Suivre — Validation des notes (D-CEO-46)", () => {
 describe("Suivre — Suppression d'un document", () => {
   it("corbeille sur un document stocké → confirmation, puis suppression sur le serveur", async () => {
     const user = userEvent.setup()
-    correctionsApiMock.statut.mockResolvedValue(statutBase({ documents: ["scan", "rapport"] }))
+    correctionsApiMock.statut.mockResolvedValue(statutBase({ documents: ["scan", "sujet_confirmation"] }))
     elevesApiMock.supprimerDocument.mockResolvedValue({ ok: true })
 
     rendre()
 
-    await user.click(await screen.findByRole("button", { name: "Supprimer Rapport de correction" }))
+    await user.click(await screen.findByRole("button", { name: "Supprimer Sujet du test de confirmation (T1)" }))
     expect(screen.getByRole("alertdialog")).toHaveTextContent("définitivement supprimé du serveur")
     await user.click(screen.getByRole("button", { name: "Supprimer" }))
 
-    await waitFor(() => expect(elevesApiMock.supprimerDocument).toHaveBeenCalledWith("jeton-copie", "rapport"))
+    await waitFor(() => expect(elevesApiMock.supprimerDocument).toHaveBeenCalledWith("jeton-copie", "sujet_confirmation"))
     expect(await screen.findByText("Document supprimé.")).toBeInTheDocument()
+  })
+
+  it("rapport et plan (espace de travail) : lus via /fichiers, sans corbeille", async () => {
+    correctionsApiMock.statut.mockResolvedValue(statutBase({ documents: ["rapport", "remediation"] }))
+
+    rendre()
+
+    await screen.findByText("Rapport de correction")
+    expect(screen.queryByRole("button", { name: "Supprimer Rapport de correction" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Supprimer Plan de remédiation" })).not.toBeInTheDocument()
   })
 
   it("annuler ne supprime rien ; le plan et le rapport diagnostique n'ont pas de corbeille", async () => {

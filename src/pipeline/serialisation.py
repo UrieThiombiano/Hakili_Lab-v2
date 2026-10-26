@@ -62,6 +62,7 @@ def serialiser(resultat) -> dict:
             str(ordre): contenu.model_dump() for ordre, contenu in (resultat.plan_sections_redigees or {}).items()
         },
         "plan_acquis_rediges": list(resultat.plan_acquis_rediges or []),
+        "classe": resultat.classe,
         "rubric": resultat.rubric.model_dump() if resultat.rubric else None,
         "pdf_path": _chemin(resultat.pdf_path),
         "remediation_pdf_path": _chemin(resultat.remediation_pdf_path),
@@ -124,6 +125,7 @@ def deserialiser(donnees: dict):
             for ordre, contenu in (donnees.get("plan_sections_redigees") or {}).items()
         },
         plan_acquis_rediges=list(donnees.get("plan_acquis_rediges") or []),
+        classe=donnees.get("classe", ""),
         rubric=_modele(Rubric, "rubric"),
         pdf_path=Path(donnees["pdf_path"]) if donnees.get("pdf_path") else None,
         remediation_pdf_path=(

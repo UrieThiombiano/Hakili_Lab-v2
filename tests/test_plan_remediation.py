@@ -321,9 +321,8 @@ def test_reprise_du_plan_apres_serialisation(tmp_path, monkeypatch):
     resultat = deserialiser(serialiser(resultat))
     assert sorted(resultat.plan_sections_redigees) == [1, 3]
 
-    pdfs, documents = [], []
+    pdfs = []
     monkeypatch.setattr(pipeline, "generate_plan_remediation_pdf", lambda chemin, plan: pdfs.append((chemin, plan)))
-    monkeypatch.setattr(pipeline, "_db_add_document", lambda copy_id, type_doc, chemin: documents.append(type_doc))
     client = _ClientFactice()
     resultat = pipeline.reprendre_plan(resultat, client)
 
@@ -331,4 +330,4 @@ def test_reprise_du_plan_apres_serialisation(tmp_path, monkeypatch):
     assert resultat.plan_erreur == "" and resultat.plan_sections_redigees == {}
     assert len(resultat.plan_remediation.competences) == 3
     assert resultat.remediation_pdf_path == tmp_path / "c1" / "plan_remediation.pdf"
-    assert len(pdfs) == 1 and documents == ["remediation"]
+    assert len(pdfs) == 1

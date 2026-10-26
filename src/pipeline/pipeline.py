@@ -39,11 +39,9 @@ import json
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
-from tenacity import retry, stop_after_attempt, wait_fixed
 
 from src.api.claude_client import ClaudeClient
 from src.api.openai_client import OpenAIClient
@@ -63,7 +61,6 @@ from src.models.domain import (
     TranscriptionResult,
 )
 from src.pipeline.ancrage_incertitudes import ancrer_incertitudes
-from src.pipeline.depot import depot
 from src.pipeline.ingestion import ingest_images, ingest_pdf
 from src.pipeline.orchestrator import (
     ValidationIssue,
@@ -159,40 +156,25 @@ def _client_label(client, step: str = "") -> str:
     return f"Claude · {getattr(client, '_modele_heavy', settings.claude_model_heavy)}"
 
 
-# ── Persistance base de données (best-effort — ne bloque jamais le pipeline) ──
-# Le pipeline ne connaît pas la base : il écrit dans le dépôt courant
-# (`src/pipeline/depot.py`), que l'application installe au démarrage. Sans base
-# configurée — portail de consultation, essais hors ligne — le dépôt neutre ne
-# fait rien et la correction se déroule quand même.
-#
-# Retry léger : une base serverless (ex. Neon) peut refuser la toute première
-# connexion après une période d'inactivité ("cold start") puis fonctionner
-# normalement l'instant d'après — observé en pratique (rapport perdu alors
-# que la remédiation, écrite juste après dans une connexion neuve, réussit).
-_retry_db = retry(stop=stop_after_attempt(2), wait=wait_fixed(1.5), reraise=True)
+# ── Rien n'est écrit en base pendant l'analyse ───────────────────────────────
+# Le pipeline produit dans son espace de travail (`runs_dir/<copy_id>/`) : la
+# note, la classe, le rapport et le plan restent dans `PipelineResult`. Ils ne
+# sont conservés que si l'enseignant sauvegarde l'analyse — décision de
+# l'utilisateur du 2026-10-26, qui remplace les cinq points d'injection
+# best-effort de D-CEO-19.
 
 
-# Placeholder de repli si le Sheet élèves n'a pas de classe renseignée pour
-# l'élève choisi (voir _db_persist_scan). Écrasé par le point 5 une fois
-# l'en-tête transcrit et résolu via classe_normalizer.resolve_classe(). Ne
-# jamais y substituer une valeur devinée : "Non renseignée" est honnête, une
-# classe fausse ne l'est pas.
+# Placeholder si le Sheet élèves n'a pas de classe renseignée pour l'élève
+# choisi. Remplacé par la classe lue sur l'en-tête transcrit quand elle est
+# fiable (`_apply_extracted_classe`). Ne jamais y substituer une valeur devinée :
+# "Non renseignée" est honnête, une classe fausse ne l'est pas.
 _CLASSE_PLACEHOLDER = "Non renseignée"
 
 
-def _db_persist_scan(*, copy_id: str, file_paths: list[Path], identifiant_hakili: str) -> None:
-    """Point d'injection 1 : vérifie que l'élève choisi existe dans les
-    Google Sheets, puis crée la Copie + le document 'scan' en base.
-
-    IMPORTANT — contrairement au reste de cette fonction (et au reste des
-    points d'injection), la vérification d'existence de l'élève N'EST PAS
-    best-effort : si identifiant_hakili est vide ou introuvable dans les
-    Sheets, on lève une exception qui remonte et arrête le pipeline avant
-    tout appel IA payant (voir l'appel en tout premier dans _run_transcription,
-    avant la construction des clients). Une fois l'élève confirmé,
-    l'écriture en base elle-même reste best-effort — une erreur réseau/DB ne
-    bloque jamais le pipeline, comme les autres points d'injection.
-    """
+def _verifier_eleve(*, copy_id: str, identifiant_hakili: str) -> dict:
+    """Vérifie que l'élève choisi existe dans les Google Sheets et rend sa
+    fiche. Bloquant : appelé avant tout appel IA payant (D-CEO-20) — un élève
+    introuvable ou un Sheet injoignable arrête le pipeline."""
     if not identifiant_hakili:
         raise ValueError("Aucun élève sélectionné — impossible de traiter cette copie.")
 
@@ -201,81 +183,19 @@ def _db_persist_scan(*, copy_id: str, file_paths: list[Path], identifiant_hakili
     try:
         eleve = get_eleve_by_identifiant(identifiant_hakili)
     except GoogleSheetsError as exc:
-        logger.warning(
-            "[%s] [DB WARNING] Vérification élève impossible (Google Sheets injoignable) : %s",
-            copy_id, exc,
-        )
-        raise RuntimeError(
-            f"Impossible de vérifier l'élève auprès des Google Sheets : {exc}"
-        ) from exc
+        logger.warning("[%s] Vérification élève impossible (Google Sheets injoignable) : %s", copy_id, exc)
+        raise RuntimeError(f"Impossible de vérifier l'élève auprès des Google Sheets : {exc}") from exc
 
     if eleve is None:
         logger.warning(
-            "[%s] [DB WARNING] Identifiant élève '%s' introuvable dans les Google Sheets "
-            "— traitement bloqué, aucun appel IA effectué.",
-            copy_id, identifiant_hakili,
+            "[%s] Identifiant élève '%s' introuvable dans les Google Sheets — traitement bloqué, "
+            "aucun appel IA effectué.", copy_id, identifiant_hakili,
         )
         raise ValueError(
             f"Élève introuvable (identifiant '{identifiant_hakili}') dans les Google "
             f"Sheets — vérifiez la sélection. Aucun traitement effectué."
         )
-
-    if not file_paths:
-        return
-
-    # Classe initiale : celle déclarée pour l'élève dans le Sheet (info
-    # réelle disponible dès la sélection — voir décision documentée dans le
-    # rapport de chantier). Écrasée au point 5 si l'extraction depuis
-    # l'en-tête transcrit donne un résultat fiable et différent (garde-fou
-    # anti-erreur de saisie/anti-décalage administratif — voir
-    # _apply_extracted_classe). Repli sur le placeholder si le Sheet n'a pas
-    # de classe renseignée pour cet élève.
-    classe_initiale = (eleve.get("classe") or "").strip() or _CLASSE_PLACEHOLDER
-
-    try:
-        scan_bytes = file_paths[0].read_bytes()
-
-        @_retry_db
-        def _write() -> None:
-            depot().creer_copie(
-                copy_id=copy_id,
-                identifiant_hakili=identifiant_hakili,
-                classe=classe_initiale,
-                annee_scolaire=str(datetime.now().year),
-            )
-            depot().ajouter_document(
-                copy_id=copy_id, type_document="scan", contenu=scan_bytes
-            )
-
-        _write()
-        logger.warning(
-            "[%s] [DB OK] Copie créée pour identifiant_hakili=%s (classe initiale=%s)",
-            copy_id, identifiant_hakili, classe_initiale,
-        )
-    except Exception as e:
-        logger.warning("[%s] [DB WARNING] Erreur écriture base (scan) : %s", copy_id, e)
-
-
-def _db_add_document(copy_id: str, doc_type: str, path: Path | None) -> None:
-    """Points d'injection 2 (rapport) et 3 (remédiation) : ajoute un document
-    généré à la copie existante. Best-effort — n'échoue jamais le pipeline
-    (ex. si la copie n'a pas pu être créée au point 1, l'insertion échoue
-    proprement sur la contrainte de clé étrangère et est journalisée)."""
-    if not path or not path.exists():
-        return
-    try:
-        doc_bytes = path.read_bytes()
-
-        @_retry_db
-        def _write() -> None:
-            depot().ajouter_document(
-                copy_id=copy_id, type_document=doc_type, contenu=doc_bytes
-            )
-
-        _write()
-        logger.warning("[%s] [DB OK] Document '%s' ajouté", copy_id, doc_type)
-    except Exception as e:
-        logger.warning("[%s] [DB WARNING] Erreur ajout document '%s' : %s", copy_id, doc_type, e)
+    return eleve
 
 
 def _score_on_20(total: float, denom: float) -> float | None:
@@ -287,53 +207,10 @@ def _score_on_20(total: float, denom: float) -> float | None:
     return round(round(total / denom * 20 * 4) / 4, 2)
 
 
-def _db_update_notes(copy_id: str, notes_finales: float | None) -> None:
-    """Point d'injection 4 : écrit/écrase COPIE.notes_finales (déjà sur 20,
-    aucune conversion à faire — voir CopyGrade.final_score_on_20).
-
-    Appelé deux fois par exécution :
-    - en fin de run_grading(), avec la note IA provisoire (avant validation
-      enseignant) ;
-    - en Phase B, avec la note validée — écrase toujours la valeur précédente,
-      donc la dernière écriture est toujours la plus fiable.
-
-    Si aucune note fiable n'est disponible (barème vide → denom=0), on
-    n'écrit rien plutôt que d'inventer une valeur. Best-effort : n'échoue
-    jamais le pipeline.
-    """
-    if notes_finales is None:
-        return
-    try:
-        @_retry_db
-        def _write() -> None:
-            depot().maj_notes(copy_id=copy_id, notes_finales=notes_finales)
-
-        _write()
-        logger.warning("[%s] [DB OK] Note finale enregistrée : %.2f/20", copy_id, notes_finales)
-    except Exception as e:
-        logger.warning("[%s] [DB WARNING] Erreur écriture note : %s", copy_id, e)
-
-
-def _db_update_classe(copy_id: str, classe: str) -> None:
-    """Point d'injection 5 : écrase le placeholder posé au point 1 avec la
-    classe réellement extraite de l'en-tête transcrit. Best-effort — n'échoue
-    jamais le pipeline."""
-    try:
-        @_retry_db
-        def _write() -> None:
-            depot().maj_classe(copy_id=copy_id, classe=classe)
-
-        _write()
-        logger.warning("[%s] [DB OK] Classe enregistrée : %s", copy_id, classe)
-    except Exception as e:
-        logger.warning("[%s] [DB WARNING] Erreur écriture classe : %s", copy_id, e)
-
-
-def _apply_extracted_classe(*, copy_id: str, transcription, bareme_id: str) -> None:
-    """Résout la classe réelle à partir de l'en-tête transcrit et l'écrit en
-    base si — et seulement si — le résultat est fiable (voir
-    classe_normalizer.resolve_classe : ne jamais deviner). En cas d'échec,
-    le placeholder "Non renseignée" posé au point 1 reste en base."""
+def _apply_extracted_classe(*, copy_id: str, transcription, bareme_id: str) -> str | None:
+    """Classe réelle lue sur l'en-tête transcrit, si — et seulement si — le
+    résultat est fiable (voir classe_normalizer.resolve_classe : ne jamais
+    deviner). `None` sinon : la classe du Sheet est gardée."""
     from src.core.classe_normalizer import (
         extract_raw_classe_header,
         niveaux_to_canonical_list,
@@ -342,7 +219,7 @@ def _apply_extracted_classe(*, copy_id: str, transcription, bareme_id: str) -> N
     )
 
     if not transcription or not transcription.pages:
-        return
+        return None
 
     raw = extract_raw_classe_header(transcription.pages[0].content)
     extracted = normalize_classe(raw) if raw else None
@@ -361,13 +238,12 @@ def _apply_extracted_classe(*, copy_id: str, transcription, bareme_id: str) -> N
 
     if classe is None:
         logger.warning(
-            "[%s] [DB WARNING] Classe non déterminée (%s) — brut='%s', extrait=%s, "
-            "niveaux déclarés=%s. Copie laissée en '%s'.",
-            copy_id, reason, raw, extracted, niveaux_declares, _CLASSE_PLACEHOLDER,
+            "[%s] Classe non déterminée (%s) — brut='%s', extrait=%s, "
+            "niveaux déclarés=%s. Classe du Sheet conservée.",
+            copy_id, reason, raw, extracted, niveaux_declares,
         )
-        return
-
-    _db_update_classe(copy_id, classe)
+        return None
+    return classe
 
 
 # ── Résultat du pipeline ──────────────────────────────────────────────────────
@@ -389,6 +265,9 @@ class PipelineResult:
     #: Plan incomplet : sections déjà rédigées (par numéro d'ordre) et acquis.
     plan_sections_redigees: dict[int, ContenuSection] = field(default_factory=dict)
     plan_acquis_rediges: list[str] = field(default_factory=list)
+    #: Classe de l'élève pour cette copie : celle du Sheet, remplacée par
+    #: l'en-tête transcrit quand il est fiable. Écrite en base à la sauvegarde.
+    classe: str = ""
     pdf_path: Path | None = None
     #: PDF du plan de remédiation (`plan_remediation.pdf`), None sans plan.
     remediation_pdf_path: Path | None = None
@@ -495,11 +374,11 @@ def _run_transcription(
     runs_dir: Path | None,
     on_progress: Callable[[str, int], None] | None,
 ) -> PipelineResult:
-    # Point d'injection 1, tout premier appel de la fonction : vérifie que
-    # l'élève sélectionné existe dans les Google Sheets AVANT tout appel IA
-    # payant (construction des clients ci-dessous incluse), et crée la Copie
-    # + le document scan si oui. Bloque (exception) si l'élève est introuvable.
-    _db_persist_scan(copy_id=copy_id, file_paths=file_paths, identifiant_hakili=identifiant_hakili)
+    # Tout premier appel : l'élève sélectionné existe-t-il dans les Google
+    # Sheets ? Vérifié AVANT tout appel IA payant (construction des clients
+    # ci-dessous incluse). Bloque (exception) si l'élève est introuvable.
+    eleve = _verifier_eleve(copy_id=copy_id, identifiant_hakili=identifiant_hakili)
+    classe_sheet = (eleve.get("classe") or "").strip() or _CLASSE_PLACEHOLDER
 
     def _progress(step: str, pct: int) -> None:
         if on_progress:
@@ -575,6 +454,7 @@ def _run_transcription(
         expert_instructions=expert_instructions,
         official_answers=official_answers,
         runs_dir=str(out),
+        classe=classe_sheet,
     )
     result.model_routing = {
         "Transcription": _client_label(transcription_client, "transcription"),
@@ -604,9 +484,11 @@ def _run_transcription(
     # zones surlignées, corrigeables au double-clic en relecture.
     result.transcription = ancrer_incertitudes(vt.data)
 
-    # Point d'injection 5 — classe réelle extraite de l'en-tête transcrit
-    # (écrase le placeholder posé au point 1).
-    _apply_extracted_classe(copy_id=copy_id, transcription=result.transcription, bareme_id=bareme_id)
+    # Classe réelle lue sur l'en-tête transcrit, quand elle est fiable.
+    result.classe = (
+        _apply_extracted_classe(copy_id=copy_id, transcription=result.transcription, bareme_id=bareme_id)
+        or result.classe
+    )
 
     _progress("awaiting_transcription_review", 45)
     logger.warning(
@@ -739,9 +621,6 @@ def _run_grading(
         copy_id, len(result.grade.questions),
         result.grade.total_score, result.grade.total_possible, _score_20,
     )
-    # Point d'injection 4a — note IA provisoire (avant validation enseignant,
-    # sera écrasée par la note validée au point 4b en Phase B).
-    _db_update_notes(copy_id, _score_20)
     return result
 
 
@@ -851,11 +730,6 @@ def _run_phase_b(
     rubric     = result.rubric
     bareme_id  = result.bareme_id
     out        = Path(result.runs_dir or settings.runs_dir)
-
-    # Point d'injection 4b — note validée (écrase la note IA provisoire du point 4a).
-    # final_score_on_20 est garanti non-None ici : run_phase_b() l'a calculé
-    # si besoin avant d'appeler _run_phase_b().
-    _db_update_notes(copy_id, grade.final_score_on_20)
 
     claude_client      = ClaudeClient()
     diagnostic_client  = _make_diagnostic_client()
@@ -1005,14 +879,11 @@ def _run_phase_b(
             result.plan_erreur = f"PDF du plan de remédiation non produit — {exc}"
             has_remediation = False
 
+    # Les deux PDF restent dans l'espace de travail de la copie : conservés
+    # en base seulement si l'enseignant sauvegarde l'analyse.
     result.pdf_path = pdf_path
-    # Point d'injection 2 — rapport généré : document "rapport" (best-effort)
-    _db_add_document(copy_id, "rapport", pdf_path)
-
     if has_remediation:
         result.remediation_pdf_path = remediation_pdf_path
-        # Point d'injection 3 — plan généré : document "remediation" (best-effort)
-        _db_add_document(copy_id, "remediation", remediation_pdf_path)
 
     n_sections = len(result.plan_remediation.competences) if has_remediation else 0
     logger.warning(
@@ -1072,7 +943,6 @@ def reprendre_plan(result: PipelineResult, claude_client=None) -> PipelineResult
         return result
     result.remediation_pdf_path = chemin
     result.plan_erreur = ""
-    _db_add_document(result.copy_id, "remediation", chemin)
     logger.warning("[%s] ✓ Plan de remédiation repris : %d compétence(s)",
                    result.copy_id, len(result.plan_remediation.competences))
     return result
