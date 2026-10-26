@@ -22,5 +22,21 @@ def test_dossiers_lus_a_l_execution_copies_dans_l_image():
 
 
 def test_gabarits_pdf_presents():
-    for gabarit in ("rapport_correction.html.j2", "remediation_exercises.html.j2"):
+    for gabarit in (
+        "rapport_correction.html.j2",
+        "remediation_exercises.html.j2",
+        "plan_remediation/plan_remediation.html.j2",
+        "plan_remediation/plan_remediation.css",
+        "plan_remediation/vendor/tex-svg.js",
+        "plan_remediation/vendor/fonts.css",
+    ):
         assert (_RACINE / "templates" / gabarit).exists()
+
+
+def test_chromium_installe_dans_l_image():
+    """Le plan de remédiation est imprimé par Chromium : sans lui, aucun plan
+    en production."""
+    dockerfile = (_RACINE / "deploy" / "Dockerfile").read_text(encoding="utf-8")
+    assert "playwright install --with-deps chromium" in dockerfile
+    exigences = (_RACINE / "requirements.txt").read_text(encoding="utf-8")
+    assert re.search(r"^playwright==\d", exigences, re.M)

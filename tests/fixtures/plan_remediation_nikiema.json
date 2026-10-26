@@ -1,0 +1,1232 @@
+{
+  "copy_id": "exemplaire-nikiema",
+  "eleve_nom": "NIKIEMA K. Amale",
+  "prenom": "Amale",
+  "classe": "1ère D",
+  "test_libelle": "test diagnostique d'entrée en 1ère D",
+  "date": "24 octobre 2026",
+  "acquis": [
+    "Mettre un problème en équations et le résoudre (L8, prix du sac de mil) : c'est la question la plus complète de ta copie.",
+    "Trouver un réel \\(m\\) pour que deux vecteurs soient colinéaires (G1).",
+    "Calculer un produit scalaire avec des coordonnées données (G2).",
+    "Reconnaître une fonction impaire (F6) et des droites parallèles dans un cube (G5)."
+  ],
+  "competences": [
+    {
+      "titre": "Racines carrées et radicaux",
+      "titre_tableau": null,
+      "titre_court": "Racines carrées",
+      "duree_h": 1.0,
+      "questions": [
+        "N1",
+        "P4"
+      ],
+      "prerequis": [],
+      "ecrits": [
+        {
+          "question": "N1",
+          "reponse_eleve": "a) \\(2\\sqrt{3}\\)",
+          "reponse_attendue": "c) \\(4\\sqrt{3}\\)",
+          "reussie": false
+        },
+        {
+          "question": "P4.1, P4.3",
+          "reponse_eleve": "non traitées",
+          "reponse_attendue": "\\(AC = 3\\sqrt{2}\\) m ; la perche peut être rangée",
+          "reussie": false
+        }
+      ],
+      "ce_qui_ne_va_pas": "On a \\(\\sqrt{75} = 5\\sqrt{3}\\), \\(\\sqrt{27} = 3\\sqrt{3}\\) et \\(\\sqrt{12} = 2\\sqrt{3}\\), donc \\(5\\sqrt{3} - 3\\sqrt{3} + 2\\sqrt{3} = 4\\sqrt{3}\\). Ta réponse \\(2\\sqrt{3}\\) correspond à \\(5\\sqrt{3} - 3\\sqrt{3}\\) : le troisième terme \\(+\\sqrt{12}\\) a disparu en route.",
+      "causes": [
+        "Un oubli ponctuel : tu as peut-être bien simplifié les trois radicaux mais recopié seulement deux termes.",
+        "La simplification \\(\\sqrt{k^2 m} = k\\sqrt{m}\\) n'est pas encore un réflexe : dans le problème P4, tu n'as pas tenté le calcul."
+      ],
+      "a_retenir": [
+        "Pour \\(a \\ge 0\\) et \\(b \\ge 0\\) : \\(\\sqrt{ab} = \\sqrt{a}\\times\\sqrt{b}\\). Donc \\(\\sqrt{k^2 m} = k\\sqrt{m}\\).",
+        "On additionne seulement des radicaux identiques : \\(5\\sqrt{3} + 2\\sqrt{3} = 7\\sqrt{3}\\). Mais \\(\\sqrt{2} + \\sqrt{3} \\ne \\sqrt{5}\\).",
+        "\\((\\sqrt{a})^2 = a\\), donc \\((3\\sqrt{2})^2 = 9 \\times 2 = 18\\)."
+      ],
+      "methode_titre": "Méthode",
+      "methode": [
+        "Chercher le plus grand carré parfait qui divise le nombre sous la racine (4, 9, 16, 25, 36, 49...).",
+        "Ecrire chaque terme sous la forme \\(k\\sqrt{m}\\).",
+        "Compter les termes : il doit y en avoir autant qu'au départ.",
+        "Regrouper les coefficients."
+      ],
+      "consigne_exercices": null,
+      "exercices": [
+        {
+          "enonce": "Ecrire sous la forme \\(a\\sqrt{b}\\) : \\(\\sqrt{50}\\) ; \\(\\sqrt{48}\\) ; \\(\\sqrt{72}\\).",
+          "niveau": 1,
+          "reponse": "\\(5\\sqrt{2}\\) ; \\(4\\sqrt{3}\\) ; \\(6\\sqrt{2}\\)"
+        },
+        {
+          "enonce": "Calculer \\((\\sqrt{2})^2\\) ; \\((3\\sqrt{2})^2\\) ; \\((2\\sqrt{3})^2\\).",
+          "niveau": 1,
+          "reponse": "\\(2\\) ; \\(18\\) ; \\(12\\)"
+        },
+        {
+          "enonce": "Réduire \\(\\sqrt{18} + \\sqrt{8} - \\sqrt{32}\\).",
+          "niveau": 2,
+          "reponse": "\\(3\\sqrt{2} + 2\\sqrt{2} - 4\\sqrt{2} = \\sqrt{2}\\)"
+        },
+        {
+          "enonce": "Réduire \\(2\\sqrt{45} - \\sqrt{20} + \\sqrt{80}\\).",
+          "niveau": 2,
+          "reponse": "\\(6\\sqrt{5} - 2\\sqrt{5} + 4\\sqrt{5} = 8\\sqrt{5}\\)"
+        },
+        {
+          "enonce": "Un champ carré à Koudougou a 20 m de côté. Calculer la longueur exacte de sa diagonale sous la forme \\(a\\sqrt{2}\\). Une corde de 28 m suffit-elle pour aller d'un coin au coin opposé ? On donne \\(28^2 = 784\\).",
+          "niveau": 3,
+          "reponse": "Diagonale \\(20\\sqrt{2}\\) m ; \\((20\\sqrt{2})^2 = 800 \\gt 784\\), donc la corde ne suffit pas."
+        }
+      ]
+    },
+    {
+      "titre": "Intervalles, valeur absolue et encadrements",
+      "titre_tableau": "Intervalles, valeur absolue, encadrements",
+      "titre_court": "Intervalles et encadrements",
+      "duree_h": 4.0,
+      "questions": [
+        "N2",
+        "N3",
+        "N4",
+        "P2.2",
+        "P3.3"
+      ],
+      "prerequis": [],
+      "ecrits": [
+        {
+          "question": "N2",
+          "reponse_eleve": "d) \\(\\lo 2\\pv 5\\ro\\)",
+          "reponse_attendue": "b) \\(\\lo -1\\pv 5\\ro\\)",
+          "reussie": false
+        },
+        {
+          "question": "N3",
+          "reponse_eleve": "\\(x = 2\\) et \\(x = 5\\), \\(B = \\{2\\pv 5\\}\\)",
+          "reponse_attendue": "\\(B = (x-2) + (5-x) = 3\\)",
+          "reussie": false
+        },
+        {
+          "question": "N4, P2.2, P3.3",
+          "reponse_eleve": "non traitées",
+          "reponse_attendue": "encadrements de \\(2x - y\\), d'une moyenne, d'un périmètre",
+          "reussie": false
+        }
+      ],
+      "ce_qui_ne_va_pas": "Dans N2, \\(|x-2| \\lt 3\\) veut dire « la distance entre \\(x\\) et 2 est inférieure à 3 ». Le nombre 2 est le *centre* de l'intervalle, pas une borne : on va de \\(2-3=-1\\) à \\(2+3=5\\). Dans N3, \\(B\\) est un nombre, pas un ensemble. La condition \\(2 \\lt x \\lt 5\\) ne dit pas que \\(x\\) vaut 2 ou 5 : elle sert à connaître le signe de \\(x-2\\) (positif) et de \\(x-5\\) (négatif).",
+      "causes": [
+        "La valeur absolue n'est pas encore vue comme une distance.",
+        "Une inégalité (\\(2 \\lt x \\lt 5\\)) est lue comme une équation (\\(x = 2\\), \\(x = 5\\)).",
+        "Pour encadrer une différence comme \\(2x - y\\), la règle « on encadre d'abord \\(-y\\) » n'est pas connue, d'où les questions laissées blanches."
+      ],
+      "a_retenir": [
+        "\\(|x-a|\\) est la distance entre \\(x\\) et \\(a\\). Pour \\(r \\gt 0\\) : \\(|x-a| \\lt r \\iff a-r \\lt x \\lt a+r \\iff x \\in \\lo a-r\\pv a+r\\ro\\).",
+        "\\(|A| = A\\) si \\(A \\ge 0\\), et \\(|A| = -A\\) si \\(A \\lt 0\\).",
+        "Inégalité stricte : crochet ouvert. Inégalité large : crochet fermé. Toujours ouvert du côté de \\(+\\infty\\) ou \\(-\\infty\\).",
+        "On peut additionner deux encadrements membre à membre. Multiplier par un nombre négatif change le sens : si \\(2 \\lt y \\lt 4\\), alors \\(-4 \\lt -y \\lt -2\\)."
+      ],
+      "methode_titre": "Méthode pour enlever une valeur absolue",
+      "methode": [
+        "Etudier le signe de ce qu'il y a dans la barre, grâce à la condition donnée.",
+        "Positif : on enlève les barres. Négatif : on enlève les barres et on prend l'opposé.",
+        "Réduire l'expression obtenue."
+      ],
+      "consigne_exercices": null,
+      "exercices": [
+        {
+          "enonce": "Ecrire avec un intervalle : \\(x \\ge -2\\) ; \\(x \\lt 7\\) ; \\(-1 \\lt x \\le 4\\).",
+          "niveau": 1,
+          "reponse": "\\([-2\\pv +\\infty\\ro\\) ; \\(\\lo -\\infty\\pv 7\\ro\\) ; \\(\\lo -1\\pv 4]\\)"
+        },
+        {
+          "enonce": "Ecrire sous forme d'intervalle l'ensemble des réels \\(x\\) tels que : a) \\(|x-4| \\lt 1\\) ; b) \\(|x+3| \\le 2\\).",
+          "niveau": 1,
+          "reponse": "a) \\(\\lo 3\\pv 5\\ro\\) ; b) \\([-5\\pv -1]\\)"
+        },
+        {
+          "enonce": "On suppose \\(1 \\lt x \\lt 4\\). Ecrire \\(A = |x-1| + |x-4|\\) sans valeur absolue, puis donner la valeur de \\(A\\).",
+          "niveau": 2,
+          "reponse": "\\(A = (x-1) + (4-x) = 3\\)"
+        },
+        {
+          "enonce": "On sait que \\(2 \\lt x \\lt 3\\) et \\(1 \\lt y \\lt 5\\). Encadrer \\(x + y\\), puis \\(3x - y\\).",
+          "niveau": 2,
+          "reponse": "\\(3 \\lt x + y \\lt 8\\) ; \\(1 \\lt 3x - y \\lt 8\\)"
+        },
+        {
+          "enonce": "A Bobo-Dioulasso, un commerçant vend le sac de riz entre 18 000 et 20 000 FCFA (bornes comprises). Il vend 5 sacs. Encadrer sa recette. Peut-il être sûr de dépasser 95 000 FCFA ?",
+          "niveau": 3,
+          "reponse": "\\(90\\,000 \\le R \\le 100\\,000\\) ; non, il n'est pas sûr de dépasser 95 000 FCFA."
+        }
+      ]
+    },
+    {
+      "titre": "Vecteurs : relation de Chasles et alignement",
+      "titre_tableau": "Vecteurs : Chasles et alignement",
+      "titre_court": "Vecteurs",
+      "duree_h": 4.0,
+      "questions": [
+        "G8"
+      ],
+      "prerequis": [],
+      "ecrits": [
+        {
+          "question": "G8",
+          "reponse_eleve": "\\(\\V{AM} = 2\\V{CA} + 3\\V{AB}\\), donc \\(\\V{AM} = 5\\V{CB}\\) ; « B, C et M forment un triangle »",
+          "reponse_attendue": "\\(\\V{BM} = -2\\V{BC}\\), donc B, C et M sont alignés",
+          "reussie": false
+        },
+        {
+          "question": "G1",
+          "reponse_eleve": "",
+          "reponse_attendue": "\\(m = -9\\)",
+          "reussie": true
+        }
+      ],
+      "ce_qui_ne_va_pas": "\\(2\\V{CA} + 3\\V{AB}\\) n'est pas égal à \\(5\\V{CB}\\) : on n'additionne pas les coefficients de deux vecteurs différents. La relation de Chasles \\(\\V{CA} + \\V{AB} = \\V{CB}\\) marche seulement avec le même coefficient devant les deux vecteurs. Le bon calcul :\n\n\\[\\V{BM} = \\V{BA} + \\V{AM} = -\\V{AB} + 3\\V{AB} - 2\\V{AC} = 2\\left(\\V{CA} + \\V{AB}\\right) = 2\\V{CB} = -2\\V{BC}.\\]\n\nEnfin, la question demandait de *démontrer* l'alignement : la conclusion « triangle » contredit ce qui était à prouver.",
+      "causes": [
+        "Les vecteurs sont manipulés comme des nombres : on ajoute les coefficients sans regarder les lettres.",
+        "La relation de Chasles est appliquée sans vérifier que la fin du premier vecteur est le début du second.",
+        "Le lien « deux vecteurs colinéaires avec un point commun, donc points alignés » n'est pas mobilisé."
+      ],
+      "a_retenir": [
+        "Chasles : \\(\\V{AB} + \\V{BC} = \\V{AC}\\) (les lettres s'enchaînent). Et \\(-\\V{AB} = \\V{BA}\\).",
+        "\\(k\\vec{u} + k\\vec{v} = k(\\vec{u} + \\vec{v})\\) : on factorise avant d'appliquer Chasles.",
+        "A, B, C sont alignés si et seulement si \\(\\V{AB}\\) et \\(\\V{AC}\\) sont colinéaires, c'est-à-dire \\(\\V{AC} = k\\V{AB}\\).",
+        "Coordonnées, arrivée moins départ : \\(\\V{AB}\\,(x_B - x_A\\pv y_B - y_A)\\)."
+      ],
+      "methode_titre": "Méthode pour exprimer \\(\\V{BM}\\)",
+      "methode": [
+        "Passer par le point dont on connaît le vecteur : \\(\\V{BM} = \\V{BA} + \\V{AM}\\).",
+        "Remplacer \\(\\V{BA}\\) par \\(-\\V{AB}\\) et \\(\\V{AM}\\) par son expression.",
+        "Réduire, factoriser, puis appliquer Chasles.",
+        "Conclure en une phrase : « \\(\\V{BM}\\) et \\(\\V{BC}\\) sont colinéaires et ont le point B en commun, donc B, C, M sont alignés. »"
+      ],
+      "consigne_exercices": null,
+      "exercices": [
+        {
+          "enonce": "Simplifier : a) \\(\\V{AB} + \\V{BC} + \\V{CD}\\) ; b) \\(\\V{MA} - \\V{MB}\\) ; c) \\(\\V{AB} + \\V{CA}\\).",
+          "niveau": 1,
+          "reponse": "a) \\(\\V{AD}\\) ; b) \\(\\V{BA}\\) ; c) \\(\\V{CB}\\)"
+        },
+        {
+          "enonce": "Calculer les coordonnées de \\(\\V{AB}\\) pour \\(A(2\\pv -1)\\) et \\(B(-3\\pv 4)\\).",
+          "niveau": 1,
+          "reponse": "\\(\\V{AB}\\,(-5\\pv 5)\\)"
+        },
+        {
+          "enonce": "ABC est un triangle et M est défini par \\(\\V{AM} = 2\\V{AB} - \\V{AC}\\). Exprimer \\(\\V{BM}\\) en fonction de \\(\\V{BC}\\), puis conclure sur la position de B, C et M.",
+          "niveau": 2,
+          "reponse": "\\(\\V{BM} = \\V{AB} - \\V{AC} = \\V{CB} = -\\V{BC}\\) ; B, C, M alignés (B est le milieu de \\([CM]\\))."
+        },
+        {
+          "enonce": "Les points \\(A(1\\pv 2)\\), \\(B(3\\pv 5)\\) et \\(C(7\\pv 11)\\) sont-ils alignés ? Justifier.",
+          "niveau": 2,
+          "reponse": "\\(\\V{AB}\\,(2\\pv 3)\\), \\(\\V{AC}\\,(6\\pv 9)\\), donc \\(\\V{AC} = 3\\V{AB}\\) : alignés."
+        },
+        {
+          "enonce": "Trois puits d'un village sont repérés par \\(P(0\\pv 1)\\), \\(Q(2\\pv 4)\\) et \\(R(6\\pv 9)\\). Un tuyau rectiligne peut-il passer par les trois puits ? Justifier.",
+          "niveau": 3,
+          "reponse": "\\(\\V{PQ}\\,(2\\pv 3)\\), \\(\\V{PR}\\,(6\\pv 8)\\) ; \\(2\\times 8 - 3\\times 6 = -2 \\ne 0\\) : non alignés, le tuyau ne peut pas passer par les trois puits."
+        }
+      ]
+    },
+    {
+      "titre": "Statistique : médiane, étendue, moyenne",
+      "titre_tableau": null,
+      "titre_court": "Statistique",
+      "duree_h": 2.0,
+      "questions": [
+        "D1",
+        "D2",
+        "P2"
+      ],
+      "prerequis": [],
+      "ecrits": [
+        {
+          "question": "D1",
+          "reponse_eleve": "c) \\(50\\)",
+          "reponse_attendue": "a) \\(49{,}5\\)",
+          "reussie": false
+        },
+        {
+          "question": "D2, P2.1, P2.3",
+          "reponse_eleve": "non traitées",
+          "reponse_attendue": "note effacée 15, médiane 12 ; médiane 14 et étendue 13",
+          "reussie": false
+        }
+      ],
+      "ce_qui_ne_va_pas": "La série n'a pas été rangée. Rangée, elle donne 45 ; 47 ; 48 ; 49 ; 50 ; 52 ; 52 ; 53. Il y a 8 valeurs (nombre pair), donc la médiane est la moyenne des 4e et 5e valeurs : \\(\\dfrac{49 + 50}{2} = 49{,}5\\).",
+      "causes": [
+        "L'étape « ranger la série » est sautée.",
+        "Le cas d'un effectif pair (demi-somme des deux valeurs centrales) n'est pas connu."
+      ],
+      "a_retenir": [
+        "Avant toute médiane : ranger la série dans l'ordre croissant.",
+        "Effectif \\(n\\) impair : la médiane est la valeur de rang \\(\\frac{n+1}{2}\\). Effectif pair : moyenne des valeurs de rang \\(\\frac{n}{2}\\) et \\(\\frac{n}{2}+1\\).",
+        "Etendue \\(=\\) plus grande valeur \\(-\\) plus petite valeur. Moyenne \\(=\\dfrac{\\text{somme des valeurs}}{\\text{effectif}}\\)."
+      ],
+      "methode_titre": "Méthode",
+      "methode": [
+        "Ranger et compter les valeurs.",
+        "Repérer la ou les valeurs centrales.",
+        "Pour une valeur manquante : somme totale \\(=\\) moyenne \\(\\times\\) effectif, puis soustraire les valeurs connues."
+      ],
+      "consigne_exercices": null,
+      "exercices": [
+        {
+          "enonce": "Donner la médiane de la série 13 ; 7 ; 10 ; 15 ; 9.",
+          "niveau": 1,
+          "reponse": "7 ; 9 ; 10 ; 13 ; 15 : médiane 10"
+        },
+        {
+          "enonce": "Donner la médiane et l'étendue de la série 6 ; 14 ; 9 ; 11 ; 8 ; 12.",
+          "niveau": 1,
+          "reponse": "Médiane \\(\\frac{9+11}{2} = 10\\) ; étendue \\(14 - 6 = 8\\)"
+        },
+        {
+          "enonce": "La moyenne de cinq notes est 11. Quatre de ces notes sont 9, 12, 10 et 14. Retrouver la cinquième.",
+          "niveau": 2,
+          "reponse": "\\(55 - 45 = 10\\)"
+        },
+        {
+          "enonce": "Série : 10 ; 15 ; 12 ; 18 ; 15 ; 9 ; 20. Donner la médiane, puis le nombre de valeurs supérieures ou égales à la médiane.",
+          "niveau": 2,
+          "reponse": "Médiane 15 ; 4 valeurs (15, 15, 18, 20)"
+        },
+        {
+          "enonce": "Un vendeur de mangues à Banfora a vendu sur 6 jours : 40, 55, 38, 60, 47 et 54 mangues. a) Calculer la moyenne. b) Le 7e jour, il vendra entre 35 et 70 mangues. Encadrer la moyenne des 7 jours.",
+          "niveau": 3,
+          "reponse": "a) \\(\\frac{294}{6} = 49\\) ; b) \\(47 \\le \\bar{x} \\le 52\\)"
+        }
+      ]
+    },
+    {
+      "titre": "Systèmes de deux équations",
+      "titre_tableau": null,
+      "titre_court": "Systèmes",
+      "duree_h": 1.0,
+      "questions": [
+        "L3"
+      ],
+      "prerequis": [],
+      "ecrits": [
+        {
+          "question": "L3",
+          "reponse_eleve": "\\(S = \\{-1\\}\\)",
+          "reponse_attendue": "\\(S = \\{(2\\pv -1)\\}\\)",
+          "reussie": false
+        },
+        {
+          "question": "L8",
+          "reponse_eleve": "",
+          "reponse_attendue": "un sac de mil coûte 8 000 FCFA",
+          "reussie": true
+        }
+      ],
+      "ce_qui_ne_va_pas": "En additionnant les deux équations, on obtient \\(4x = 8\\), donc \\(x = 2\\). Puis \\(2 + 2y = 0\\), donc \\(y = -1\\). La solution d'un système à deux inconnues est un *couple* \\((x\\pv y)\\). Ta réponse ne donne qu'une valeur : il manque \\(x\\), ou bien la valeur trouvée n'est pas présentée comme un couple.",
+      "causes": [
+        "Le calcul s'est arrêté après la première inconnue trouvée.",
+        "L'écriture de la solution sous forme de couple n'est pas connue. Tu sais pourtant résoudre un système : ta question L8 est juste."
+      ],
+      "a_retenir": [
+        "Une solution est un couple \\((x\\pv y)\\) qui vérifie les deux équations à la fois.",
+        "Combinaison : on multiplie les équations pour qu'en les additionnant une inconnue disparaisse. Substitution : on isole une inconnue et on la remplace.",
+        "On vérifie toujours le couple trouvé dans les deux équations."
+      ],
+      "methode_titre": "Méthode",
+      "methode": [],
+      "consigne_exercices": null,
+      "exercices": [
+        {
+          "enonce": "Le couple \\((1\\pv 3)\\) est-il solution du système \\(\\begin{cases} 2x + y = 5 \\\\ x - y = -2 \\end{cases}\\) ?",
+          "niveau": 1,
+          "reponse": "Oui : \\(2 + 3 = 5\\) et \\(1 - 3 = -2\\)"
+        },
+        {
+          "enonce": "Résoudre \\(\\begin{cases} x + y = 7 \\\\ x - y = 1 \\end{cases}\\)",
+          "niveau": 1,
+          "reponse": "\\((4\\pv 3)\\)"
+        },
+        {
+          "enonce": "Résoudre \\(\\begin{cases} 2x + 3y = 12 \\\\ x - 3y = -3 \\end{cases}\\)",
+          "niveau": 2,
+          "reponse": "\\((3\\pv 2)\\)"
+        },
+        {
+          "enonce": "Résoudre \\(\\begin{cases} 3x + 2y = 1 \\\\ 2x + 5y = -3 \\end{cases}\\)",
+          "niveau": 2,
+          "reponse": "\\((1\\pv -1)\\)"
+        },
+        {
+          "enonce": "A Fada N'Gourma, 2 poulets et 3 pintades coûtent 16 500 FCFA ; 1 poulet et 2 pintades coûtent 10 000 FCFA. Trouver le prix d'un poulet et celui d'une pintade.",
+          "niveau": 3,
+          "reponse": "Poulet 3 000 FCFA, pintade 3 500 FCFA"
+        }
+      ]
+    },
+    {
+      "titre": "Equations du second degré",
+      "titre_tableau": null,
+      "titre_court": "Second degré",
+      "duree_h": 3.0,
+      "questions": [
+        "L1",
+        "L5",
+        "P1.1"
+      ],
+      "prerequis": [
+        1
+      ],
+      "ecrits": [
+        {
+          "question": "L1",
+          "reponse_eleve": "\\(S = \\{-6\\pv 3\\}\\)",
+          "reponse_attendue": "\\(S = \\left\\{-\\frac{1}{2}\\pv 3\\right\\}\\)",
+          "reussie": false
+        },
+        {
+          "question": "L5, P1.1",
+          "reponse_eleve": "non traitées",
+          "reponse_attendue": "\\(b = -7\\), autre solution 4 ; vérification par développement",
+          "reussie": false
+        }
+      ],
+      "ce_qui_ne_va_pas": "La solution 3 est juste. Pour \\(2x^2 - 5x - 3 = 0\\) : \\(\\Delta = 25 + 24 = 49\\) et \\(\\sqrt{\\Delta} = 7\\), donc\n\n\\[x_1 = \\frac{5 - 7}{4} = -\\frac{1}{2} \\qquad x_2 = \\frac{5 + 7}{4} = 3.\\]\n\nUne vérification aurait suffi à écarter \\(-6\\) : \\(2 \\times 36 + 30 - 3 = 99 \\ne 0\\).",
+      "causes": [
+        "Tu as peut-être cherché deux nombres de produit \\(a \\times c = -6\\) (la méthode de factorisation par décomposition) sans finir le calcul.",
+        "Le dénominateur \\(2a\\) de la formule n'est pas bien appliqué.",
+        "Les solutions ne sont pas vérifiées en les remplaçant dans l'équation."
+      ],
+      "a_retenir": [
+        "Pour \\(ax^2 + bx + c = 0\\) avec \\(a \\ne 0\\) : \\(\\Delta = b^2 - 4ac\\).",
+        "\\(\\Delta \\gt 0\\) : deux solutions \\(x_1 = \\dfrac{-b - \\sqrt{\\Delta}}{2a}\\) et \\(x_2 = \\dfrac{-b + \\sqrt{\\Delta}}{2a}\\). \\(\\Delta = 0\\) : une solution \\(-\\dfrac{b}{2a}\\). \\(\\Delta \\lt 0\\) : pas de solution.",
+        "Si \\(x_1\\) et \\(x_2\\) sont les solutions : \\(x_1 + x_2 = -\\dfrac{b}{a}\\) et \\(x_1 x_2 = \\dfrac{c}{a}\\).",
+        "Un exemple numérique ne prouve pas une égalité « pour tout \\(x\\) » : il faut développer."
+      ],
+      "methode_titre": "Méthode",
+      "methode": [
+        "Ecrire \\(a\\), \\(b\\) et \\(c\\) avec leur signe.",
+        "Calculer \\(\\Delta\\) en écrivant chaque étape.",
+        "Appliquer la formule pour chaque solution séparément.",
+        "Vérifier avec \\(x_1 + x_2 = -\\frac{b}{a}\\) ou en remplaçant dans l'équation."
+      ],
+      "consigne_exercices": null,
+      "exercices": [
+        {
+          "enonce": "Résoudre \\(x^2 - 5x + 6 = 0\\).",
+          "niveau": 1,
+          "reponse": "\\(\\{2\\pv 3\\}\\)"
+        },
+        {
+          "enonce": "Résoudre \\(2x^2 + x - 6 = 0\\).",
+          "niveau": 1,
+          "reponse": "\\(\\Delta = 49\\) : \\(\\left\\{-2\\pv \\frac{3}{2}\\right\\}\\)"
+        },
+        {
+          "enonce": "Résoudre \\(x^2 - 6x + 9 = 0\\), puis \\(x^2 + x + 1 = 0\\).",
+          "niveau": 2,
+          "reponse": "\\(\\{3\\}\\) ; pas de solution (\\(\\Delta = -3\\))"
+        },
+        {
+          "enonce": "Le nombre 2 est solution de \\(x^2 + bx - 10 = 0\\). Trouver \\(b\\), puis l'autre solution sans calculer \\(\\Delta\\).",
+          "niveau": 2,
+          "reponse": "\\(b = 3\\) ; produit des solutions \\(-10\\), donc l'autre solution est \\(-5\\)"
+        },
+        {
+          "enonce": "Vérifier que pour tout réel \\(x\\), \\(-x^2 + 6x - 5 = -(x-3)^2 + 4\\). Expliquer pourquoi calculer les deux membres pour \\(x = 1\\) ne suffit pas.",
+          "niveau": 3,
+          "reponse": "\\(-(x^2 - 6x + 9) + 4 = -x^2 + 6x - 5\\). Un seul exemple ne prouve rien pour tous les \\(x\\)."
+        }
+      ]
+    },
+    {
+      "titre": "Trinôme : factorisation et signe",
+      "titre_tableau": null,
+      "titre_court": "Trinôme",
+      "duree_h": 3.0,
+      "questions": [
+        "L2",
+        "L6"
+      ],
+      "prerequis": [
+        6
+      ],
+      "ecrits": [
+        {
+          "question": "L2",
+          "reponse_eleve": "\\(P(x) = (x-1)(x+3)\\)",
+          "reponse_attendue": "\\(P(x) = 3(x-1)(x-3)\\)",
+          "reussie": false
+        },
+        {
+          "question": "L6",
+          "reponse_eleve": "non traitée",
+          "reponse_attendue": "\\(Q(x) = -2(x+2)(x-3)\\) ; Fatimata a raison",
+          "reussie": false
+        }
+      ],
+      "ce_qui_ne_va_pas": "Les racines de \\(3x^2 - 12x + 9\\) sont 1 et 3. Deux erreurs : la racine 3 donne le facteur \\((x-3)\\), pas \\((x+3)\\), et le coefficient 3 doit rester devant. Développe ta réponse : \\((x-1)(x+3) = x^2 + 2x - 3\\), qui n'est pas \\(P(x)\\).",
+      "causes": [
+        "Le signe de la racine est recopié tel quel dans le facteur.",
+        "La forme \\(a(x-x_1)(x-x_2)\\) est retenue sans le \\(a\\).",
+        "La factorisation n'est pas vérifiée en développant."
+      ],
+      "a_retenir": [
+        "Si \\(\\Delta \\gt 0\\) : \\(ax^2 + bx + c = a(x - x_1)(x - x_2)\\). Une racine 3 donne \\((x-3)\\), une racine \\(-2\\) donne \\((x+2)\\).",
+        "Signe du trinôme : du signe de \\(a\\) à l'extérieur des racines, du signe contraire de \\(a\\) entre les racines."
+      ],
+      "methode_titre": "Méthode",
+      "methode": [
+        "Mettre \\(a\\) en facteur si cela simplifie : \\(3x^2 - 12x + 9 = 3(x^2 - 4x + 3)\\).",
+        "Trouver les racines.",
+        "Ecrire \\(a(x-x_1)(x-x_2)\\), puis développer pour vérifier.",
+        "Pour le signe : placer les racines, regarder le signe de \\(a\\)."
+      ],
+      "consigne_exercices": null,
+      "exercices": [
+        {
+          "enonce": "Factoriser \\(x^2 - 7x + 10\\).",
+          "niveau": 1,
+          "reponse": "\\((x-2)(x-5)\\)"
+        },
+        {
+          "enonce": "Factoriser \\(2x^2 - 2x - 12\\).",
+          "niveau": 1,
+          "reponse": "\\(2(x-3)(x+2)\\)"
+        },
+        {
+          "enonce": "Factoriser \\(-x^2 + x + 6\\), puis donner son signe selon les valeurs de \\(x\\).",
+          "niveau": 2,
+          "reponse": "\\(-(x+2)(x-3)\\) ; positif sur \\(\\lo -2\\pv 3\\ro\\), négatif sur \\(\\lo -\\infty\\pv -2\\ro \\cup \\lo 3\\pv +\\infty\\ro\\), nul en \\(-2\\) et 3"
+        },
+        {
+          "enonce": "Etudier le signe de \\(3x^2 - 3\\) selon les valeurs de \\(x\\).",
+          "niveau": 2,
+          "reponse": "\\(3(x-1)(x+1)\\) ; négatif sur \\(\\lo -1\\pv 1\\ro\\), positif à l'extérieur, nul en \\(-1\\) et 1"
+        },
+        {
+          "enonce": "Moussa affirme que \\(R(x) = -2x^2 + 8x - 6\\) est strictement positif pour tout \\(x\\) de \\(\\lo 1\\pv 3\\ro\\). A-t-il raison ? Justifier.",
+          "niveau": 3,
+          "reponse": "\\(R(x) = -2(x-1)(x-3)\\) ; entre les racines, signe contraire de \\(-2\\) : positif. Moussa a raison."
+        }
+      ]
+    },
+    {
+      "titre": "Inéquations produit et quotient",
+      "titre_tableau": null,
+      "titre_court": "Inéquations",
+      "duree_h": 3.0,
+      "questions": [
+        "L4",
+        "L7"
+      ],
+      "prerequis": [
+        7
+      ],
+      "ecrits": [
+        {
+          "question": "L4",
+          "reponse_eleve": "a) \\([-3\\pv 2]\\)",
+          "reponse_attendue": "d) \\(\\lo -3\\pv 2]\\)",
+          "reussie": false
+        },
+        {
+          "question": "L7",
+          "reponse_eleve": "non traitée",
+          "reponse_attendue": "\\(S = \\lo -\\infty\\pv 2\\ro\\) ; Nafissatou a tort",
+          "reussie": false
+        }
+      ],
+      "ce_qui_ne_va_pas": "Ton tableau de signes est bon, mais pour \\(x = -3\\) le dénominateur \\(x + 3\\) vaut 0 : le quotient \\(\\dfrac{x-2}{x+3}\\) n'existe pas, donc \\(-3\\) ne peut pas être solution, même avec \\(\\le\\). Le crochet doit être ouvert en \\(-3\\).",
+      "causes": [
+        "Le quotient est traité comme un produit : la valeur interdite n'est pas repérée.",
+        "« Inégalité large » est appliqué partout avec des crochets fermés."
+      ],
+      "a_retenir": [
+        "Une valeur qui annule le dénominateur est interdite : double barre dans le tableau, crochet toujours ouvert.",
+        "On ne multiplie jamais les deux membres par une expression dont on ne connaît pas le signe.",
+        "On se ramène à « quotient \\(\\le 0\\) » ou « quotient \\(\\ge 0\\) », puis on fait un tableau de signes."
+      ],
+      "methode_titre": "Méthode",
+      "methode": [
+        "Tout passer dans un membre et réduire au même dénominateur.",
+        "Chercher les valeurs qui annulent le numérateur et le dénominateur.",
+        "Dresser le tableau de signes, une ligne par facteur.",
+        "Lire la réponse et exclure les valeurs interdites."
+      ],
+      "consigne_exercices": null,
+      "exercices": [
+        {
+          "enonce": "Résoudre \\((x-1)(x+4) \\ge 0\\).",
+          "niveau": 1,
+          "reponse": "\\(\\lo -\\infty\\pv -4] \\cup [1\\pv +\\infty\\ro\\)"
+        },
+        {
+          "enonce": "Résoudre \\(\\dfrac{x+1}{x-3} \\lt 0\\).",
+          "niveau": 1,
+          "reponse": "\\(\\lo -1\\pv 3\\ro\\)"
+        },
+        {
+          "enonce": "Résoudre \\(\\dfrac{2x-4}{x+1} \\ge 0\\).",
+          "niveau": 2,
+          "reponse": "\\(\\lo -\\infty\\pv -1\\ro \\cup [2\\pv +\\infty\\ro\\)"
+        },
+        {
+          "enonce": "On admet que pour \\(x \\ne 1\\), \\(\\dfrac{x+3}{x-1} - 1 = \\dfrac{4}{x-1}\\). Résoudre \\(\\dfrac{x+3}{x-1} \\le 1\\).",
+          "niveau": 2,
+          "reponse": "\\(\\frac{4}{x-1} \\le 0\\) : \\(S = \\lo -\\infty\\pv 1\\ro\\)"
+        },
+        {
+          "enonce": "Résoudre \\(\\dfrac{x^2 - 9}{x + 1} \\le 0\\). Aïcha dit que \\(-1\\) est solution : a-t-elle raison ?",
+          "niveau": 3,
+          "reponse": "\\(S = \\lo -\\infty\\pv -3] \\cup \\lo -1\\pv 3]\\) ; Aïcha a tort, \\(-1\\) est une valeur interdite."
+        }
+      ]
+    },
+    {
+      "titre": "Ensemble de définition",
+      "titre_tableau": null,
+      "titre_court": "Ensemble de définition",
+      "duree_h": 3.0,
+      "questions": [
+        "F2",
+        "F7"
+      ],
+      "prerequis": [
+        8
+      ],
+      "ecrits": [
+        {
+          "question": "F2",
+          "reponse_eleve": "\\(D_f = \\R \\setminus \\{-9\\pv 9\\}\\)",
+          "reponse_attendue": "\\(D_f = \\R \\setminus \\{-3\\pv 3\\}\\)",
+          "reussie": false
+        },
+        {
+          "question": "F7",
+          "reponse_eleve": "\\(D_h = \\R \\setminus \\{1\\}\\) ; « \\(-3\\) appartient car \\(D_h\\) est privé de 1 »",
+          "reponse_attendue": "\\(D_h = [-3\\pv 1\\ro \\cup \\lo 1\\pv +\\infty\\ro\\) ; \\(-3\\) appartient car \\(-3+3 = 0 \\ge 0\\) et \\(-3 \\ne 1\\)",
+          "reussie": false
+        }
+      ],
+      "ce_qui_ne_va_pas": "Dans F2, il faut résoudre \\(x^2 - 9 = 0\\), c'est-à-dire \\(x^2 = 9\\) : les solutions sont 3 et \\(-3\\), pas 9 et \\(-9\\). Dans F7, tu as bien posé la condition du dénominateur, mais il y a aussi une racine carrée : il faut \\(x + 3 \\ge 0\\). Ta conclusion « \\(-3\\) appartient » est juste, mais pas ta justification. De plus \\(h(-3) = \\dfrac{\\sqrt{0}}{-4} = 0\\).",
+      "causes": [
+        "\\(x^2 = 9\\) est lu comme \\(x = 9\\) : la racine carrée n'est pas prise.",
+        "Devant une racine carrée, seule la condition du dénominateur est cherchée."
+      ],
+      "a_retenir": [
+        "Un dénominateur doit être différent de 0. Ce qui est sous une racine carrée doit être positif ou nul. Une racine au dénominateur doit être strictement positive.",
+        "Pour \\(a \\gt 0\\), \\(x^2 = a\\) a deux solutions : \\(\\sqrt{a}\\) et \\(-\\sqrt{a}\\)."
+      ],
+      "methode_titre": "Méthode",
+      "methode": [
+        "Repérer chaque opération « à risque » (quotient, racine).",
+        "Ecrire une condition par opération.",
+        "Résoudre chaque condition séparément.",
+        "Garder les \\(x\\) qui vérifient toutes les conditions."
+      ],
+      "consigne_exercices": null,
+      "exercices": [
+        {
+          "enonce": "Ensemble de définition de \\(f(x) = \\dfrac{3}{x-5}\\).",
+          "niveau": 1,
+          "reponse": "\\(\\R \\setminus \\{5\\}\\)"
+        },
+        {
+          "enonce": "Ensemble de définition de \\(g(x) = \\dfrac{2x+1}{x^2-16}\\).",
+          "niveau": 1,
+          "reponse": "\\(\\R \\setminus \\{-4\\pv 4\\}\\)"
+        },
+        {
+          "enonce": "Ensemble de définition de \\(k(x) = \\sqrt{2x-6}\\).",
+          "niveau": 2,
+          "reponse": "\\([3\\pv +\\infty\\ro\\)"
+        },
+        {
+          "enonce": "Ensemble de définition de \\(h(x) = \\dfrac{\\sqrt{x+2}}{x-4}\\). Les nombres \\(-2\\) et 4 lui appartiennent-ils ?",
+          "niveau": 2,
+          "reponse": "\\([-2\\pv 4\\ro \\cup \\lo 4\\pv +\\infty\\ro\\) ; \\(-2\\) oui, 4 non"
+        },
+        {
+          "enonce": "Ensemble de définition de \\(m(x) = \\dfrac{1}{\\sqrt{9-x^2}}\\).",
+          "niveau": 3,
+          "reponse": "\\(\\lo -3\\pv 3\\ro\\)"
+        }
+      ]
+    },
+    {
+      "titre": "Parité d'une fonction",
+      "titre_tableau": null,
+      "titre_court": "Parité",
+      "duree_h": 1.0,
+      "questions": [
+        "F8"
+      ],
+      "prerequis": [
+        9
+      ],
+      "ecrits": [
+        {
+          "question": "F8",
+          "reponse_eleve": "non traitée",
+          "reponse_attendue": "\\(v(-x) = v(x)\\), \\(v\\) est paire : Boukary a raison",
+          "reussie": false
+        },
+        {
+          "question": "F6",
+          "reponse_eleve": "",
+          "reponse_attendue": "\\(u\\) est impaire",
+          "reussie": true
+        }
+      ],
+      "ce_qui_ne_va_pas": "Tu sais reconnaître une fonction impaire, mais tu n'as pas fait le lien entre parité et symétrie de la courbe. Pour \\(v\\), \\((-x)^2 = x^2\\), donc \\(v(-x) = \\dfrac{(-x)^2+1}{(-x)^2+3} = v(x)\\) : \\(v\\) est paire et sa courbe est symétrique par rapport à l'axe des ordonnées.",
+      "causes": [
+        "Le lien « paire » et « axe des ordonnées » n'est pas connu.",
+        "Le calcul de \\(v(-x)\\) avec un quotient a paru difficile."
+      ],
+      "a_retenir": [
+        "\\(f\\) est paire si, pour tout \\(x\\) de \\(D_f\\), \\(-x \\in D_f\\) et \\(f(-x) = f(x)\\) : courbe symétrique par rapport à l'axe des ordonnées.",
+        "\\(f\\) est impaire si \\(f(-x) = -f(x)\\) : courbe symétrique par rapport à l'origine O.",
+        "Toujours écrire \\(-x\\) entre parenthèses : \\((-x)^2 = x^2\\), \\((-x)^3 = -x^3\\)."
+      ],
+      "methode_titre": "Méthode",
+      "methode": [],
+      "consigne_exercices": null,
+      "exercices": [
+        {
+          "enonce": "Calculer \\((-x)^2\\), \\((-x)^3\\) et \\((-x)^4\\).",
+          "niveau": 1,
+          "reponse": "\\(x^2\\) ; \\(-x^3\\) ; \\(x^4\\)"
+        },
+        {
+          "enonce": "Etudier la parité de \\(f(x) = x^4 - 3x^2 + 1\\) sur \\(\\R\\).",
+          "niveau": 1,
+          "reponse": "Paire"
+        },
+        {
+          "enonce": "Etudier la parité de \\(g(x) = 2x^3 + x\\) sur \\(\\R\\).",
+          "niveau": 2,
+          "reponse": "Impaire"
+        },
+        {
+          "enonce": "Montrer que \\(h(x) = x^2 + x\\) n'est ni paire ni impaire (calculer \\(h(1)\\) et \\(h(-1)\\)).",
+          "niveau": 2,
+          "reponse": "\\(h(1) = 2\\), \\(h(-1) = 0\\) : ni paire ni impaire"
+        },
+        {
+          "enonce": "\\(w(x) = \\dfrac{5}{x^2+2}\\) sur \\(\\R\\). Ali affirme que la courbe de \\(w\\) est symétrique par rapport à l'origine. A-t-il raison ? Justifier.",
+          "niveau": 3,
+          "reponse": "\\(w(-x) = w(x)\\) : \\(w\\) est paire, symétrique par rapport à l'axe des ordonnées. Ali a tort : \\(w(-1) = \\frac{5}{3}\\), pas \\(-\\frac{5}{3}\\)."
+        }
+      ]
+    },
+    {
+      "titre": "Lecture graphique et calcul d'image",
+      "titre_tableau": null,
+      "titre_court": "Lecture graphique",
+      "duree_h": 1.0,
+      "questions": [
+        "F9",
+        "P1.3"
+      ],
+      "prerequis": [],
+      "ecrits": [
+        {
+          "question": "F9",
+          "reponse_eleve": "non traitée",
+          "reponse_attendue": "\\(S = [-4\\pv -2] \\cup [4\\pv 6]\\) ; \\(f(1) \\lt 0\\)",
+          "reussie": false
+        },
+        {
+          "question": "P1.3",
+          "reponse_eleve": "non traitée",
+          "reponse_attendue": "\\(f(2{,}5) = 3{,}75 \\gt 3{,}5\\) : l'eau passe au-dessus du mur",
+          "reussie": false
+        }
+      ],
+      "ce_qui_ne_va_pas": "Ces questions n'ont pas été abordées. Dans F9, la courbe est au-dessus de l'axe des abscisses avant \\(-2\\) et après 4, sans sortir de \\([-4\\pv 6]\\). Comme 1 est entre \\(-2\\) et 4, \\(f(1)\\) est négatif. Dans P1.3, il suffisait de calculer \\(f(2{,}5) = -6{,}25 + 10 = 3{,}75\\).",
+      "causes": [
+        "Une courbe décrite par des mots, sans dessin, est difficile à imaginer : faire un croquis aiderait.",
+        "Le manque de temps en fin d'épreuve (P1 est dans la partie C)."
+      ],
+      "a_retenir": [
+        "Résoudre \\(f(x) \\ge 0\\) : chercher les abscisses des points de la courbe situés sur ou au-dessus de l'axe des abscisses, dans l'ensemble de définition.",
+        "Image de \\(a\\) : lire l'ordonnée du point d'abscisse \\(a\\), ou remplacer \\(x\\) par \\(a\\) dans l'expression."
+      ],
+      "methode_titre": "Méthode",
+      "methode": [
+        "Faire un croquis avec les points donnés et les points où la courbe coupe l'axe.",
+        "Colorier les parties de la courbe au-dessus de l'axe.",
+        "Ecrire les intervalles correspondants."
+      ],
+      "consigne_exercices": "Pour les exercices 1 à 3 : \\(f\\) est définie sur \\([-3\\pv 5]\\). Sa courbe, tracée d'un seul trait, décroît du point \\((-3\\pv 4)\\) au point \\((0\\pv -2)\\), puis croît jusqu'au point \\((5\\pv 3)\\). Elle coupe l'axe des abscisses en \\(-1\\) et en 2.",
+      "exercices": [
+        {
+          "enonce": "Faire un croquis, puis donner \\(f(0)\\) et \\(f(-1)\\).",
+          "niveau": 1,
+          "reponse": "\\(f(0) = -2\\) ; \\(f(-1) = 0\\)"
+        },
+        {
+          "enonce": "Résoudre \\(f(x) \\ge 0\\).",
+          "niveau": 1,
+          "reponse": "\\([-3\\pv -1] \\cup [2\\pv 5]\\)"
+        },
+        {
+          "enonce": "Quel est le signe de \\(f(1)\\) ? Justifier.",
+          "niveau": 2,
+          "reponse": "\\(1 \\in \\lo -1\\pv 2\\ro\\) : \\(f(1)\\) est négatif"
+        },
+        {
+          "enonce": "\\(g(x) = -x^2 + 2x + 3\\). Calculer \\(g(0)\\), \\(g(1{,}5)\\) et \\(g(-1)\\).",
+          "niveau": 2,
+          "reponse": "\\(3\\) ; \\(3{,}75\\) ; \\(0\\)"
+        },
+        {
+          "enonce": "Un ballon suit la trajectoire \\(h(x) = -0{,}5x^2 + 2x + 1\\) (en mètres). Un fil tendu à 2,2 m de hauteur se trouve à \\(x = 3\\) m. Le ballon passe-t-il au-dessus du fil ? Conclure par une phrase.",
+          "niveau": 3,
+          "reponse": "\\(h(3) = -4{,}5 + 6 + 1 = 2{,}5 \\gt 2{,}2\\) : le ballon passe au-dessus du fil, avec 30 cm de marge."
+        }
+      ]
+    },
+    {
+      "titre": "Translations et forme canonique",
+      "titre_tableau": null,
+      "titre_court": "Forme canonique",
+      "duree_h": 3.0,
+      "questions": [
+        "F3",
+        "F5",
+        "P1.2"
+      ],
+      "prerequis": [
+        11
+      ],
+      "ecrits": [
+        {
+          "question": "F3",
+          "reponse_eleve": "c) \\(3\\vec{j}\\)",
+          "reponse_attendue": "a) \\(3\\vec{i}\\)",
+          "reussie": false
+        },
+        {
+          "question": "F5",
+          "reponse_eleve": "\\((3\\pv -5)\\)",
+          "reponse_attendue": "\\((-1\\pv -4)\\)",
+          "reussie": false
+        },
+        {
+          "question": "P1.2",
+          "reponse_eleve": "non traitée",
+          "reponse_attendue": "hauteur maximale 4 m, atteinte à 2 m du jet",
+          "reussie": false
+        }
+      ],
+      "ce_qui_ne_va_pas": "Dans \\((x-3)^2\\), c'est \\(x\\) qui est modifié : la courbe se déplace horizontalement, de 3 vers la droite, donc vecteur \\(3\\vec{i}\\). Dans F5, \\(y = (x+1)^2 - 4\\) s'écrit \\(y = \\big(x - (-1)\\big)^2 + (-4)\\) : le sommet est \\((-1\\pv -4)\\). Ta réponse \\((3\\pv -5)\\) ne correspond à aucun des nombres de l'expression : il faut apprendre à lire \\(\\alpha\\) et \\(\\beta\\).",
+      "causes": [
+        "Toute translation est imaginée verticale.",
+        "La forme \\(a(x-\\alpha)^2 + \\beta\\) n'est pas reconnue : le signe dans la parenthèse n'est pas inversé."
+      ],
+      "a_retenir": [
+        "Courbe de \\(x \\mapsto f(x-a)\\) : translation de vecteur \\(a\\vec{i}\\) (horizontale). Courbe de \\(x \\mapsto f(x) + b\\) : translation de vecteur \\(b\\vec{j}\\) (verticale).",
+        "\\(y = a(x-\\alpha)^2 + \\beta\\) : sommet \\(S(\\alpha\\pv \\beta)\\). Si \\(a \\lt 0\\), \\(\\beta\\) est le maximum, atteint pour \\(x = \\alpha\\). Si \\(a \\gt 0\\), \\(\\beta\\) est le minimum."
+      ],
+      "methode_titre": "Méthode",
+      "methode": [
+        "Réécrire l'expression avec un signe moins dans la parenthèse : \\((x+1) = \\big(x-(-1)\\big)\\).",
+        "Lire \\(\\alpha\\) et \\(\\beta\\).",
+        "Regarder le signe de \\(a\\) pour savoir si c'est un maximum ou un minimum."
+      ],
+      "consigne_exercices": null,
+      "exercices": [
+        {
+          "enonce": "Par quelle translation passe-t-on de la courbe de \\(x \\mapsto x^2\\) à celle de : \\(x \\mapsto (x+2)^2\\) ; \\(x \\mapsto x^2 - 5\\) ; \\(x \\mapsto (x-1)^2 + 3\\) ?",
+          "niveau": 1,
+          "reponse": "\\(-2\\vec{i}\\) ; \\(-5\\vec{j}\\) ; \\(\\vec{i} + 3\\vec{j}\\)"
+        },
+        {
+          "enonce": "Donner le sommet de : \\(y = (x-4)^2 + 1\\) ; \\(y = (x+3)^2 - 2\\) ; \\(y = -2(x-1)^2 + 5\\).",
+          "niveau": 1,
+          "reponse": "\\((4\\pv 1)\\) ; \\((-3\\pv -2)\\) ; \\((1\\pv 5)\\)"
+        },
+        {
+          "enonce": "Vérifier que \\(x^2 - 6x + 5 = (x-3)^2 - 4\\), puis donner le minimum de \\(x^2 - 6x + 5\\) et la valeur de \\(x\\) où il est atteint.",
+          "niveau": 2,
+          "reponse": "Minimum \\(-4\\), atteint en \\(x = 3\\)"
+        },
+        {
+          "enonce": "\\(f(x) = -(x-1)^2 + 9\\) sur \\(\\R\\). Donner le maximum de \\(f\\) et la valeur de \\(x\\) où il est atteint.",
+          "niveau": 2,
+          "reponse": "Maximum 9, atteint en \\(x = 1\\)"
+        },
+        {
+          "enonce": "La hauteur d'une balle est \\(h(t) = -5(t-2)^2 + 20\\), en mètres, \\(t\\) en secondes. Quelle est la hauteur maximale et à quel instant ? La balle est-elle au-dessus de 18 m à \\(t = 2{,}5\\) s ?",
+          "niveau": 3,
+          "reponse": "20 m à \\(t = 2\\) s ; \\(h(2{,}5) = 18{,}75\\) m : oui, au-dessus de 18 m"
+        }
+      ]
+    },
+    {
+      "titre": "Radians, cosinus et sinus",
+      "titre_tableau": null,
+      "titre_court": "Radians, cos et sin",
+      "duree_h": 2.0,
+      "questions": [
+        "F4",
+        "F10"
+      ],
+      "prerequis": [],
+      "ecrits": [
+        {
+          "question": "F4",
+          "reponse_eleve": "\\(21^\\circ\\)",
+          "reponse_attendue": "\\(210^\\circ\\)",
+          "reussie": false
+        },
+        {
+          "question": "F10",
+          "reponse_eleve": "non traitée",
+          "reponse_attendue": "\\(\\cos x = -\\dfrac{3}{5}\\)",
+          "reussie": false
+        }
+      ],
+      "ce_qui_ne_va_pas": "\\(\\pi\\) rad \\(= 180^\\circ\\), donc\n\n\\[\\frac{7\\pi}{6} \\text{ rad} = \\frac{7 \\times 180}{6} = 7 \\times 30 = 210^\\circ.\\]\n\nTu as trouvé 21 : un zéro a été perdu dans le calcul. Vérifie toujours l'ordre de grandeur : \\(\\frac{7\\pi}{6}\\) est un peu plus que \\(\\pi\\), donc un peu plus que \\(180^\\circ\\).",
+      "causes": [
+        "Une erreur de calcul (\\(7 \\times 3\\) au lieu de \\(7 \\times 30\\)), sans contrôle de l'ordre de grandeur.",
+        "La relation \\(\\cos^2 x + \\sin^2 x = 1\\) et le signe du cosinus selon l'intervalle ne sont pas encore connus."
+      ],
+      "a_retenir": [
+        "\\(\\pi\\) rad \\(= 180^\\circ\\). Donc \\(1^\\circ = \\dfrac{\\pi}{180}\\) rad.",
+        "Pour tout \\(x\\) : \\(\\cos^2 x + \\sin^2 x = 1\\).",
+        "Sur \\(\\lo 0\\pv \\frac{\\pi}{2}\\ro\\) : \\(\\cos\\) et \\(\\sin\\) positifs. Sur \\(\\lo \\frac{\\pi}{2}\\pv \\pi\\ro\\) : \\(\\cos\\) négatif, \\(\\sin\\) positif. Sur \\(\\lo \\pi\\pv \\frac{3\\pi}{2}\\ro\\) : \\(\\cos\\) et \\(\\sin\\) négatifs."
+      ],
+      "methode_titre": "Méthode pour trouver \\(\\cos x\\) connaissant \\(\\sin x\\)",
+      "methode": [
+        "Calculer \\(\\cos^2 x = 1 - \\sin^2 x\\) (élever \\(\\sin x\\) au carré).",
+        "En déduire deux valeurs possibles, positive et négative.",
+        "Choisir le signe grâce à l'intervalle où se trouve \\(x\\)."
+      ],
+      "consigne_exercices": null,
+      "exercices": [
+        {
+          "enonce": "Convertir en degrés : \\(\\dfrac{\\pi}{4}\\) ; \\(\\dfrac{2\\pi}{3}\\) ; \\(\\dfrac{5\\pi}{6}\\).",
+          "niveau": 1,
+          "reponse": "\\(45^\\circ\\) ; \\(120^\\circ\\) ; \\(150^\\circ\\)"
+        },
+        {
+          "enonce": "Convertir en radians : \\(60^\\circ\\) ; \\(135^\\circ\\) ; \\(270^\\circ\\).",
+          "niveau": 1,
+          "reponse": "\\(\\frac{\\pi}{3}\\) ; \\(\\frac{3\\pi}{4}\\) ; \\(\\frac{3\\pi}{2}\\)"
+        },
+        {
+          "enonce": "\\(x \\in \\lo 0\\pv \\frac{\\pi}{2}\\ro\\) et \\(\\cos x = \\dfrac{3}{5}\\). Calculer \\(\\sin x\\).",
+          "niveau": 2,
+          "reponse": "\\(\\sin x = \\frac{4}{5}\\)"
+        },
+        {
+          "enonce": "\\(x \\in \\lo \\frac{\\pi}{2}\\pv \\pi\\ro\\) et \\(\\sin x = \\dfrac{5}{13}\\). Calculer \\(\\cos x\\).",
+          "niveau": 2,
+          "reponse": "\\(\\cos x = -\\frac{12}{13}\\)"
+        },
+        {
+          "enonce": "\\(x \\in \\lo \\pi\\pv \\frac{3\\pi}{2}\\ro\\) et \\(\\cos x = -0{,}6\\). Calculer \\(\\sin x\\).",
+          "niveau": 3,
+          "reponse": "\\(\\sin x = -0{,}8\\)"
+        }
+      ]
+    },
+    {
+      "titre": "Distance et cercle dans un repère",
+      "titre_tableau": null,
+      "titre_court": "Distance et cercle",
+      "duree_h": 1.0,
+      "questions": [
+        "G4",
+        "G10",
+        "P3.1"
+      ],
+      "prerequis": [
+        3
+      ],
+      "ecrits": [
+        {
+          "question": "G4",
+          "reponse_eleve": "« AB a pour coordonnées \\((2\\pv -8)\\) »",
+          "reponse_attendue": "\\(AB = 10\\)",
+          "reussie": false
+        },
+        {
+          "question": "G10, P3.1",
+          "reponse_eleve": "non traitées",
+          "reponse_attendue": "\\(y = 3\\) ou \\(y = -5\\) ; Rakieta a raison",
+          "reussie": false
+        }
+      ],
+      "ce_qui_ne_va_pas": "Deux choses. D'abord \\(4 - (-2) = 4 + 2 = 6\\), pas 2 : le vecteur est \\(\\V{AB}\\,(6\\pv -8)\\). Ensuite, la question demandait une *distance*, qui est un nombre :\n\n\\[AB = \\sqrt{6^2 + (-8)^2} = \\sqrt{100} = 10.\\]\n\nTu t'es arrêtée au vecteur.",
+      "causes": [
+        "La soustraction d'un nombre négatif (règle de collège) n'est pas sûre.",
+        "Le vecteur \\(\\V{AB}\\) et la longueur \\(AB\\) sont confondus."
+      ],
+      "a_retenir": [
+        "Soustraire un nombre négatif revient à ajouter son opposé : \\(a - (-b) = a + b\\).",
+        "Dans un repère orthonormé : \\(AB = \\sqrt{(x_B - x_A)^2 + (y_B - y_A)^2}\\).",
+        "M est sur le cercle de centre I et de rayon \\(r\\) si et seulement si \\(IM^2 = r^2\\), c'est-à-dire \\((x - x_I)^2 + (y - y_I)^2 = r^2\\)."
+      ],
+      "methode_titre": "Méthode",
+      "methode": [],
+      "consigne_exercices": null,
+      "exercices": [
+        {
+          "enonce": "Calculer : \\(3 - (-5)\\) ; \\(-2 - (-7)\\) ; \\(-4 - 6\\).",
+          "niveau": 1,
+          "reponse": "\\(8\\) ; \\(5\\) ; \\(-10\\)"
+        },
+        {
+          "enonce": "Calculer \\(AB\\) pour \\(A(1\\pv -3)\\) et \\(B(4\\pv 1)\\).",
+          "niveau": 1,
+          "reponse": "\\(\\V{AB}\\,(3\\pv 4)\\), \\(AB = 5\\)"
+        },
+        {
+          "enonce": "Calculer \\(AB\\) pour \\(A(-2\\pv 5)\\) et \\(B(3\\pv -7)\\).",
+          "niveau": 2,
+          "reponse": "\\(\\V{AB}\\,(5\\pv -12)\\), \\(AB = 13\\)"
+        },
+        {
+          "enonce": "Le cercle de centre \\(I(1\\pv 2)\\) a pour rayon 5. Déterminer les points de ce cercle d'abscisse 4.",
+          "niveau": 2,
+          "reponse": "\\(9 + (y-2)^2 = 25\\) : \\((4\\pv 6)\\) et \\((4\\pv -2)\\)"
+        },
+        {
+          "enonce": "Même cercle. Moussa affirme qu'un point de ce cercle a pour abscisse 7. A-t-il raison ? Justifier.",
+          "niveau": 3,
+          "reponse": "\\((7-1)^2 = 36 \\gt 25\\) : aucun point. Moussa a tort."
+        }
+      ]
+    },
+    {
+      "titre": "Produit scalaire et angle droit",
+      "titre_tableau": null,
+      "titre_court": "Produit scalaire",
+      "duree_h": 2.0,
+      "questions": [
+        "G9",
+        "P3"
+      ],
+      "prerequis": [
+        3,
+        14
+      ],
+      "ecrits": [
+        {
+          "question": "G9",
+          "reponse_eleve": "\\(\\V{AB}\\cdot\\V{AC} = 5\\times 0 + 0\\times 6 = 0\\), « ABC rectangle en A »",
+          "reponse_attendue": "\\(\\V{AB}\\,(4\\pv 2)\\), \\(\\V{AC}\\,(-1\\pv 5)\\), produit scalaire 6 : non rectangle en A",
+          "reussie": false
+        },
+        {
+          "question": "G2",
+          "reponse_eleve": "",
+          "reponse_attendue": "produit scalaire avec des coordonnées données",
+          "reussie": true
+        }
+      ],
+      "ce_qui_ne_va_pas": "Ton raisonnement final est juste : produit scalaire nul, donc angle droit. Le problème vient des coordonnées des vecteurs, qui ne sont pas calculées « arrivée moins départ ». Avec \\(A(1\\pv -2)\\), \\(B(5\\pv 0)\\) et \\(C(0\\pv 3)\\) :\n\n\\[\\V{AB}\\,(4\\pv 2),\\quad \\V{AC}\\,(-1\\pv 5),\\quad \\V{AB}\\cdot\\V{AC} = 4\\times(-1) + 2\\times 5 = 6 \\ne 0.\\]\n\nLe triangle n'est pas rectangle en A.",
+      "causes": [
+        "Les coordonnées des points sont utilisées à la place des coordonnées des vecteurs.",
+        "Le point A n'est pas soustrait."
+      ],
+      "a_retenir": [
+        "Dans un repère orthonormé, si \\(\\vec{u}\\,(x\\pv y)\\) et \\(\\vec{v}\\,(x'\\pv y')\\) : \\(\\vec{u}\\cdot\\vec{v} = xx' + yy'\\).",
+        "\\(\\vec{u}\\cdot\\vec{v} = 0\\) si et seulement si \\(\\vec{u}\\) et \\(\\vec{v}\\) sont orthogonaux.",
+        "ABC est rectangle en A si et seulement si \\(\\V{AB}\\cdot\\V{AC} = 0\\)."
+      ],
+      "methode_titre": "Méthode",
+      "methode": [
+        "Calculer les coordonnées de chaque vecteur, arrivée moins départ.",
+        "Appliquer \\(xx' + yy'\\).",
+        "Comparer à 0 et conclure par une phrase."
+      ],
+      "consigne_exercices": null,
+      "exercices": [
+        {
+          "enonce": "Calculer \\(\\vec{u}\\cdot\\vec{v}\\) pour \\(\\vec{u}\\,(3\\pv -2)\\) et \\(\\vec{v}\\,(4\\pv 6)\\). Que peut-on dire de ces vecteurs ?",
+          "niveau": 1,
+          "reponse": "\\(12 - 12 = 0\\) : vecteurs orthogonaux"
+        },
+        {
+          "enonce": "Calculer \\(\\vec{u}\\cdot\\vec{v}\\) pour \\(\\vec{u}\\,(-1\\pv 5)\\) et \\(\\vec{v}\\,(2\\pv 3)\\).",
+          "niveau": 1,
+          "reponse": "\\(13\\)"
+        },
+        {
+          "enonce": "Trouver \\(m\\) pour que \\(\\vec{u}\\,(m\\pv 4)\\) et \\(\\vec{v}\\,(6\\pv -3)\\) soient orthogonaux.",
+          "niveau": 2,
+          "reponse": "\\(6m - 12 = 0\\), donc \\(m = 2\\)"
+        },
+        {
+          "enonce": "\\(A(0\\pv 1)\\), \\(B(4\\pv 3)\\), \\(C(-1\\pv 3)\\). Le triangle ABC est-il rectangle en A ?",
+          "niveau": 2,
+          "reponse": "\\(\\V{AB}\\,(4\\pv 2)\\), \\(\\V{AC}\\,(-1\\pv 2)\\) : \\(-4 + 4 = 0\\), oui"
+        },
+        {
+          "enonce": "Sur le plan d'un terrain (une unité représente 10 m), \\(A(2\\pv 1)\\), \\(B(6\\pv 4)\\) et \\(C(-1\\pv 5)\\). Le coin A est-il un angle droit ? Calculer ensuite \\(AB\\) et \\(AC\\) en mètres.",
+          "niveau": 3,
+          "reponse": "\\(\\V{AB}\\,(4\\pv 3)\\), \\(\\V{AC}\\,(-3\\pv 4)\\) : produit nul, angle droit ; \\(AB = AC = 5\\) unités, soit 50 m"
+        }
+      ]
+    },
+    {
+      "titre": "Symétrie, homothétie, translation",
+      "titre_tableau": null,
+      "titre_court": "Transformations",
+      "duree_h": 3.0,
+      "questions": [
+        "G3",
+        "G6",
+        "P3.2"
+      ],
+      "prerequis": [
+        3
+      ],
+      "ecrits": [
+        {
+          "question": "G3",
+          "reponse_eleve": "\\(A'(3\\pv 4)\\)",
+          "reponse_attendue": "\\(A'(-1\\pv -5)\\)",
+          "reussie": false
+        },
+        {
+          "question": "G6",
+          "reponse_eleve": "\\(M'(-2{,}5\\pv -2)\\)",
+          "reponse_attendue": "\\(M'(-5\\pv 7)\\)",
+          "reussie": false
+        },
+        {
+          "question": "P3.2",
+          "reponse_eleve": "non traitée",
+          "reponse_attendue": "ABC rectangle isocèle en B ; \\(D(4\\pv -2)\\)",
+          "reussie": false
+        }
+      ],
+      "ce_qui_ne_va_pas": "Pour la symétrie de centre I, c'est I qui est le milieu de \\([AA']\\) :\n\n\\[x_{A'} = 2x_I - x_A = 4 - 5 = -1, \\qquad y_{A'} = 2y_I - y_A = -2 - 3 = -5.\\]\n\nPour l'homothétie, on part du centre : \\(\\V{IM}\\,(3\\pv -2)\\), donc \\(\\V{IM'} = -2\\V{IM} = (-6\\pv 4)\\) et \\(M' = (1 - 6\\pv 3 + 4) = (-5\\pv 7)\\). Dans tes deux réponses, le centre n'a pas joué son rôle.",
+      "causes": [
+        "Le symétrique est confondu avec un milieu.",
+        "Pour l'homothétie, le rapport est appliqué aux coordonnées de M au lieu du vecteur \\(\\V{IM}\\).",
+        "Le signe négatif du rapport (point de l'autre côté du centre) n'est pas compris."
+      ],
+      "a_retenir": [
+        "Symétrie de centre I : I est le milieu de \\([AA']\\), donc \\(A'(2x_I - x_A\\pv 2y_I - y_A)\\).",
+        "Homothétie de centre I et de rapport \\(k\\) : \\(\\V{IM'} = k\\,\\V{IM}\\). Si \\(k \\lt 0\\), M' est de l'autre côté de I.",
+        "Translation de vecteur \\(\\vec{u}\\,(a\\pv b)\\) : \\(A'(x_A + a\\pv y_A + b)\\)."
+      ],
+      "methode_titre": "Méthode",
+      "methode": [
+        "Placer les points sur un quadrillage pour prévoir la réponse.",
+        "Calculer le vecteur qui part du centre.",
+        "Appliquer la relation, puis ajouter les coordonnées du centre.",
+        "Comparer au croquis."
+      ],
+      "consigne_exercices": null,
+      "exercices": [
+        {
+          "enonce": "Coordonnées du symétrique de \\(A(3\\pv 2)\\) par rapport à \\(I(1\\pv 0)\\).",
+          "niveau": 1,
+          "reponse": "\\((-1\\pv -2)\\)"
+        },
+        {
+          "enonce": "Coordonnées du symétrique de \\(B(-2\\pv 5)\\) par rapport à \\(I(1\\pv 1)\\).",
+          "niveau": 1,
+          "reponse": "\\((4\\pv -3)\\)"
+        },
+        {
+          "enonce": "Image de \\(M(5\\pv 2)\\) par l'homothétie de centre \\(I(1\\pv 0)\\) et de rapport 2.",
+          "niveau": 2,
+          "reponse": "\\((9\\pv 4)\\)"
+        },
+        {
+          "enonce": "Image de \\(M(3\\pv 5)\\) par l'homothétie de centre \\(I(1\\pv 1)\\) et de rapport \\(-\\dfrac{1}{2}\\).",
+          "niveau": 2,
+          "reponse": "\\((0\\pv -1)\\)"
+        },
+        {
+          "enonce": "\\(A(1\\pv 2)\\), \\(B(2\\pv 5)\\), \\(C(6\\pv 3)\\). Calculer les coordonnées de D, image de A par la translation de vecteur \\(\\V{BC}\\). Quelle est la nature du quadrilatère ABCD ?",
+          "niveau": 3,
+          "reponse": "\\(D(5\\pv 0)\\) ; \\(\\V{AD} = \\V{BC}\\), ABCD est un parallélogramme"
+        }
+      ]
+    },
+    {
+      "titre": "Géométrie dans l'espace",
+      "titre_tableau": null,
+      "titre_court": "Espace",
+      "duree_h": 1.0,
+      "questions": [
+        "G7",
+        "P4.2"
+      ],
+      "prerequis": [],
+      "ecrits": [
+        {
+          "question": "G7",
+          "reponse_eleve": "« (AE) est une arête droite ; (EFG) est un triangle rectangle »",
+          "reponse_attendue": "(AE) est sécante au plan (EFG) en E (et perpendiculaire)",
+          "reussie": false
+        },
+        {
+          "question": "P4.2",
+          "reponse_eleve": "non traitée",
+          "reponse_attendue": "\\(AG = \\sqrt{34}\\) m ; (AB) et (CG) non coplanaires",
+          "reussie": false
+        },
+        {
+          "question": "G5",
+          "reponse_eleve": "",
+          "reponse_attendue": "(AB) et (HG) parallèles",
+          "reussie": true
+        }
+      ],
+      "ce_qui_ne_va_pas": "La question demandait une *position relative* : incluse, sécante ou parallèle. Tu as décrit les objets séparément. De plus, (EFG) n'est pas un triangle : trois points non alignés définissent un plan, ici le plan de la face du dessus EFGH. La droite (AE) traverse ce plan au point E.",
+      "causes": [
+        "La notation (EFG) d'un plan est lue comme un triangle.",
+        "Les trois positions possibles d'une droite et d'un plan ne sont pas connues."
+      ],
+      "a_retenir": [
+        "Une droite et un plan : la droite est incluse (au moins deux points communs), sécante (un seul point commun) ou parallèle (aucun point commun).",
+        "Deux droites de l'espace : coplanaires (sécantes ou parallèles) ou non coplanaires.",
+        "Diagonale d'un pavé droit : \\(AG^2 = AB^2 + BC^2 + AE^2\\) (deux fois Pythagore)."
+      ],
+      "methode_titre": "Méthode",
+      "methode": [],
+      "consigne_exercices": "Exercices 1 à 4 : ABCDEFGH est un cube, E au-dessus de A, F au-dessus de B, G au-dessus de C, H au-dessus de D. Fais d'abord un dessin en perspective.",
+      "exercices": [
+        {
+          "enonce": "Position relative de la droite (EF) et du plan (EFG).",
+          "niveau": 1,
+          "reponse": "Incluse"
+        },
+        {
+          "enonce": "Position relative de la droite (AB) et du plan (EFG).",
+          "niveau": 1,
+          "reponse": "Parallèle"
+        },
+        {
+          "enonce": "Position relative de la droite (BF) et du plan (ABC).",
+          "niveau": 2,
+          "reponse": "Sécante en B (perpendiculaire)"
+        },
+        {
+          "enonce": "Position relative des droites (AB) et (CG).",
+          "niveau": 2,
+          "reponse": "Non coplanaires"
+        },
+        {
+          "enonce": "Un magasin a la forme d'un pavé droit ABCDEFGH avec \\(AB = 4\\) m, \\(BC = 3\\) m et \\(AE = 12\\) m. Calculer \\(AC\\) puis \\(AG\\). Peut-on y ranger une barre de fer rectiligne de 12,5 m ? Conclure par une phrase.",
+          "niveau": 3,
+          "reponse": "\\(AC = 5\\) m ; \\(AG = \\sqrt{25 + 144} = 13\\) m ; \\(12{,}5 \\lt 13\\), la barre peut être rangée."
+        }
+      ]
+    }
+  ]
+}

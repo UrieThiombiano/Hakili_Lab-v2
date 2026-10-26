@@ -34,6 +34,17 @@
 
 FROM python:3.12-slim
 
+# Chromium headless pour le plan de remédiation (src/pipeline/pdf_plan_remediation.py).
+# Installé en root (bibliothèques système via apt), dans un dossier partagé
+# lisible par l'utilisateur `hakili`. La version de Playwright est lue dans
+# requirements.txt : un Chromium d'une autre version ne serait pas trouvé.
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir "$(grep -E '^playwright==' /tmp/requirements.txt)" \
+ && playwright install --with-deps chromium \
+ && chmod -R a+rX /ms-playwright \
+ && rm -rf /var/lib/apt/lists/* /tmp/requirements.txt
+
 RUN useradd -m -u 1000 hakili
 USER hakili
 ENV PATH="/home/hakili/.local/bin:$PATH"

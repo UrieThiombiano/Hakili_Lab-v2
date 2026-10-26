@@ -284,6 +284,98 @@ class RemediationSubject(BaseModel):
     is_enrichment: bool = False  # True quand score parfait → exercices d'approfondissement
 
 
+# ── Plan de remédiation (cahier élève, un seul PDF) ─────────────────────────────
+# Remplace le sujet de remédiation/enrichissement : un cahier qui reprend la
+# copie compétence par compétence, dans l'ordre de travail, avec 5 exercices
+# chacune et les réponses en annexe. Gabarit : templates/plan_remediation/,
+# modèle validé : l'exemplaire NIKIEMA K. Amale (tests/fixtures/).
+# Le texte est en LaTeX entre \( \) et \[ \], rendu par MathJax.
+
+#: Durée d'une séance de travail, en heures (« séances de 1 h 30 »).
+DUREE_SEANCE_H = 1.5
+#: Rythme hebdomadaire annoncé à l'élève.
+SEANCES_PAR_SEMAINE = 2
+#: Note sur 20 à partir de laquelle aucun plan n'est produit.
+SEUIL_SANS_PLAN = 19.0
+
+
+class LigneEcrit(BaseModel):
+    """Une ligne de « Ce que tu as écrit »."""
+    question: str                 # "N1", ou "N4, P2.2, P3.3"
+    reponse_eleve: str = ""       # vide si `reussie`
+    reponse_attendue: str
+    #: Question réussie : une seule cellule « réussie : <reponse_attendue> ».
+    reussie: bool = False
+
+
+class ExercicePlan(BaseModel):
+    enonce: str
+    niveau: int = Field(ge=1, le=3)
+    reponse: str                  # reprise dans l'annexe « Réponses des exercices »
+
+
+class CompetencePlan(BaseModel):
+    titre: str
+    titre_tableau: str | None = None  # libellé dans « Le plan, séance par séance », sinon `titre`
+    titre_court: str              # titre de la rubrique dans l'annexe
+    duree_h: float = Field(gt=0)
+    questions: list[str] = Field(min_length=1)
+    #: Numéros d'ordre (1 = première section) des sections à faire avant.
+    prerequis: list[int] = Field(default_factory=list)
+    ecrits: list[LigneEcrit] = Field(min_length=1)
+    #: Paragraphes séparés par une ligne vide ; un paragraphe qui n'est qu'une
+    #: formule \[ … \] est centré hors paragraphe ; *mot* met en italique.
+    ce_qui_ne_va_pas: str
+    causes: list[str] = Field(min_length=1)
+    a_retenir: list[str] = Field(min_length=1)
+    methode_titre: str = "Méthode"
+    methode: list[str] = Field(default_factory=list)  # bloc omis si vide
+    #: Consigne commune en tête de « A toi de jouer » (« Pour les exercices 1 à 3 : … »).
+    consigne_exercices: str | None = None
+    exercices: list[ExercicePlan] = Field(min_length=5, max_length=5)
+    code_competence: str | None = None  # code canonique du référentiel, si connu
+
+
+class PlanRemediation(BaseModel):
+    copy_id: str
+    eleve_nom: str                # "NIKIEMA K. Amale"
+    prenom: str                   # "Amale" — l'introduction tutoie l'élève
+    classe: str                   # "1ère D"
+    test_libelle: str             # "test diagnostique d'entrée en 1ère D"
+    date: str                     # "24 octobre 2026"
+    acquis: list[str] = Field(default_factory=list)  # « Ce que tu sais déjà faire »
+    competences: list[CompetencePlan] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _prerequis_anterieurs(self) -> "PlanRemediation":
+        for i, c in enumerate(self.competences, start=1):
+            if any(not 1 <= p < i for p in c.prerequis):
+                raise ValueError(f"section {i} : un prérequis doit désigner une section antérieure")
+        return self
+
+    @property
+    def total_h(self) -> float:
+        return sum(c.duree_h for c in self.competences)
+
+    @property
+    def nb_seances(self) -> int:
+        return int(-(-self.total_h // DUREE_SEANCE_H))
+
+    @property
+    def nb_semaines(self) -> int:
+        return -(-self.nb_seances // SEANCES_PAR_SEMAINE)
+
+    def seances(self) -> list[tuple[int, int]]:
+        """Première et dernière séance de chaque section, dans l'ordre : une
+        séance peut finir une compétence et commencer la suivante."""
+        bornes, debut = [], 0.0
+        for c in self.competences:
+            fin = debut + c.duree_h
+            bornes.append((int(debut // DUREE_SEANCE_H) + 1, int(-(-fin // DUREE_SEANCE_H))))
+            debut = fin
+        return bornes
+
+
 # ── Sujet de confirmation (T1, module 5) ────────────────────────────────────────
 # À ne pas confondre avec `RemediationSubject` : T1 ne cherche pas à faire
 # progresser l'élève, il départage une hypothèse de lacune (`suivi.Probleme`,
