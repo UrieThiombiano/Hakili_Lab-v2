@@ -1,35 +1,22 @@
-# Reconstruit manuellement le 2026-08-12 depuis le sujet et le corrige PDF recomposes
-# (data/Documents/, livraison data/New-docs/ du 2026-08-12) — PAS depuis Referentiel_Socle_v0.xlsx,
-# qui n'a pas ete mis a jour (voir docs/harmonisation_donnees.md, arbitrage H).
-# Ne pas relancer scripts/generer_baremes_socle.py sur ce fichier sans avoir d'abord
-# reporte la nouvelle composition (structure a 3 parties) dans le classeur, sous peine
-# d'ecraser ce travail et de revenir a l'ancienne composition a 2 parties.
+# Généré par scripts/generer_baremes_socle.py — ne pas éditer à la main.
+# Source : data/referentiel/Referentiel_Urie_v1.xlsx + data/knowledge/corriges_socle.yaml.
+# Pour corriger une réponse attendue, éditer corriges_socle.yaml puis
+# relancer le script ; pour la structure du test, mettre à jour le classeur.
 
 meta:
   test_id: socle_5eme
   titre: Test diagnostique d'entrée en 5ème
   niveau_test: 5eme
   classe: 5e
-  total_questions: 45
+  total_questions: 36
   total_possible: 20
-  somme_baremes_reelle: 19.99999
+  somme_baremes_reelle: 20.0
   bareme_classeur_total: 60.0
-  structure: 'Partie A 16 pts (16 x 1) - Partie B 22 pts (13 items : 11 x 2 + G7/G9 decomposes en 2 x
-    1 chacun) - Partie C 22 pts (2x5 + 2x6, 4 problemes decomposes en 4 sous-items chacun)'
-  source: data/Documents/Test_diagnostique_entree_5eme.pdf et data/Documents/corriges/Corrige_test_diagnostique_entree_5eme.pdf
-    (livraison 2026-08-12, corrige valide par un enseignant de mathematiques)
-  genere_par: 'reconstruction manuelle assistee (2026-08-12) — voir docs/harmonisation_donnees.md, arbitrage
-    H. Referentiel_Socle_v0.xlsx n''a PAS ete mis a jour : ce fichier est temporairement la source de
-    verite du bareme socle_5eme, en avance sur le classeur.'
-  note_corriges: 'Reponses et demarches extraites en lisant les pages du corrige PDF (rendues en image,
-    les valeurs numeriques y sont en vectoriel et invisibles a l''extraction texte). Competence de chaque
-    sous-item de Partie C tiree directement du domaine indique entre parentheses dans le bareme imprime
-    du corrige (ex. ''1 pt (G)''), recoupee avec le tableau officiel ''profil par domaine'' (G 2 / M 4
-    / N 10 / D 6 pts pour la partie C) : correspondance EXACTE, aucun ecart. G7 et G9 (partie B) ont ete
-    decomposes en 2 sous-items chacun (calcul + construction), portant la partie B a 13 items pour 22
-    points inchanges. Un seul point d''incertitude : G3/G6 portent sur des angles supplementaires, sans
-    code canonique dedie dans le referentiel actuel (G.ANG2, retenu ici, designe des angles complementaires)
-    — a confirmer avec l''enseignant.'
+  source: 'Referentiel_Urie_v1.xlsx (batterie allégée du 2026-10-06) — onglets 04_Questions, 06_Distracteurs,
+    02_Competences ; corrigés : data/knowledge/corriges_socle.yaml'
+  genere_par: scripts/generer_baremes_socle.py
+  note_corriges: 5 QCM avec bonne réponse (classeur) ; 31 questions corrigées depuis le corrigé PDF enseignant
+    ; 0 sans corrigé.
 questions:
 - code: N1
   partie: A
@@ -39,10 +26,10 @@ questions:
   competence: N.NUM
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Ecrire en chiffres un nombre compose d'unites et de milliemes
+  objet: Ecrire en chiffres cinq unités et trente-quatre millièmes
   reponse_attendue: 5,034
   solution: ''
-  si_echoue: 'Numeration decimale : le rang des milliemes n''est pas identifie.'
+  si_echoue: 'Numération décimale : le rang des millièmes n''est pas identifié.'
 - code: N2
   partie: A
   format: court
@@ -51,10 +38,10 @@ questions:
   competence: N.PRIO
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Calculer une expression avec parenthese, multiplication et soustraction
+  objet: Calculer 30 - 4 × (7 - 5)
   reponse_attendue: '22'
   solution: ''
-  si_echoue: 'Priorites operatoires : la parenthese puis la multiplication ne passent pas avant la soustraction.'
+  si_echoue: 'Priorités opératoires : la parenthèse puis la multiplication ne passent pas avant la soustraction.'
 - code: N3
   partie: A
   format: court
@@ -63,10 +50,10 @@ questions:
   competence: N.REL
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Ranger quatre nombres relatifs dans l'ordre croissant
+  objet: Ranger dans l'ordre croissant -9 ; +2 ; -3 ; -1
   reponse_attendue: -9 < -3 < -1 < +2
-  solution: ''
-  si_echoue: 'Comparaison des nombres relatifs : l''ordre des negatifs est inverse.'
+  solution: 'Barème : 1 pt, tout ou rien. La liste -9 ; -3 ; -1 ; +2 sans signes de comparaison est acceptée.'
+  si_echoue: 'Comparaison des nombres relatifs : l''ordre des négatifs est inversé.'
 - code: N4
   partie: A
   format: court
@@ -75,10 +62,11 @@ questions:
   competence: N.AST
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Calculer astucieusement un produit proche d'une puissance de 10
+  objet: Calculer astucieusement 17 × 99
   reponse_attendue: 1 683
-  solution: ''
-  si_echoue: 'Calcul astucieux : la decomposition 99 = 100 - 1 n''est pas mobilisee.'
+  solution: 'Barème : 1 pt, tout ou rien. Aucune justification n''étant demandée en partie A, seul le
+    résultat est évalué.'
+  si_echoue: 'Calcul astucieux : la décomposition 99 = 100 - 1 n''est pas mobilisée.'
 - code: N5
   partie: A
   format: court
@@ -87,10 +75,10 @@ questions:
   competence: N.EGT
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Completer une egalite a trou (multiplication/division)
+  objet: Compléter l'égalité ... ÷ 6 = 13
   reponse_attendue: '78'
   solution: ''
-  si_echoue: 'Egalite a trou : la division n''est pas defaite par la multiplication.'
+  si_echoue: 'Egalité à trou : la division n''est pas défaite par la multiplication.'
 - code: N6
   partie: A
   format: qcm
@@ -99,10 +87,30 @@ questions:
   competence: N.FRA1
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Choisir la forme irreductible d'une fraction (QCM)
-  reponse_attendue: b) 3/4
+  objet: Choisir la forme irréductible de la fraction 36/48 (QCM)
+  reponse_attendue: b
   solution: ''
-  si_echoue: 'Simplification de fraction : le diviseur commun 12 n''est pas trouve, la simplification
+  options:
+  - lettre: a
+    texte: 18/24
+    correcte: false
+    type_erreur: CNS
+    erreur: 'Diviser seulement par 2 (36 ÷ 2 = 18, 48 ÷ 2 = 24) et s''arrêter : la fraction irréductible
+      n''est pas connue.'
+  - lettre: b
+    texte: 3/4
+    correcte: true
+  - lettre: c
+    texte: 6/8
+    correcte: false
+    type_erreur: PRC
+    erreur: Diviser par 6 (36 ÷ 6 = 6, 48 ÷ 6 = 8) sans vérifier qu'il reste le diviseur commun 2.
+  - lettre: d
+    texte: 4/3
+    correcte: false
+    type_erreur: CPT
+    erreur: Simplifier par 12 (36 ÷ 12 = 3, 48 ÷ 12 = 4) puis échanger numérateur et dénominateur.
+  si_echoue: 'Simplification de fraction : le diviseur commun 12 n''est pas trouvé, la simplification
     reste partielle.'
 - code: M1
   partie: A
@@ -112,11 +120,11 @@ questions:
   competence: M.CONV
   competence_secondaire: null
   domaine: Mesures et grandeurs
-  objet: Completer une conversion de capacite (hL vers L)
+  objet: Convertir 4,2 hL en litres
   reponse_attendue: 420 L
   solution: ''
-  si_echoue: 'Conversion des capacites : le rang de l''hectolitre n''est pas place dans le tableau des
-    unites.'
+  si_echoue: 'Conversion des capacités : le rang de l''hectolitre n''est pas placé dans le tableau des
+    unités.'
 - code: M2
   partie: A
   format: court
@@ -125,22 +133,42 @@ questions:
   competence: M.AIRE
   competence_secondaire: null
   domaine: Mesures et grandeurs
-  objet: Calculer l'aire d'un parallelogramme
+  objet: Calculer l'aire d'un parallélogramme de base 7 cm et de hauteur 4 cm
   reponse_attendue: 28 cm²
   solution: ''
-  si_echoue: 'Aire du parallelogramme : la hauteur relative a la base est confondue avec un cote.'
+  si_echoue: 'Aire du parallélogramme : la hauteur relative à la base est confondue avec un côté.'
 - code: M3
   partie: A
   format: qcm
   bareme: 0.333333
   bareme_classeur: 1.0
   competence: G.SOL1
-  competence_secondaire: null
-  domaine: Mesures et grandeurs
-  objet: Choisir l'aire totale d'un cube (QCM)
-  reponse_attendue: d) 150 cm²
+  competence_secondaire: M.AIRE
+  domaine: Activites geometriques
+  objet: Choisir l'aire totale d'un cube d'arête 5 cm (QCM)
+  reponse_attendue: d
   solution: ''
-  si_echoue: 'Aire totale du cube : les six faces ne sont pas denombrees, ou l''aire est confondue avec
+  options:
+  - lettre: a
+    texte: 25 cm²
+    correcte: false
+    type_erreur: CNS
+    erreur: 'Calculer l''aire d''une seule face, 5 × 5 = 25 : l''aire totale n''est pas connue.'
+  - lettre: b
+    texte: 125 cm²
+    correcte: false
+    type_erreur: CPT
+    erreur: Calculer le volume 5 × 5 × 5 = 125 au lieu de l'aire totale.
+  - lettre: c
+    texte: 30 cm²
+    correcte: false
+    type_erreur: PRC
+    erreur: 'Compter les six faces mais prendre 5 pour l''aire d''une face : 6 × 5 = 30 au lieu de 6 ×
+      25.'
+  - lettre: d
+    texte: 150 cm²
+    correcte: true
+  si_echoue: 'Aire totale du cube : les six faces ne sont pas dénombrées, ou l''aire est confondue avec
     le volume.'
 - code: G1
   partie: A
@@ -150,10 +178,10 @@ questions:
   competence: G.PARA
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Ecrire la position relative de deux droites toutes deux perpendiculaires a une meme troisieme
-  reponse_attendue: Elles sont paralleles.
-  solution: ''
-  si_echoue: 'Propriete : deux droites perpendiculaires a une meme droite sont paralleles entre elles.'
+  objet: Donner la position de deux droites perpendiculaires à une même droite (Δ)
+  reponse_attendue: Elles sont parallèles.
+  solution: 'Barème : 1 pt, tout ou rien. La notation (d) // (d'') est acceptée.'
+  si_echoue: 'Propriété : deux droites perpendiculaires à une même droite sont parallèles entre elles.'
 - code: G2
   partie: A
   format: court
@@ -162,10 +190,10 @@ questions:
   competence: G.TRI
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Dire si un triangle de trois longueurs donnees existe (inegalite triangulaire)
+  objet: Dire si un triangle de côtés 3 cm, 4 cm et 9 cm existe (OUI ou NON)
   reponse_attendue: NON
   solution: ''
-  si_echoue: 'Inegalite triangulaire : la somme des deux plus petits cotes n''est pas comparee au plus
+  si_echoue: 'Inégalité triangulaire : la somme des deux plus petits côtés n''est pas comparée au plus
     grand.'
 - code: G3
   partie: A
@@ -175,10 +203,10 @@ questions:
   competence: G.ANG2
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer la mesure du second angle de deux angles supplementaires
+  objet: Calculer le supplémentaire d'un angle de 118°
   reponse_attendue: 62°
   solution: ''
-  si_echoue: 'Angles supplementaires : la somme 180° est confondue avec 90°.'
+  si_echoue: 'Angles supplémentaires : la somme 180° est confondue avec 90°.'
 - code: G4
   partie: A
   format: qcm
@@ -187,10 +215,30 @@ questions:
   competence: G.MED
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Choisir la propriete d'un point de la mediatrice d'un segment (QCM)
-  reponse_attendue: c) PE = PF
+  objet: Choisir ce qu'on peut affirmer d'un point P de la médiatrice de [EF] (QCM)
+  reponse_attendue: c
   solution: ''
-  si_echoue: 'Mediatrice : la propriete d''equidistance n''est pas connue, la mediatrice est reduite au
+  options:
+  - lettre: a
+    texte: P est le milieu de [EF]
+    correcte: false
+    type_erreur: CPT
+    erreur: Confondre la médiatrice avec le milieu du segment.
+  - lettre: b
+    texte: PE = EF
+    correcte: false
+    type_erreur: CNS
+    erreur: 'Retenir vaguement une égalité de longueurs sans savoir laquelle : l''équidistance n''est
+      pas connue.'
+  - lettre: c
+    texte: PE = PF
+    correcte: true
+  - lettre: d
+    texte: (PE) ⊥ (PF)
+    correcte: false
+    type_erreur: CPT
+    erreur: Transférer la perpendicularité de la médiatrice à [EF] aux droites (PE) et (PF).
+  si_echoue: 'Médiatrice : la propriété d''équidistance n''est pas connue, la médiatrice est réduite au
     milieu du segment.'
 - code: G5
   partie: A
@@ -200,10 +248,29 @@ questions:
   competence: G.PARAL
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Choisir la propriete d'un parallelogramme a partir de son centre (QCM)
-  reponse_attendue: d) O est le milieu de [AC]
+  objet: Choisir la propriété vraie d'un parallélogramme ABCD de centre O (QCM)
+  reponse_attendue: d
   solution: ''
-  si_echoue: 'Parallelogramme : les proprietes du losange et du rectangle lui sont attribuees ; le centre
+  options:
+  - lettre: a
+    texte: AB = BC
+    correcte: false
+    type_erreur: CPT
+    erreur: Attribuer au parallélogramme une propriété du losange (côtés consécutifs égaux).
+  - lettre: b
+    texte: AC = BD
+    correcte: false
+    type_erreur: CPT
+    erreur: Attribuer au parallélogramme une propriété du rectangle (diagonales de même longueur).
+  - lettre: c
+    texte: (AB) ⊥ (BC)
+    correcte: false
+    type_erreur: CPT
+    erreur: Imaginer le parallélogramme rectangle et lui attribuer un angle droit.
+  - lettre: d
+    texte: O est le milieu de [AC]
+    correcte: true
+  si_echoue: 'Parallélogramme : les propriétés du losange et du rectangle lui sont attribuées ; le centre
     n''est pas vu comme milieu commun des diagonales.'
 - code: D1
   partie: A
@@ -212,11 +279,30 @@ questions:
   bareme_classeur: 1.0
   competence: D.POUR
   competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: Choisir le prix paye apres une remise en pourcentage (QCM)
-  reponse_attendue: a) 360 000 FCFA
+  domaine: Donnees, proportionnalite, statistique
+  objet: Choisir le prix d'une moto de 450 000 FCFA après une remise de 20 % (QCM)
+  reponse_attendue: a
   solution: ''
-  si_echoue: 'Pourcentage de remise : le montant de la remise est pris pour le prix paye.'
+  options:
+  - lettre: a
+    texte: 360 000 FCFA
+    correcte: true
+  - lettre: b
+    texte: 90 000 FCFA
+    correcte: false
+    type_erreur: PRC
+    erreur: Calculer la remise 450 000 × 20/100 = 90 000 et oublier de la retrancher du prix affiché.
+  - lettre: c
+    texte: 430 000 FCFA
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Lire 20 % comme 20 000 FCFA : 450 000 - 20 000 = 430 000.'
+  - lettre: d
+    texte: 540 000 FCFA
+    correcte: false
+    type_erreur: MOD
+    erreur: 'Ajouter la remise au lieu de la retrancher : 450 000 + 90 000 = 540 000.'
+  si_echoue: 'Pourcentage de remise : le montant de la remise est pris pour le prix payé.'
 - code: D2
   partie: A
   format: court
@@ -224,11 +310,11 @@ questions:
   bareme_classeur: 1.0
   competence: G.REP
   competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: Ecrire les coordonnees d'un point a partir de celles d'un point de reference
+  domaine: Activites geometriques
+  objet: 'Donner les coordonnées de N : même abscisse que M(4 ; 7), ordonnée inférieure de 3'
   reponse_attendue: (4 ; 4)
   solution: ''
-  si_echoue: 'Reperage dans le plan : abscisse et ordonnee sont confondues.'
+  si_echoue: 'Repérage dans le plan : abscisse et ordonnée sont confondues.'
 - code: N7
   partie: B
   format: redige
@@ -237,13 +323,14 @@ questions:
   competence: N.PRIO
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Expliquer une erreur de priorites operatoires, calculer la valeur exacte, ecrire une expression
-    parenthesee de valeur donnee
-  reponse_attendue: 'erreur : addition avant multiplication ; valeur exacte 29 ; expression (5+3)x8 =
-    64'
-  solution: 'Rasmane a calcule (5+3)x8 au lieu d''appliquer la priorite de la multiplication : 5+3x8 =
-    5+24 = 29. Une expression avec parenthese valant 64 : (5+3)x8 = 64.'
-  si_echoue: Priorites operatoires et role des parentheses dans une expression.
+  objet: Expliquer l'erreur 5 + 3 × 8 = 64 et écrire une expression parenthésée égale à 64
+  reponse_attendue: 5 + 3 × 8 = 29 (la multiplication est prioritaire) ; (5 + 3) × 8 = 64
+  solution: 'Dans 5 + 3 × 8, la multiplication est prioritaire : 5 + 24 = 29. Rasmané a effectué l''addition
+    avant la multiplication. Expression parenthésée : (5 + 3) × 8 = 64. Barème : 1 pt pour avoir nommé
+    la priorité de la multiplication sur l''addition, le calcul 5 + 24 = 29 valant à lui seul cette explication
+    ; 1 pt pour une expression parenthésée dont le résultat est bien 64. Toute autre expression correcte,
+    par exemple 8 × (10 - 2), vaut ce second point.'
+  si_echoue: Priorités opératoires et rôle des parenthèses dans une expression.
 - code: N8
   partie: B
   format: redige
@@ -252,13 +339,15 @@ questions:
   competence: N.FRA1
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Retrouver une quantite totale a partir d'une fraction restante, puis la quantite correspondant
-    au complement
-  reponse_attendue: recolte totale 90 kg, masse vendue 36 kg
-  solution: 54 kg representent 3/5 de la recolte donc 1/5 = 18 kg et la recolte totale = 90 kg ; masse
-    vendue = 90 - 54 = 36 kg.
-  si_echoue: 'Fraction d''une quantite en raisonnement inverse : le retour a l''unite fractionnaire n''est
-    pas maitrise.'
+  objet: Retrouver la récolte de niébé (2/5 vendus, reste 54 kg) et juger reste > vendu
+  reponse_attendue: récolte de 90 kg ; Talato a raison (3/5 > 2/5, ou 54 kg > 36 kg)
+  solution: 'Il reste 1 - 2/5 = 3/5 de la récolte, soit 54 kg ; 1/5 vaut 54 : 3 = 18 kg ; récolte totale
+    18 × 5 = 90 kg. Masse vendue 90 - 54 = 36 kg. Barème : 1 pt pour avoir reconnu que les 54 kg représentent
+    les 3/5 et trouvé 90 kg ; 1 pt pour le jugement « oui » justifié, par la comparaison des fractions
+    3/5 et 2/5 ou des masses 54 kg et 36 kg. Le mot « oui » seul ne vaut rien. Un jugement correctement
+    justifié à partir d''une récolte erronée garde son point.'
+  si_echoue: 'Fraction d''une quantité en raisonnement inverse : le retour à l''unité fractionnaire n''est
+    pas maîtrisé.'
 - code: N9
   partie: B
   format: redige
@@ -267,12 +356,13 @@ questions:
   competence: N.REL
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Ecrire toutes les abscisses possibles d'un point a distance donnee d'un autre, et expliquer la
-    multiplicite
-  reponse_attendue: +3 et -11
-  solution: B peut etre a droite (-4+7=+3) ou a gauche (-4-7=-11) de A ; deux positions possibles car
-    l'enonce donne une distance sans preciser le cote.
-  si_echoue: 'Reperage sur une droite graduee : la distance n''est lue que dans un seul sens.'
+  objet: Donner les abscisses de B à 7 cm de A(-4) sur une droite graduée et expliquer
+  reponse_attendue: B a pour abscisse +3 ou -11 ; deux réponses car B peut être à droite ou à gauche de
+    A
+  solution: 'A droite : -4 + 7 = +3 ; à gauche : -4 - 7 = -11. Barème : 1 pt pour les deux abscisses +3
+    et -11, une seule valant 0,5 pt ; 1 pt pour l''explication par les deux positions possibles de B par
+    rapport à A.'
+  si_echoue: 'Repérage sur une droite graduée : la distance n''est lue que dans un seul sens.'
 - code: N10
   partie: B
   format: redige
@@ -281,10 +371,13 @@ questions:
   competence: N.EGT
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Retrouver un nombre par operations inverses, puis verifier
+  objet: Retrouver le nombre de Fatimata (× 6 puis + 14 donne 92) et vérifier
   reponse_attendue: '13'
-  solution: '92-14=78 puis 78÷6=13 ; verification : 13x6+14=92.'
-  si_echoue: 'Raisonnement inverse : les operations ne sont pas defaites dans l''ordre, ou la verification
+  solution: 'On défait les opérations dans l''ordre inverse : 92 - 14 = 78, puis 78 : 6 = 13. Vérification
+    : 13 × 6 + 14 = 92. Barème : 1 pt pour le nombre 13 obtenu en défaisant les deux opérations dans l''ordre
+    inverse ; 1 pt pour la vérification écrite 13 × 6 + 14 = 92. Une vérification juste conduite sur un
+    nombre erroné garde son point.'
+  si_echoue: 'Raisonnement inverse : les opérations ne sont pas défaites dans l''ordre, ou la vérification
     est omise.'
 - code: M4
   partie: B
@@ -292,12 +385,15 @@ questions:
   bareme: 0.666667
   bareme_classeur: 2.0
   competence: M.PER
-  competence_secondaire: null
+  competence_secondaire: M.CONV
   domaine: Mesures et grandeurs
-  objet: Calculer une largeur a partir d'un perimetre et d'une longueur, puis convertir
-  reponse_attendue: largeur 70 m, soit 7 dam
-  solution: Demi-perimetre 360÷2=180 m ; largeur=180-110=70 m=7 dam.
-  si_echoue: Perimetre du rectangle en raisonnement inverse, et conversion des unites de longueur.
+  objet: Calculer la largeur d'un champ (périmètre 360 m, longueur 110 m) et la convertir en dam
+  reponse_attendue: largeur 70 m = 7 dam
+  solution: 'Demi-périmètre : 360 : 2 = 180 m ; largeur 180 - 110 = 70 m = 7 dam. Barème : 1 pt pour la
+    largeur 70 m obtenue à partir du demi-périmètre ; 1 pt pour la conversion en décamètres, l''unité
+    dam étant ici évaluée : le seul nombre 7 sans unité ne vaut pas ce point. La conversion juste d''une
+    largeur erronée garde son point.'
+  si_echoue: Périmètre du rectangle en raisonnement inverse, et conversion des unités de longueur.
 - code: M5
   partie: B
   format: redige
@@ -306,90 +402,78 @@ questions:
   competence: M.AIRE
   competence_secondaire: null
   domaine: Mesures et grandeurs
-  objet: Calculer une aire restante apres un carre pose sur un rectangle, et comparer a la moitie de l'aire
-    totale
-  reponse_attendue: aire decouverte 38 m², depasse la moitie (27 m²)
-  solution: Aire de la salle 9x6=54 m² ; aire du tapis 4x4=16 m² ; aire decouverte=54-16=38 m² ; moitie
-    de 54=27 m² ; 38>27.
-  si_echoue: Aires du rectangle et du carre, et soustraction de deux aires.
+  objet: Calculer l'aire découverte (salle de 54 m², tapis carré de 4 m) et la comparer à la moitié
+  reponse_attendue: 'aire découverte 38 m² > 27 m² (moitié de 54 m²) : oui'
+  solution: 'Tapis : 4 × 4 = 16 m² ; découvert : 54 - 16 = 38 m² ; moitié de la salle : 54 : 2 = 27 m².
+    Barème : 1 pt pour l''aire découverte 38 m² ; 1 pt pour la comparaison à 27 m² et la réponse affirmative
+    justifiée. L''élève qui recalcule l''aire de la salle par 9 × 6 n''est pas pénalisé. La comparaison
+    juste d''une aire découverte erronée à la moitié de 54 m² garde son point.'
+  si_echoue: Aire du carré et soustraction de deux aires ; comparaison d'une aire à la moitié d'une autre.
 - code: G6
   partie: B
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
   competence: G.ANG2
-  competence_secondaire: null
+  competence_secondaire: G.ANG1
   domaine: Activites geometriques
-  objet: Calculer deux angles adjacents et supplementaires dans un rapport donne, dire lequel est obtus
-  reponse_attendue: AOB=120°, BOC=60°, AOB est obtus
-  solution: AOB+BOC=180° et AOB=2xBOC donc 3xBOC=180°, BOC=60°, AOB=120° (obtus car compris entre 90°
-    et 180°).
-  si_echoue: Angles supplementaires et partage de 180° en parts inegales ; vocabulaire aigu et obtus.
-- code: G7a
+  objet: Calculer deux angles supplémentaires dont l'un est le double de l'autre, nommer l'obtus
+  reponse_attendue: BOC = 60° et AOB = 120° ; AOB est l'angle obtus
+  solution: 'AOB + BOC = 180° et AOB = 2 × BOC, donc 3 × BOC = 180°, BOC = 60° et AOB = 120°, obtus car
+    compris entre 90° et 180°. Barème : 1 pt pour les deux mesures obtenues en partageant 180° en trois
+    parts égales ; 1 pt pour avoir désigné AOB comme angle obtus en le comparant à 90°.'
+  si_echoue: Angles supplémentaires et partage de 180° en parts égales ; vocabulaire aigu et obtus.
+- code: G7
   partie: B
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 0.666667
+  bareme_classeur: 2.0
   competence: G.TRI
-  competence_secondaire: null
+  competence_secondaire: M.PER
   domaine: Activites geometriques
-  objet: '[G7, calcul] Calculer les cotes egaux d''un triangle isocele a partir de son perimetre'
-  reponse_attendue: EF = EG = 7 cm
-  solution: EF+EG=22-8=14 cm (perimetre moins la base) donc EF=EG=7 cm.
-  si_echoue: Perimetre du triangle isocele en raisonnement inverse.
-- code: G7b
-  partie: B
-  format: construction
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.TRI
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[G7, construction] Construire le triangle isocele aux instruments a partir des longueurs trouvees'
-  reponse_attendue: ''
-  solution: Tracer [FG]=8 cm ; tracer l'arc de cercle de centre F et de rayon 7 cm, puis l'arc de centre
-    G et de rayon 7 cm ; leur intersection est E ; tracer [EF] et [EG].
-  si_echoue: Construction au compas d'un triangle isocele connaissant deux longueurs.
+  objet: Calculer EF (EFG isocèle en E, périmètre 22 cm, FG = 8 cm) et écrire le programme
+  reponse_attendue: EF = EG = 7 cm ; programme de construction (segment [FG] de 8 cm, arcs de centres
+    F et G de rayon 7 cm, point E, segments [EF] et [EG])
+  solution: 'EF + EG = 22 - 8 = 14 cm, donc EF = 7 cm. Programme : 1. tracer [FG] de 8 cm ; 2. arc de
+    centre F de rayon 7 cm ; 3. arc de centre G de rayon 7 cm, qui coupe le premier en E ; 4. tracer [EF]
+    et [EG]. Barème : 1 pt pour EF = EG = 7 cm obtenu à partir du périmètre ; 1 pt pour un programme exécutable,
+    ordonné et donnant les trois longueurs utiles. Un programme correct appuyé sur une longueur erronée
+    garde son point. Un programme qui place E sans dire comment, ou oublie le second arc, vaut 0,5 pt.
+    Aucun tracé n''est demandé.'
+  si_echoue: Périmètre du triangle isocèle en raisonnement inverse, et passage de la figure décrite à
+    un programme de construction.
 - code: G8
   partie: B
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
   competence: G.PARAL
-  competence_secondaire: null
+  competence_secondaire: M.PER
   domaine: Activites geometriques
-  objet: Calculer un cote d'un parallelogramme a partir de son perimetre, dire si c'est un losange
-  reponse_attendue: NP = 5 cm ; MNPQ n'est pas un losange
-  solution: 'Cotes opposes egaux : MN+NP=26÷2=13 cm ; NP=13-8=5 cm ; un losange a ses quatre cotes egaux,
-    or MN=8 cm et NP=5 cm.'
-  si_echoue: Proprietes du parallelogramme et caracterisation du losange.
-- code: G9a
-  partie: B
-  format: construction
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.MED
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[G9, construction] Construire la mediatrice d''un segment et placer un point a distance donnee
-    sur cette droite'
-  reponse_attendue: ''
-  solution: Tracer [AB]=6 cm ; tracer deux arcs de cercle de meme rayon (>3cm) centres en A et B ; la
-    droite passant par leurs points d'intersection est la mediatrice de [AB] ; placer M sur cette droite
-    a 5 cm de A.
-  si_echoue: Construction au compas de la mediatrice d'un segment.
-- code: G9b
+  objet: Calculer NP (parallélogramme de périmètre 26 cm, MN = 8 cm) et juger « losange »
+  reponse_attendue: NP = 5 cm ; MN ≠ NP donc MNPQ n'est pas un losange, Kadidiatou a tort
+  solution: 'Demi-périmètre : MN + NP = 26 : 2 = 13 cm ; NP = 13 - 8 = 5 cm. Un losange a ses quatre côtés
+    égaux, or MN = 8 cm et NP = 5 cm. Barème : 1 pt pour NP = 5 cm obtenu par le demi-périmètre ; 1 pt
+    pour le refus justifié par l''inégalité de deux côtés consécutifs et la propriété du losange. Un refus
+    justifié à partir d''une valeur de NP erronée mais différente de 8 cm garde son point.'
+  si_echoue: Propriétés du parallélogramme et caractérisation du losange.
+- code: G9
   partie: B
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 0.666667
+  bareme_classeur: 2.0
   competence: G.MED
-  competence_secondaire: null
+  competence_secondaire: G.VOC
   domaine: Activites geometriques
-  objet: '[G9, deduction] Deduire une longueur par la propriete d''equidistance de la mediatrice'
-  reponse_attendue: MB = 5 cm
-  solution: M appartient a la mediatrice de [AB] donc MA=MB=5 cm.
-  si_echoue: Propriete d'equidistance de la mediatrice.
+  objet: Donner MB (M sur la médiatrice de [AB] de 6 cm, MA = 5 cm) et juger « milieu »
+  reponse_attendue: MB = 5 cm (M sur la médiatrice, donc MA = MB) ; M n'est pas le milieu de [AB], Safiatou
+    a tort
+  solution: 'Tout point de la médiatrice est équidistant des extrémités : MB = MA = 5 cm. Le milieu de
+    [AB] est à 6 : 2 = 3 cm de A, or MA = 5 cm. Barème : 1 pt pour MB = 5 cm appuyé sur la propriété d''équidistance
+    (MB = 5 cm sans la propriété : 0,5 pt) ; 1 pt pour le refus justifié, par la distance de 3 cm entre
+    le milieu et A, ou par le fait que M n''appartient pas au segment [AB].'
+  si_echoue: 'Médiatrice : propriété d''équidistance, et confusion entre la médiatrice et le milieu du
+    segment.'
 - code: D3
   partie: B
   format: redige
@@ -397,249 +481,160 @@ questions:
   bareme_classeur: 2.0
   competence: D.PROP
   competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: Calculer une longueur maximale achetable a partir d'un budget, comparer un prix pour une autre
-    longueur
-  reponse_attendue: longueur maximale 10 m ; 12 m coutent plus de 17 000 FCFA (18 000 FCFA)
-  solution: Prix d'un metre=9000÷6=1500 FCFA ; longueur maximale=15000÷1500=10 m ; prix de 12 m=12x1500=18000
-    FCFA>17000 FCFA.
-  si_echoue: 'Proportionnalite : le retour a l''unite n''est pas engage.'
-- code: P1a
+  domaine: Donnees, proportionnalite, statistique
+  objet: Calculer la longueur de tissu pour 15 000 FCFA (6 m pour 9 000 FCFA) et juger 12 m
+  reponse_attendue: 10 m au maximum ; 12 m coûtent 18 000 FCFA > 15 000, Nafissatou a tort
+  solution: 'Prix d''un mètre : 9 000 : 6 = 1 500 FCFA ; longueur maximale : 15 000 : 1 500 = 10 m ; 12
+    × 1 500 = 18 000 > 15 000. Barème : 1 pt pour la longueur maximale 10 m obtenue après retour au prix
+    du mètre ; 1 pt pour le refus justifié (prix de 12 m comparé à 15 000 FCFA, ou 12 m comparé au maximum
+    de 10 m). Le refus juste appuyé sur une longueur maximale erronée garde son point.'
+  si_echoue: 'Proportionnalité : le retour à l''unité n''est pas engagé.'
+- code: P1.1
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 0.666667
+  bareme_classeur: 2.0
   competence: G.PARA
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: '[P1, sous-question 1/4] Ecrire la position relative de deux droites, chacune perpendiculaire
-    a une meme troisieme'
-  reponse_attendue: (d) et (d') sont paralleles, car deux droites perpendiculaires a une meme troisieme
-    (AB) sont paralleles entre elles.
-  solution: ''
-  si_echoue: Proprietes du parallelisme et de la perpendicularite, reconnaissance du rectangle, division
-    pour obtenir un nombre d'unites entieres.
+  objet: 'Juger l''affirmation : deux perpendiculaires à (AB) se coupent dans l''atelier (Bobo-Dioulasso)'
+  reponse_attendue: Soungalo a tort ; deux droites perpendiculaires à (AB) sont parallèles, (d) et (d')
+    ne se coupent nulle part
+  solution: 'Barème (2 pts) : 1 pt (G) le refus de l''affirmation de Soungalo ; 1 pt (G) la justification
+    par la propriété des deux perpendiculaires à une même droite, qui les rend parallèles donc sans point
+    commun. Le seul mot « parallèles », sans la conclusion que les droites ne se coupent pas, vaut le
+    second point et pas le premier.'
+  si_echoue: Propriété du parallélisme de deux droites perpendiculaires à une même droite.
   probleme_parent: P1
-- code: P1b
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.PARAL
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P1, sous-question 2/4] Determiner la nature d''un quadrilateral construit par doubles perpendiculaires'
-  reponse_attendue: 'ABCD est un rectangle : [AD] et [BC] perpendiculaires a (AB) donc paralleles et de
-    meme longueur (parallelogramme), plus un angle droit en A.'
-  solution: ''
-  si_echoue: Proprietes du parallelisme et de la perpendicularite, reconnaissance du rectangle, division
-    pour obtenir un nombre d'unites entieres.
-  probleme_parent: P1
-- code: P1c
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: M.AIRE
-  competence_secondaire: null
-  domaine: Mesures et grandeurs
-  objet: '[P1, sous-question 3/4] Calculer l''aire d''un sol rectangulaire'
-  reponse_attendue: Aire du sol = 12 x 7 = 84 m².
-  solution: ''
-  si_echoue: Proprietes du parallelisme et de la perpendicularite, reconnaissance du rectangle, division
-    pour obtenir un nombre d'unites entieres.
-  probleme_parent: P1
-- code: P1d
+- code: P1.2
   partie: C
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
-  competence: N.PROB
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P1, sous-question 4/4] Calculer un nombre de cartons necessaires et verifier une affirmation'
-  reponse_attendue: '84 ÷ 2 = 42 cartons necessaires ; 42 > 40 : Issouf a tort, il en faut 42 (le prix
-    du carton est une donnee inutile).'
-  solution: ''
-  si_echoue: Proprietes du parallelisme et de la perpendicularite, reconnaissance du rectangle, division
-    pour obtenir un nombre d'unites entieres.
+  competence: G.PARAL
+  competence_secondaire: M.AIRE
+  domaine: Activites geometriques
+  objet: Nommer ABCD à quatre angles droits (AB = 12 m, AD = 7 m) et calculer l'aire du sol
+  reponse_attendue: ABCD est un rectangle ; aire du sol 12 × 7 = 84 m²
+  solution: 'Barème (2 pts) : 1 pt (G) la nature « rectangle » appuyée sur les quatre angles droits ;
+    1 pt (M) l''aire de 84 m² avec son unité.'
+  si_echoue: Reconnaissance du rectangle ; aire du rectangle.
   probleme_parent: P1
-- code: P2a
+- code: P1.3
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 1.0
+  bareme_classeur: 3.0
+  competence: M.VOL
+  competence_secondaire: N.NUM
+  domaine: Mesures et grandeurs
+  objet: Calculer le volume d'une dalle de 84 m² sur 0,1 m et juger si 9 m³ suffisent
+  reponse_attendue: V = 84 × 0,1 = 8,4 m³ < 9 m³ ; Issouf a raison
+  solution: 'La dalle est un pavé droit de base le sol : V = 84 × 0,1 = 8,4 m³ ; 8,4 < 9. Conclusion attendue
+    : « Issouf a raison : la dalle demande 8,4 m³ de béton, donc 9 m³ suffisent. » Le prix du sac de ciment
+    (6 500 FCFA) est une donnée inutile. Barème (3 pts) : 1 pt (M) la dalle reconnue comme un pavé droit
+    dont le volume est aire du sol × épaisseur ; 1 pt (M) le volume 8,4 m³ avec son unité ; 1 pt (N) la
+    comparaison de 8,4 à 9 et la phrase de conclusion. Aucune conversion n''est attendue. Signaler la
+    donnée inutile n''est pas exigé.'
+  si_echoue: Volume du pavé droit à partir de l'aire de sa base.
+  probleme_parent: P1
+- code: P2.1
+  partie: C
+  format: redige
+  bareme: 0.666667
+  bareme_classeur: 2.0
   competence: N.AST
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: '[P2, sous-question 1/4] Calculer un total par regroupement astucieux de facteurs'
-  reponse_attendue: 25 x 4 x 18 = (25 x 4) x 18 = 100 x 18 = 1 800 savons (regroupement 25 x 4 = 100).
-  solution: ''
-  si_echoue: Calcul astucieux par regroupement, division-partage, et notion de benefice sur un prix de
-    vente.
+  objet: Calculer astucieusement 25 × 4 × 18 savons en indiquant le regroupement (Ouahigouya)
+  reponse_attendue: 25 × 4 × 18 = (25 × 4) × 18 = 100 × 18 = 1 800 savons
+  solution: 'Barème (2 pts) : 1 pt (N) le total de 1 800 savons ; 1 pt (N) le regroupement 25 × 4 = 100
+    écrit ou nommé. Le résultat 1 800 obtenu par deux multiplications posées, sans regroupement indiqué,
+    vaut le premier point et pas le second.'
+  si_echoue: Calcul astucieux par regroupement.
   probleme_parent: P2
-- code: P2b
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.PROB
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P2, sous-question 2/4] Calculer un prix d''achat unitaire'
-  reponse_attendue: Prix d'achat d'un savon = 450 000 ÷ 1 800 = 250 FCFA.
-  solution: ''
-  si_echoue: Calcul astucieux par regroupement, division-partage, et notion de benefice sur un prix de
-    vente.
-  probleme_parent: P2
-- code: P2c
-  partie: C
-  format: redige
-  bareme: 0.666667
-  bareme_classeur: 2.0
-  competence: N.PROB
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P2, sous-question 3/4] Calculer un benefice unitaire puis un benefice total'
-  reponse_attendue: Benefice unitaire = 325 - 250 = 75 FCFA ; benefice total = 75 x 1 800 = 135 000 FCFA.
-  solution: ''
-  si_echoue: Calcul astucieux par regroupement, division-partage, et notion de benefice sur un prix de
-    vente.
-  probleme_parent: P2
-- code: P2d
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: D.PROP
-  competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: '[P2, sous-question 4/4] Comparer un benefice total a un objectif et conclure'
-  reponse_attendue: '135 000 < 150 000 : le prix de vente de 325 FCFA ne permet pas d''atteindre 150 000
-    FCFA de benefice, il manque 15 000 FCFA.'
-  solution: ''
-  si_echoue: Calcul astucieux par regroupement, division-partage, et notion de benefice sur un prix de
-    vente.
-  probleme_parent: P2
-- code: P3a
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.REL
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P3, sous-question 1/4] Calculer un ecart entre deux reperes negatifs (hauteur d''une colonne
-    d''eau)'
-  reponse_attendue: Hauteur d'eau = -30 - (-42) = 12 m.
-  solution: ''
-  si_echoue: Ecart entre deux reperes negatifs, volume du pave droit et conversion des metres cubes en
-    litres, fraction d'une quantite.
-  probleme_parent: P3
-- code: P3b
-  partie: C
-  format: redige
-  bareme: 0.666667
-  bareme_classeur: 2.0
-  competence: M.VOL
-  competence_secondaire: null
-  domaine: Mesures et grandeurs
-  objet: '[P3, sous-question 2/4] Calculer le volume d''un pave droit puis le convertir en litres'
-  reponse_attendue: Volume = 2 x 1,5 x 1,2 = 3,6 m³ = 3 600 L.
-  solution: ''
-  si_echoue: Ecart entre deux reperes negatifs, volume du pave droit et conversion des metres cubes en
-    litres, fraction d'une quantite.
-  probleme_parent: P3
-- code: P3c
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.FRA1
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P3, sous-question 3/4] Calculer une fraction d''une quantite (volume rempli aux trois quarts)'
-  reponse_attendue: '3/4 de 3 600 L : 3 600 ÷ 4 = 900, puis 900 x 3 = 2 700 L.'
-  solution: ''
-  si_echoue: Ecart entre deux reperes negatifs, volume du pave droit et conversion des metres cubes en
-    litres, fraction d'une quantite.
-  probleme_parent: P3
-- code: P3d
-  partie: C
-  format: redige
-  bareme: 0.666667
-  bareme_classeur: 2.0
-  competence: N.PROB
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P3, sous-question 4/4] Calculer un nombre de jours par division et verifier une affirmation'
-  reponse_attendue: '2 700 ÷ 450 = 6 jours, et 6 < 7 : Hamidou a tort, les 2 700 L durent 6 jours, moins
-    d''une semaine.'
-  solution: ''
-  si_echoue: Ecart entre deux reperes negatifs, volume du pave droit et conversion des metres cubes en
-    litres, fraction d'une quantite.
-  probleme_parent: P3
-- code: P4a
+- code: P2.2
   partie: C
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
   competence: D.PROP
   competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: '[P4, sous-question 1/4] Completer un tableau de deux tarifs (un forfait plus prix au sac, un
-    prix proportionnel)'
-  reponse_attendue: 'Chez Noaga (10/20/30 sacs) : 24 000, 33 000, 42 000 FCFA. Chez Drissa : 15 000, 30
-    000, 45 000 FCFA.'
-  solution: ''
-  si_echoue: Reconnaissance de la proportionnalite en presence d'un terme fixe, conversion de la tonne
-    en kilogrammes, comparaison de deux tarifs et reperage d'une donnee manquante.
-  probleme_parent: P4
-- code: P4b
+  domaine: Donnees, proportionnalite, statistique
+  objet: 'Calculer le prix d''un savon : 450 000 FCFA pour 1 800 savons'
+  reponse_attendue: '450 000 : 1 800 = 250 FCFA'
+  solution: 'Barème (2 pts) : 1 pt (D) la division 450 000 : 1 800 engagée ; 1 pt (D) le résultat 250
+    FCFA.'
+  si_echoue: Division-partage pour un prix unitaire.
+  probleme_parent: P2
+- code: P2.3
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: D.PROP
-  competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: '[P4, sous-question 2/4] Identifier lequel des deux tarifs est proportionnel au nombre de sacs,
-    en justifiant'
-  reponse_attendue: Le tarif de Drissa est proportionnel (coefficient 1 500) ; celui de Noaga ne l'est
-    pas, a cause du forfait de 15 000 FCFA.
-  solution: ''
-  si_echoue: Reconnaissance de la proportionnalite en presence d'un terme fixe, conversion de la tonne
-    en kilogrammes, comparaison de deux tarifs et reperage d'une donnee manquante.
-  probleme_parent: P4
-- code: P4c
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: M.CONV
-  competence_secondaire: null
-  domaine: Mesures et grandeurs
-  objet: '[P4, sous-question 3/4] Comparer une masse totale a une limite donnee en tonnes, apres conversion'
-  reponse_attendue: 'Masse de 25 sacs = 25 x 48,5 = 1 212,5 kg ; 1,5 t = 1 500 kg ; 1 212,5 < 1 500 :
-    les 25 sacs peuvent etre charges.'
-  solution: ''
-  si_echoue: Reconnaissance de la proportionnalite en presence d'un terme fixe, conversion de la tonne
-    en kilogrammes, comparaison de deux tarifs et reperage d'une donnee manquante.
-  probleme_parent: P4
-- code: P4d
+  bareme: 1.0
+  bareme_classeur: 3.0
+  competence: N.PRIO
+  competence_secondaire: D.PROP
+  domaine: Activites numeriques
+  objet: Calculer le bénéfice sur 1 800 savons (achat 250, vente 325 FCFA), juger 150 000
+  reponse_attendue: bénéfice 75 FCFA par savon, 135 000 FCFA au total < 150 000 ; Rakieta a tort
+  solution: 'Bénéfice unitaire : 325 - 250 = 75 FCFA ; total : 75 × 1 800 = 135 000 FCFA < 150 000. Barème
+    (3 pts) : 1 pt (N) le bénéfice unitaire 75 FCFA par différence des deux prix ; 1 pt (N) le bénéfice
+    total 135 000 FCFA ; 1 pt (D) la comparaison à 150 000 FCFA et la phrase de conclusion. Le bénéfice
+    total juste calculé à partir d''un bénéfice unitaire erroné garde son point. L''écart de 15 000 FCFA
+    n''est pas exigé.'
+  si_echoue: Notion de bénéfice comme différence entre prix de vente et prix d'achat.
+  probleme_parent: P2
+- code: P3.1
   partie: C
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
+  competence: F.REL
+  competence_secondaire: N.PRIO
+  domaine: Fonctions et applications
+  objet: Compléter le tableau des prix (Noaga 15 000 + 900 par sac, Drissa 1 500 par sac)
+  reponse_attendue: 'Noaga : 24 000 ; 33 000 ; 42 000 FCFA — Drissa : 15 000 ; 30 000 ; 45 000 FCFA (pour
+    10, 20, 30 sacs)'
+  solution: 'Noaga : 15 000 + 900 × 10 = 24 000 ; 15 000 + 900 × 20 = 33 000 ; 15 000 + 900 × 30 = 42
+    000. Drissa : 1 500 × 10 = 15 000 ; 1 500 × 20 = 30 000 ; 1 500 × 30 = 45 000. Barème (2 pts) : 1
+    pt (D) la ligne de Noaga complète ; 1 pt (D) la ligne de Drissa complète. Une ligne avec deux prix
+    justes sur trois vaut 0,5 pt.'
+  si_echoue: Passage d'un énoncé à un tableau de prix.
+  probleme_parent: P3
+- code: P3.2
+  partie: C
+  format: redige
+  bareme: 1.0
+  bareme_classeur: 3.0
   competence: D.PROP
   competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: '[P4, sous-question 4/4] Determiner la condition selon laquelle le tarif avec forfait devient
-    le moins cher, et conclure'
-  reponse_attendue: Au-dela de 25 sacs, le forfait Noaga devient moins cher (900 FCFA/sac contre 1 500
-    FCFA/sac chez Drissa) ; en dessous, c'est Drissa qui est le moins cher. Le nombre de sacs de la recolte
-    est une donnee manquante.
-  solution: ''
-  si_echoue: Reconnaissance de la proportionnalite en presence d'un terme fixe, conversion de la tonne
-    en kilogrammes, comparaison de deux tarifs et reperage d'une donnee manquante.
-  probleme_parent: P4
+  domaine: Donnees, proportionnalite, statistique
+  objet: Dire lequel des deux tarifs de transport est proportionnel au nombre de sacs, en justifiant
+  reponse_attendue: le tarif de Drissa est proportionnel (coefficient 1 500) ; celui de Noaga ne l'est
+    pas (forfait de 15 000 FCFA)
+  solution: 'Chez Drissa chaque prix = nombre de sacs × 1 500. Chez Noaga le forfait de 15 000 FCFA se
+    paie quel que soit le nombre de sacs, et 24 000 : 10 = 2 400 alors que 33 000 : 20 = 1 650. Barème
+    (3 pts) : 1 pt (D) le tarif de Drissa désigné comme proportionnel ; 1 pt (D) le coefficient 1 500
+    nommé comme multiplicateur commun ; 1 pt (D) l''explication du refus pour Noaga, par le forfait ou
+    par deux quotients inégaux. La seule réponse « Drissa » sans justification vaut le premier point seulement.'
+  si_echoue: Reconnaissance de la proportionnalité en présence d'un terme fixe.
+  probleme_parent: P3
+- code: P3.3
+  partie: C
+  format: redige
+  bareme: 1.0
+  bareme_classeur: 3.0
+  competence: N.NUM
+  competence_secondaire: M.CONV
+  domaine: Activites numeriques
+  objet: Juger si 25 sacs de 48,5 kg tiennent dans 1,5 t, nommer la donnée manquante
+  reponse_attendue: 25 × 48,5 = 1 212,5 kg < 1 500 kg, un seul voyage suffit ; la donnée manquante est
+    le nombre de sacs de la récolte de Yacouba
+  solution: 'Masse : 25 × 48,5 = 1 212,5 kg ; 1,5 t = 1 500 kg ; 1 212,5 < 1 500. Les deux tarifs ne se
+    comparent que pour un nombre de sacs donné, que l''énoncé ne fournit pas. Barème (3 pts) : 1 pt (N)
+    la masse 1 212,5 kg ; 1 pt (M) la conversion 1,5 t = 1 500 kg et la décision de chargement ; 1 pt
+    (D) la donnée manquante nommée et la phrase de conclusion. La mention vague « il manque une donnée
+    » ne vaut rien. Remarquer en plus que les deux tarifs coïncident à 25 sacs n''est pas pénalisé.'
+  si_echoue: Multiplication d'un décimal par un entier, conversion de la tonne en kilogrammes, et repérage
+    d'une donnée manquante.
+  probleme_parent: P3

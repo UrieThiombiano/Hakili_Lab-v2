@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<title>Remédiation de {{ plan.prenom }}</title>
+{#- Gabarit fidèle à l'exemplaire validé (NIKIEMA K. Amale, 24 octobre 2026) :
+    toute modification de structure ou de libellé se compare d'abord à lui. -#}
+<link rel="stylesheet" href="vendor/fonts.css">
+{% raw %}<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']],
+    macros: {
+      lo: '\\mathopen{]}', ro: '\\mathclose{[}', pv: '\\,;\\,',
+      R: '\\mathbb{R}', V: ['\\overrightarrow{#1}', 1]
+    }
+  },
+  svg: { fontCache: 'global' }
+};
+</script>{% endraw %}
+<script src="vendor/tex-svg.js"></script>
+<link rel="stylesheet" href="plan_remediation.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <div class="brand"><span><b>Hakili Lab</b> · Centre d'excellence en mathématiques</span><span>{{ plan.test_libelle | capitalize_first }} · rapport du {{ plan.date }}</span></div>
+  <h1>Ton plan de remédiation</h1>
+  <p class="who"><strong>{{ plan.eleve_nom }}</strong> · {{ plan.classe }}</p>
+  <div class="facts">
+    <div class="fact"><span class="n">{{ plan.total_h | duree }}</span><span class="l">de travail estimé au total</span></div>
+    <div class="fact"><span class="n">{{ plan.nb_seances }}</span><span class="l">séance{{ 's' if plan.nb_seances > 1 }} de 1 h 30</span></div>
+    <div class="fact"><span class="n">{{ plan.nb_semaines }}</span><span class="l">semaine{{ 's' if plan.nb_semaines > 1 }} à 2 séances par semaine</span></div>
+    <div class="fact"><span class="n">{{ plan.competences | length }}</span><span class="l">compétence{{ 's' if plan.competences | length > 1 }} à reprendre</span></div>
+  </div>
+</header>
+
+<section class="intro">
+  <p>{{ plan.prenom }}, ce cahier reprend ton test question par question. Pour chaque compétence, tu trouveras ce que tu as écrit, ce qui ne va pas, un rappel du cours, une méthode, puis 5 exercices du plus simple au plus proche d'une situation réelle. Les réponses sont à la fin : cherche d'abord, vérifie ensuite.</p>
+  <p>Tu travailleras avec ton enseignant. Suis l'ordre des sections : certaines compétences s'appuient sur d'autres, et les traiter dans le désordre ferait perdre du temps.</p>
+  {%- if plan.acquis %}
+  <div class="ok">
+    <h3>Ce que tu sais déjà faire</h3>
+    <ul>
+      {%- for a in plan.acquis %}
+      <li>{{ a }}</li>
+      {%- endfor %}
+    </ul>
+  </div>
+  {%- endif %}
+</section>
+
+<section class="plan">
+  <h2 style="margin-bottom:10px">Le plan, séance par séance</h2>
+  <div class="tbl">
+  <table>
+    <thead><tr><th>Ordre</th><th>Compétence</th><th class="h">Durée</th><th>Séances</th><th>A faire après</th></tr></thead>
+    <tbody class="tnum">
+      {%- for c in plan.competences %}{% set s = seances[loop.index0] %}
+      <tr><td>{{ loop.index }}</td><td><a href="#c{{ loop.index }}">{{ c.titre_tableau or c.titre }}</a></td><td class="h">{{ c.duree_h | duree }}</td><td>{{ s | plage }}</td><td>{{ c.prerequis | join(', ') if c.prerequis else 'aucune' }}</td></tr>
+      {%- endfor %}
+      <tr class="tot"><td></td><td>Total</td><td class="h">{{ plan.total_h | duree }}</td><td>{{ plan.nb_seances }} séance{{ 's' if plan.nb_seances > 1 }}</td><td></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="small" style="margin-top:8px">Une séance peut commencer une compétence et en finir une autre. Les durées sont des estimations : ton enseignant les ajustera selon tes progrès.</p>
+</section>
+{% for c in plan.competences %}{% set s = seances[loop.index0] %}
+<!-- {{ loop.index }} -->
+<section class="comp" id="c{{ loop.index }}">
+  <header class="comp-h"><span class="num">{{ loop.index }}</span><div><h2>{{ c.titre }}</h2><p class="meta"><span><b>{{ c.duree_h | duree }}</b></span><span>{{ 'séance' if s[0] == s[1] else 'séances' }} {{ s | plage }}</span>
+    {%- if c.prerequis %}<span>après {{ 'la section' if c.prerequis | length == 1 else 'les sections' }} {{ c.prerequis | liste_et }}</span>{% endif -%}
+    <span>{{ 'question' if c.questions | length == 1 else 'questions' }} {{ c.questions | join(', ') }}</span></p></div></header>
+  <div class="blk ecrit"><h3>Ce que tu as écrit</h3><div class="tbl"><table>
+    <tr><th>Question</th><th>Ta réponse</th><th>Réponse attendue</th></tr>
+    {%- for e in c.ecrits %}
+    {%- if e.reussie %}
+    <tr><td>{{ e.question }}</td><td class="ok" colspan="2">réussie : {{ e.reponse_attendue }}</td></tr>
+    {%- else %}
+    <tr><td>{{ e.question }}</td><td class="you">{{ e.reponse_eleve }}</td><td class="exp">{{ e.reponse_attendue }}</td></tr>
+    {%- endif %}
+    {%- endfor %}
+  </table></div></div>
+  <div class="blk"><h3>Ce qui ne va pas</h3>
+    {%- for p in c.ce_qui_ne_va_pas | paragraphes %}
+    {%- if p is formule_centree %}
+  {{ p }}
+  {%- else %}<p>{{ p | emphase }}</p>{% endif %}
+    {%- endfor %}</div>
+  <div class="blk causes"><h3>Causes possibles (à vérifier avec ton enseignant)</h3><ul>
+    {%- for x in c.causes %}
+    <li>{{ x }}</li>
+    {%- endfor %}
+  </ul></div>
+  <div class="blk retenir"><h3>Ce qu'il faut retenir</h3><ul>
+    {%- for x in c.a_retenir %}
+    <li>{{ x }}</li>
+    {%- endfor %}
+  </ul></div>
+  {%- if c.methode %}
+  <div class="blk methode"><h3>{{ c.methode_titre }}</h3><ol>
+    {%- for x in c.methode %}
+    <li>{{ x }}</li>
+    {%- endfor %}
+  </ol></div>
+  {%- endif %}
+  <div class="blk exos"><h3>A toi de jouer</h3>
+  {%- if c.consigne_exercices %}
+  <p class="small">{{ c.consigne_exercices }}</p>
+  {%- endif %}
+  <ol class="ex">
+    {%- for ex in c.exercices %}
+    <li><div>{{ ex.enonce }}<span class="lvl">niveau {{ ex.niveau }}</span></div></li>
+    {%- endfor %}
+  </ol></div>
+</section>
+{% endfor %}
+<!-- ANNEXE -->
+<section class="annex" id="reponses">
+  <h1>Réponses des exercices</h1>
+  <p class="small">Cherche chaque exercice avant de regarder sa réponse. Ton enseignant corrigera la rédaction complète.</p>
+  <div class="ans">
+    {%- for c in plan.competences %}
+    <section><h3>{{ loop.index }}. {{ c.titre_court }}</h3><ol>
+      {%- for ex in c.exercices %}<li>{{ ex.reponse }}</li>{% endfor -%}
+    </ol></section>
+    {%- endfor %}
+  </div>
+</section>
+
+<footer>Hakili Lab · Plan de remédiation établi à partir du {{ plan.test_libelle }}. Les causes possibles sont des hypothèses : ton enseignant les confirmera en travaillant avec toi.</footer>
+</div>
+</body></html>

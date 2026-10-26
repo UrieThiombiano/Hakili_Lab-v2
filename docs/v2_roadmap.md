@@ -2,6 +2,8 @@
 **Document de pilotage — fait foi pour l'avancement.** `CLAUDE.md` renvoie ici pour le détail ; ce fichier est la seule source de vérité sur "où en est-on" — ne pas dupliquer le suivi ailleurs.
 
 **Dernière mise à jour :** 2026-08-13 (arbitrage H clos — les 7 `bareme_socle_*.yaml` (6eme à tleD) reconstruits à la main sur la structure à 3 parties, sans attendre la mise à jour du classeur)
+
+⚠ **Ce document n'a pas suivi D-CEO-42/D-CEO-43** (2026-08-20/22) : Django est **retiré** depuis le 2026-08-21 (FastAPI + React seule interface, commit "retire Django"), et le module 7 (ci-dessous) est construit. Tout ce qui suit qui mentionne `manage.py`, Django ou "interface migrée sur Django" décrit un état antérieur — se fier à `git log` et à D-CEO-42/43 (`docs/decision_register.md`) pour l'état réel, pas à cette ligne de résumé, non retouchée pour rester un historique daté.
 **Où en est-on (résumé en une ligne) :** Modules 0, **1 et 3 ✅ faits** · **Module 2 ⛔ supprimé le 2026-08-05** — trois copies 5e réelles imprimées et scannées l'ont mis en défaut (les trois refusées, dérive jusqu'à 3 cm), et il reconstituait par la géométrie une correspondance que la correction produit déjà ; au passage le risque du tramage est levé, l'imprimante n'imprime pas les bandes de guidage du tout · **Module 4 🟨 le moteur tourne et il est branché** — `manage.py diagnostiquer --correction <id>` reprend une copie déjà corrigée, sans lecture ni appel de modèle supplémentaire, QCM court-circuités, décision enseignant prioritaire · **Module 5 🟨 amorcé le 2026-08-07** — génération du sujet T1 et confirmation automatique (dépôt de copie → correction → confirmé/écarté) branchées de bout en bout, jamais essayées en conditions réelles · **Module 6 🟨 le plan et le palier tournent** · **interface migrée sur Django**. **Arbitrage B fermé le 2026-08-12 : les 7 corrigés sont relus et validés par un enseignant de mathématiques** (`data/Documents/corriges/`) — c'est la relecture que `00_Notice` exigeait avant de figer le référentiel. **Arbitrage H fermé le 2026-08-13 : les 7 `bareme_socle_*.yaml` (6eme à tleD) reconstruits à la main** sur la structure à 3 parties des sujets recomposés — le classeur `Referentiel_Socle_v0.xlsx` reste non modifié, ces 7 fichiers font foi en avance sur lui (détail `docs/harmonisation_donnees.md`). **Les 3 copies réelles 5e ont été corrigées et diagnostiquées** (`manage.py verifier_installation --copie … --eleve …`, le contrôle qui n'avait jamais été passé) — mais la **mesure juste** du module 4 reste à faire : ces 3 copies n'ont pas de tagage manuel, il n'y a donc rien à comparer pour l'instant. Les seuils de palier A/B/C **n'ont toujours pas été rejugés** après la hausse de ~33 % des coûts.
 
 **État vérifié le 2026-08-05 : 275 tests Django + 239 pytest = 514 tests passent.** ⚠ Avant la prochaine mise en ligne : `migrate suivi 0007 --fake` une fois sur Neon (D-CEO-40, `docs/deploiement.md`).
@@ -334,17 +336,20 @@ enseignant avant l'écart mesuré.
 
 ---
 
-### Module 7 — Génération des fiches
+### Module 7 — Génération des fiches ✅ **CONSTRUIT (D-CEO-43, 2026-08-22)**
 **Objectif :** une séance prête à l'emploi pour le tuteur, pas de la matière première.
 
-- [x] **Matière première disponible (D-CEO-41, 2026-08-13)** — `RemediationRetriever.get_by_competence(code, niveau)` (`src/knowledge/remediation_retriever.py`) rend, par compétence canonique, une leçon de remédiation complète : méthode, erreurs fréquentes, exemple travaillé, et référence à un module de `remediation/` qui porte lui-même son propre pool d'exercices notés ★/★★/★★★ corrigés (`data/knowledge/remediation_<niveau>.yaml`, jamais consommé directement par le retriever — pas de fuite de réponse dans un prompt). Reste à faire : le générateur de fiches lui-même (unité compétence × type d'erreur, déroulé minuté, critère de réussite), bloqué par le Module 6 comme avant.
-- [ ] Unité de fiche = compétence × type d'erreur (pas le chapitre).
-- [ ] Contenu obligatoire : objectif en termes de compétence, prérequis à vérifier en ouverture, déroulé minuté, exercices gradués, critère de réussite observable.
-- [ ] Génération à la demande, pour les problèmes réellement confirmés.
-- [ ] Versionnement : la version corrigée par le tuteur remplace la version générée dans le catalogue.
+- [x] **Matière première disponible (D-CEO-41, 2026-08-13)** — `RemediationRetriever.get_by_competence(code, niveau)` (`src/knowledge/remediation_retriever.py`) rend, par compétence canonique, une leçon de remédiation complète : méthode, erreurs fréquentes, exemple travaillé, et référence à un module de `remediation/` qui porte lui-même son propre pool d'exercices notés ★/★★/★★★ corrigés (`data/knowledge/remediation_<niveau>.yaml`).
+- [x] Unité de fiche = compétence × type d'erreur (pas le chapitre) — `app/services/fiche_remediation.py::construire_contenu()`, cataloguée par couple compétence × type d'erreur × **niveau** (`FicheRemediation`, `suivi_fiche_remediation`), pas par élève : le même problème chez deux élèves rend la même fiche.
+- [x] Contenu obligatoire : objectif, prérequis à vérifier (`referentiel_prerequis`, tous les prérequis directs — pas seulement ceux aussi en difficulté), méthode + exemple résolu, erreurs fréquentes, déroulé minuté (5 étapes fixes), exercices gradués (répartition 2 faciles/2 moyens/1 difficile via le nouvel accesseur `RemediationChunk.exercices_gradues()`, corrigés en clair — document lu par un tuteur), critère de réussite déterministe.
+- [x] Génération à la demande, pour les problèmes `confirme`/`en_remediation` — `GET /api/sessions/{jeton}/problemes/{probleme_id}/fiche`, lien par étape dans `SessionDetail.tsx`. Refuse avec un message explicite (pas de fiche creuse) si le rapprochement ne couvre pas le couple compétence × niveau.
+- [x] Versionnement : `PATCH` sur le même endpoint enregistre une correction tuteur (`version: generee → corrigee`) ; jamais régénérée automatiquement une fois cataloguée. Aucun écran dédié (hors périmètre des deux écrans du Module 8) — API seulement pour l'instant.
 
-**Critère de fin :** une fiche générée est utilisable en séance sans retouche par un tuteur qui découvre le dossier.
-**Fichiers concernés :** nouveau générateur + stockage versionné (table à ajouter au Module 1 si pas déjà prévu, ou réutilisation de `document` avec un nouveau `type`).
+**Au passage (D-CEO-43) :** confusion de nommage corrigée — le PDF du plan (module 6) s'appelait « fiche de remédiation » (`pdf_plan_html.py`, endpoint `/fiche`), renommé « plan de remédiation » (`pdf_plan_html.py` inchangé de nom de fichier mais docstring/gabarit/endpoint `/plan` corrigés) pour ne plus se confondre avec la vraie fiche du module 7. Deux bugs de rendu/parsing réels trouvés et corrigés en testant sur données réelles : substitution LaTeX naïve dans `math_format.py` (`\le` mangeait `\left`) et chevauchement DÉCLIC/ATTENTION dans `remediation_parser.py` (YAML régénérés, mêmes totaux : 79 modules, 2838 exercices).
+
+**Critère de fin :** une fiche générée est utilisable en séance sans retouche par un tuteur qui découvre le dossier — **atteint pour les couples couverts par le rapprochement** (encore partiel, voir D-CEO-41 : ~162/707 paires niveau × compétence).
+**Fichiers concernés :** `app/services/fiche_remediation.py`, `src/pipeline/pdf_fiche_travail_html.py`, `templates/fiche_travail.html.j2`, `backend/app/models/suivi.py::FicheRemediation`, migration `a1b2c3d4e5f6`.
+**Tests :** `backend/tests/test_fiche_remediation.py` (service), `backend/tests/test_routers_sessions.py` (endpoints).
 
 ---
 
@@ -455,6 +460,75 @@ Limite structurelle assumée : certaines compétences ont un libellé volontaire
 ---
 
 ## Journal de bord
+
+### 2026-10-16 (suite) — Recette sur 29 copies réelles (SIAO) : notation alignée sur les barèmes détaillés
+
+Recette de bout en bout (chemin `app.services.taches`, base SQLite isolée, référentiel v1) sur les copies `TESTS_DIAGNOTICS_SIAO`. Chaîne complète OK (25 copies : notes, module 4, sujet T1, PDF). Trois défauts corrigés :
+
+- **Notes gonflées** : les consignes de correction étaient binaires (« 0 ou max_score », « résultat sans démarche → point ») alors que les corrigés v1 notent critère par critère. `grading_prompt.md` gagne une section « Barème détaillé par critère » prioritaire : partie A tout ou rien (casse des lettres QCM ignorée), B/C critère par critère, valeur fausse = critère perdu, conclusion nue / non fondée / contredite = 0, démarche condensée = mêmes points.
+- **Conversion faite par le modèle** (il notait 0,5/2 en écrivant « 1/2 ») : le modèle renvoie désormais `points_obtenus` (points du corrigé) et `validate_grading` convertit, plafonne et ramène sur la grille (`RubricItem.points_corrige` / `score_step`, code `SCORE_HORS_BAREME`).
+- **Lectures inventées** : sur une même transcription, DeepSeek a recopié le corrigé (CISSE 2nde : 18,75 vs 13,25). Correction triplée en parallèle et consolidée par médiane (`consolider_corrections`, `settings.nb_corrections_ia = 3`), divergences signalées `requires_review`. Écart entre deux notations complètes : max 5,5 → ~2 pts/20 hors CISSE ; CISSE reste instable avec DeepSeek (≥ 2 passages sur 3 « corrigent » l'élève), Claude Sonnet 5 lit fidèlement (9 – 11,25 sur 3 passages) mais coûte ~0,07 $ par passage — choix de fournisseur ouvert (Paramètres → Modèles IA).
+- **Transcription** : coupures réseau Gemini (WinError 10054, 5xx, timeouts) désormais réessayées ; repli GPT-5 par lots de 3 pages, 300 s, 2 essais (une copie de 14 pages expirait à 90 s). ZAMPALIGRE et KOANDA, en échec au premier passage, passent.
+
+Tests : `tests/test_notation_bareme_detaille.py` (29). Reste : 8 élèves absents du Sheet, diagnostic lent (~6-8 min/copie).
+
+**Correcteur** : Claude Sonnet 5 retenu par le commanditaire (`GRADING_PROVIDER=claude`, ~0,21 $/copie avec 3 passages) — à poser dans le `.env` du serveur, un choix fait dans Paramètres serait perdu au redéploiement (`data/preferences_modeles.json` n'est pas monté en volume).
+
+**Anciens tests retirés** (décision du commanditaire) : seuls les 7 tests du 2026-10-16 restent au catalogue. Retirés de git : les 6 tests v1 (`bareme_test_*`, `corrige_test_*`, énoncés Word/Markdown de `data/Documents/`), `tests/test_knowledge_2ndeC.py`, `scripts/integrer_corriges.py` (il aurait réécrit `corriges_socle.yaml` depuis l'ancien lot v0). PDF de juillet et d'août et `Referentiel_Urie_v0.xlsx` déplacés hors du dépôt (`HAKILI-V2/anciens_tests_retires_2026-10-16/`). Aucune correction en base ne s'y rapportait. ⚠ Les 16 copies de Terminale SIAO ont été passées sur le sujet long d'août : elles ne sont pas corrigeables avec le nouveau test.
+
+### 2026-10-16 — Batterie allégée : les 7 sujets et corrigés remplacés
+
+Les sujets du 2026-08-12 étaient trop longs : les élèves ne finissaient pas. Une batterie allégée (6 octobre) les remplace, livrée dans `test-evaluation/` avec ses 7 corrigés et le référentiel **`Referentiel_Urie_v1.xlsx`** (12 octobre), retagué sur ces sujets : 282 questions (collège 16 A + 11 B + 3 problèmes × 3 sous-questions = 60 pts ; lycée 20 A + 14 B + 4 problèmes × 3 = 80 pts), 1 041 signatures, 172 options de QCM.
+
+- **Classeur versionné** dans `data/referentiel/` (embarqué dans l'image, importable sur le serveur). `generer_baremes_socle.py` et `importer_referentiel.py` le lisent en premier.
+- **Corrigés transcrits** des PDF enseignant, page par page (valeurs vectorielles, invisibles à l'extraction texte) dans `corriges_socle.yaml` : réponse attendue, démarche + barème détaillé, « si l'élève échoue », pour les 282 questions — constructions comprises. L'ancien contenu (sujets d'août) est remplacé : les codes ont été réattribués. Les 43 bonnes réponses de QCM du classeur ont été recoupées une à une avec les corrigés : toutes concordent.
+- **Générateur** : diviseur calculé par test (total / 20) au lieu de 3 figé, ordre du sujet conservé, format « rédigé » normalisé en `redige`, `si_echoue` et `probleme_parent` émis. Les 7 `bareme_socle_*.yaml` sont **régénérés** (ils étaient reconstruits à la main depuis l'arbitrage H) et totalisent exactement 20.
+- **Import en base** : même diviseur par test, format normalisé, corrigés repris depuis `corriges_socle.yaml`, et **suppression des questions absentes du classeur** (70 côté prod) — refusée si une réponse d'élève en dépend (0 en prod au 2026-10-16).
+- PDF imprimables remplacés dans `data/Documents/` (+ `corriges/`) ; ceux d'août archivés dans `data/Documents/archive/2026-08-12/`.
+
+**Reste à arbitrer (onglet `09_Anomalies` du classeur, priorité 1)** : 4ème P2/P3 (la question 2 redonne la réponse de la question 1), profil par domaine des corrigés ≠ compétence principale des sous-questions, 1ère D P3.3 (comparer 190 à 204 devrait être accepté), Tle D P4.3 (matrice ≠ corrigé), 2nde C G11 (exemple d'argument faux). Le corrigé est transcrit tel quel ; ces points sont signalés dans les `solution` concernés quand ils touchent la notation.
+
+### 2026-08-29 (suite) — Le sujet T1 n'était plus généré à la réanalyse d'une copie
+
+Signalé par l'utilisateur : « les exos de confirmation de lacunes ne sont plus
+générés après analyse ». Cause trouvée dans `app/services/taches.py::_ecrire_hypotheses_module4` :
+le sujet T1 n'était généré que si le diagnostic du T0 **créait** au moins une hypothèse
+(`ecriture.crees` non vide). Or réanalyser la copie d'un élève qui a déjà une session
+ouverte (cas courant en test, et en production quand un collègue a déjà lancé un T0)
+ne crée rien de neuf — tous les couples compétence × type d'erreur sont « déjà suivis » —
+donc `_generer_sujet_confirmation` n'était jamais appelé, même quand aucun sujet n'existait.
+Confirmé sur `dev.db` : session 16, évaluations T0 nº 12 et 13 du 2026-08-29,
+« 0 problème(s) écrits, 14 déjà suivis », aucun sujet.
+
+Correctif : on génère désormais dès qu'un T0 laisse des hypothèses ouvertes **et**
+qu'aucun T0 de la session ne porte encore de `sujet_confirmation` persisté
+(`_session_a_un_sujet_t1`, même critère que `sessions.py::session_detail` pour le lien
+« Sujet T1 »). Un sujet déjà présent → pas de second appel modèle. Trois tests neufs
+(`backend/tests/test_taches.py`). 155 tests backend OK.
+
+### 2026-08-29 — Choix des fournisseurs IA sorti dans Paramètres (D-CEO-44)
+
+Demande de l'utilisateur : que le choix du modèle par étape ne soit plus figé dans `.env`.
+Fait — **Paramètres → Modèles IA**, config globale, éditable par l'administrateur seul,
+lecture seule pour les autres casquettes. Trois familles : transcription
+(Claude / Gemini / ChatGPT), correction (DeepSeek / Claude / Gemini), analyse —
+diagnostic texte libre du rapport de copie — (Gemini / Claude / ChatGPT / DeepSeek),
+plus une variante Sonnet / Opus quand Claude est choisi.
+
+Mécanique : `src/core/preferences_modeles.py` (magasin fichier `data/preferences_modeles.json`,
+rechargé à chaud, sans dépendance de framework), qui **prime sur `.env`** — ce dernier
+devient le repli. Les fabriques de clients du pipeline (`_make_*_client`) le consultent ;
+`GET`/`PUT /api/admin/preferences-modeles` l'exposent. `GeminiClient` a gagné `grade()` et
+`diagnose()` ; `ClaudeClient` accepte un modèle au constructeur / par appel. Modèles Claude
+passés à la famille 5 (`claude-sonnet-5` / `claude-opus-5`).
+
+**Restent Claude-only, volontairement :** le diagnostic contraint du module 4
+(`diagnose_constrained`, outil `enum` = 1re barrière anti-code hors référentiel — changer
+son fournisseur ré-ouvrirait le jalon « 100 sorties valides »), la génération des sujets
+T1/T3/T4/T5, l'extraction énoncé/barème. Aucun autre client ne porte ces méthodes.
+
+**Vérifié :** 152 `backend/tests/`, 246 `tests/`, 47 Vitest — verts (dont 12 + 4 + 6 + 3
+nouveaux tests ciblés). Aller-retour réel `claude-in-chrome` non repassé.
 
 ### 2026-08-13 (suite 4) — `bareme_socle_tleD.yaml` reconstruit — dernier niveau, arbitrage H clos
 

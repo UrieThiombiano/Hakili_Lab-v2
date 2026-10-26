@@ -1,0 +1,309 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Design tokens — portés depuis templates_django/base.html (le système
+   visuel unifié construit début août sur les 11 écrans Django), pas
+   réinventés : même palette marine/bleu, même échelle typographique
+   (~1.25), même rythme d'espacement en 4px. Voir le plan de migration
+   pour la décision : "point de départ, pas plafond" — on monte en gamme
+   avec des primitives shadcn/ui par-dessus, sans changer l'identité.
+   ═══════════════════════════════════════════════════════════════════════ */
+@theme {
+  --color-marine: #001e4a;
+  --color-marine-clair: #0a3a7a;
+  --color-bleu: #2f6fc4;
+  --color-bleu-sombre: #245aa3;
+  --color-bleu-pale: #eaf1fb;
+
+  --color-texte: #001e4a;
+  --color-texte-doux: #52708f;
+  --color-texte-faible: #7d94ad;
+
+  --color-fond: #f4f7fb;
+  --color-surface: #ffffff;
+  --color-surface-creuse: #f0f4f9;
+  --color-bord: #dde5ef;
+  --color-bord-fort: #c2d0e0;
+
+  --color-vert: #1f8a4c;
+  --color-vert-pale: #e7f6ed;
+  --color-orange: #c9700d;
+  --color-orange-pale: #fdf1e0;
+  /* Orange des boutons d'action de la vitrine : `--color-orange` (#c9700d)
+     ne tient que 3,5:1 sous du texte blanc — celui-ci passe 4,8:1 (AA). */
+  --color-orange-cta: #b25a06;
+  --color-orange-cta-sombre: #964b04;
+  --color-rouge: #c0392b;
+  --color-rouge-pale: #fdecea;
+  --color-gris: #6b7f94;
+  --color-gris-pale: #eef2f6;
+
+  /* Types d'erreur (référentiel v2, 7 codes fermés) — taxonomie propre,
+     pas réutilisée ailleurs. */
+  --color-te-cpt: #96271c;
+  --color-te-cpt-bg: #fdecea;
+  --color-te-cpt-bd: #f1c9c4;
+  --color-te-prq: #96540a;
+  --color-te-prq-bg: #fdf1e0;
+  --color-te-prq-bd: #f0d5ae;
+  --color-te-mod: #5b3fa6;
+  --color-te-mod-bg: #efe9fb;
+  --color-te-mod-bd: #d8ccf2;
+  --color-te-prc: #24578f;
+  --color-te-prc-bg: #eaf1fb;
+  --color-te-prc-bd: #c6d9f1;
+  --color-te-cns: #1c6470;
+  --color-te-cns-bg: #e6f4f6;
+  --color-te-cns-bd: #c2e0e5;
+  --color-te-red: #6d5a3c;
+  --color-te-red-bg: #f3eee6;
+  --color-te-red-bd: #ddd2be;
+  --color-te-att: #6b7f94;
+  --color-te-att-bg: #eef2f6;
+  --color-te-att-bd: #c2d0e0;
+
+  /* Titres de la vitrine publique (`routes/Accueil.tsx`) seulement — l'app
+     garde la pile système. Chargée depuis Google Fonts dans index.html. */
+  --font-display: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --text-micro: 11px;
+  --text-petit: 13.5px;
+  --text-menu: 14.5px;
+  --text-corps: 16.5px;
+  --text-lead: 18px;
+  --text-h3: 16.5px;
+  --text-h2: 21px;
+  --text-h1: 28px;
+  --text-chiffre: 36px;
+
+  /* Tailwind v4 ne laisse pas surcharger l'utilitaire nu `rounded` via une
+     clé `--radius-DEFAULT` (contrairement à v3) — `rounded-lg` (8px, valeur
+     par défaut de Tailwind) sert donc de rayon "carte", assez proche des
+     10px de la maquette d'origine pour ne pas justifier une classe dédiée. */
+  --radius-petit: 6px;
+  --radius-rond: 999px;
+
+  --shadow-carte: 0 1px 2px rgba(0, 30, 74, .05);
+  --shadow-haute: 0 4px 16px rgba(0, 30, 74, .10);
+}
+
+body {
+  background: var(--color-fond);
+  color: var(--color-texte);
+  font-size: var(--text-corps);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-bleu);
+  outline-offset: 2px;
+  border-radius: var(--radius-petit);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Fond "cahier" — grille petits carreaux très pâle (repère visuel d'un
+   cahier d'école plutôt qu'un aplat neutre), volontairement discrète : les
+   cartes restent opaques par-dessus, la grille ne se voit que dans les
+   marges entre elles. Remplace `bg-fond` sur les conteneurs plein écran.
+   ═══════════════════════════════════════════════════════════════════════ */
+.fond-cahier {
+  background-color: var(--color-fond);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(47, 111, 196, 0.055) 0, rgba(47, 111, 196, 0.055) 1px, transparent 1px, transparent 22px),
+    repeating-linear-gradient(90deg, rgba(47, 111, 196, 0.055) 0, rgba(47, 111, 196, 0.055) 1px, transparent 1px, transparent 22px);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Animations — micro-interactions discrètes plutôt qu'un habillage
+   décoratif : entrée de page, dépliage de menu/toast, retour tactile sur
+   les boutons. Respecte `prefers-reduced-motion` (bloc dédié plus bas).
+   ═══════════════════════════════════════════════════════════════════════ */
+@keyframes entree-page {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes entree-menu {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes entree-toast {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-entree-page {
+  animation: entree-page 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-entree-menu {
+  animation: entree-menu 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top right;
+}
+.animate-entree-toast {
+  animation: entree-toast 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   « Spectacle » d'attente (Suivre.tsx, écran de progression pendant la
+   correction) — un objet à regarder plutôt qu'une liste à lire : deux
+   anneaux coniques contra-rotatifs, trois points en orbite, un halo qui
+   respire. Isolé du reste du langage d'animation (au-scroll, entree-*)
+   parce qu'il tourne en continu tant que l'écran est affiché, pas une
+   seule fois à l'entrée.
+   ═══════════════════════════════════════════════════════════════════════ */
+@keyframes spectacle-tourner {
+  to { transform: rotate(360deg); }
+}
+@keyframes spectacle-tourner-inverse {
+  to { transform: rotate(-360deg); }
+}
+@keyframes spectacle-respirer {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.18); opacity: 0.85; }
+}
+@keyframes spectacle-respirer-doux {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+
+.spectacle-anneau {
+  background: conic-gradient(from 0deg, transparent 0%, var(--color-bleu) 30%, var(--color-orange) 50%, transparent 72%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 5px));
+  animation: spectacle-tourner 2.8s linear infinite;
+}
+.spectacle-anneau-inverse {
+  background: conic-gradient(from 90deg, transparent 0%, var(--color-marine-clair) 20%, transparent 46%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  animation: spectacle-tourner-inverse 4.2s linear infinite;
+}
+.spectacle-orbite {
+  animation: spectacle-tourner 5.5s linear infinite;
+}
+.spectacle-halo {
+  animation: spectacle-respirer 2.6s ease-in-out infinite;
+}
+.spectacle-coeur {
+  animation: spectacle-respirer-doux 3.4s ease-in-out infinite;
+}
+
+/* Révélation au défilement (`useRevealOnScroll`, branché dans `Card`) : fondu
+   + léger glissement la première fois qu'une carte entre dans le viewport.
+   Portée volontairement large (une seule primitive, pas un ajout par page).
+   Dans `@layer utilities` : sans ça, une règle globale non calquée bat
+   toujours les utilitaires Tailwind (hover:, transition-shadow…) quelle que
+   soit leur spécificité — les cartes qui combinent `.au-scroll` avec un
+   hover Tailwind (ex. `hover:-translate-y-0.5`) redeviendraient inertes. */
+@layer utilities {
+  .au-scroll {
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.2s ease-out,
+      border-color 0.2s ease-out,
+      background-color 0.2s ease-out;
+  }
+  .au-scroll.est-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Vitrine publique (`routes/Accueil.tsx`) — page de marketing vue une fois
+   par visite. Le gros du mouvement (défilement doux, révélations, parallaxe)
+   est piloté par GSAP + Lenis dans le composant ; ici seulement les états
+   CSS : survols, appui, boucles décoratives. Les éléments animés par GSAP
+   n'ont volontairement aucune `transition` sur `transform` (elles se
+   battraient). Survols réservés aux pointeurs fins.
+   ═══════════════════════════════════════════════════════════════════════ */
+.vitrine {
+  --ease-vitrine: cubic-bezier(0.23, 1, 0.32, 1);
+}
+@keyframes vitrine-pulsation {
+  0% { transform: scale(1); opacity: 0.7; }
+  80%, 100% { transform: scale(2.6); opacity: 0; }
+}
+@keyframes vitrine-defiler {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
+}
+.vitrine-pulsation {
+  animation: vitrine-pulsation 2s var(--ease-vitrine) infinite;
+}
+.vitrine-defiler {
+  animation: vitrine-defiler 1.8s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+}
+.vitrine-entete {
+  transition:
+    transform 450ms var(--ease-vitrine),
+    background-color 250ms ease-out,
+    border-color 250ms ease-out,
+    box-shadow 250ms ease-out;
+}
+.vitrine-bouton {
+  transition: transform 160ms ease-out, background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 200ms ease;
+}
+.vitrine-bouton:active {
+  transform: scale(0.97);
+}
+/* Soulignement qui se dessine sous les liens du menu. */
+.vitrine-lien-nav::after {
+  content: "";
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.3rem;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-orange);
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 350ms var(--ease-vitrine);
+}
+.vitrine-carte {
+  transition: transform 350ms var(--ease-vitrine), box-shadow 350ms var(--ease-vitrine), border-color 250ms ease-out;
+}
+@media (hover: hover) and (pointer: fine) {
+  .vitrine-lien-nav:hover::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+  .vitrine-carte:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px -12px rgba(0, 30, 74, 0.22);
+    border-color: var(--color-bord-fort);
+  }
+}
+/* Grille « cahier » en blanc sur le bandeau marine final — rappel du fond
+   de l'app, en plus présent. */
+.vitrine-appel {
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(47, 111, 196, 0.45), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 28px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 28px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vitrine-pulsation, .vitrine-defiler {
+    animation: none;
+  }
+  .vitrine-bouton:active, .vitrine-carte:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-entree-page, .animate-entree-menu, .animate-entree-toast, .animate-ping,
+  .spectacle-anneau, .spectacle-anneau-inverse, .spectacle-orbite, .spectacle-halo, .spectacle-coeur {
+    animation: none;
+  }
+  .au-scroll {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

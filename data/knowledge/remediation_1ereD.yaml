@@ -3313,39 +3313,7 @@
       | Numérateur changé de signe, dénominateur inchangé. | $f\left(-x\right) = -f\left(x\right)$ : **$f$
       est impaire** |
 
-      | **Vérification :** $f\left(1\right) = \frac{1}{2}$ et $f\left(-1\right) = -\frac{1}{2}$. ✓ | |
-
-
-      > #### 📖 CE QU''IL FAUT RETENIR
-
-      >
-
-      > **Les fonctions de référence à connaître par coeur**
-
-      >
-
-      > | Fonction | $D_{f}$ | Variations | Parité |
-
-      > |---|---|---|---|
-
-      > | $x \mapsto x$ | $\mathbb{R}$ | ↗ sur $\mathbb{R}$ | impaire |
-
-      > | $x \mapsto x^{2}$ | $\mathbb{R}$ | ↘ sur $]-\infty\,;\,0]$, ↗ sur $[0\,;\,+\infty[$ | paire
-      |
-
-      > | $x \mapsto x^{3}$ | $\mathbb{R}$ | ↗ sur $\mathbb{R}$ | impaire |
-
-      > | $x \mapsto \frac{1}{x}$ | $\mathbb{R} \setminus \{0\}$ | ↘ sur $]-\infty\,;\,0[$ et sur $]0\,;\,+\infty[$
-      | impaire |
-
-      > | $x \mapsto \sqrt{x}$ | $[0\,;\,+\infty[$ | ↗ sur $[0\,;\,+\infty[$ | ni l''une ni l''autre |
-
-      > | $x \mapsto |x|$ | $\mathbb{R}$ | ↘ sur $]-\infty\,;\,0]$, ↗ sur $[0\,;\,+\infty[$ | paire |
-
-
-      [SVG: figures/m08_f11.svg]
-
-      *Figure 8.2 : les trois premières fonctions de référence, la droite, la parabole, la cubique.*'
+      | **Vérification :** $f\left(1\right) = \frac{1}{2}$ et $f\left(-1\right) = -\frac{1}{2}$. ✓ | |'
     erreurs_frequentes:
     - erreur: conclure « $f$ n'est pas paire, donc elle est impaire ».
       correction: les deux propriétés sont indépendantes ; le cas le plus fréquent est de n'être ni l'une
@@ -3795,27 +3763,7 @@
 
       | Le plus grand est $BC^{2}$ : sommet candidat $A$. | $AB^{2} + AC^{2} = 50 = BC^{2}$ |
 
-      | **Conclusion :** $ABC$ est **rectangle et isocèle en $A$** (réciproque de Pythagore) ✓ | |
-
-
-      > #### 📖 CE QU''IL FAUT RETENIR
-
-      >
-
-      > **Losange, rectangle, carré**
-
-      >
-
-      > On montre d''abord que $ABCD$ est un **parallélogramme** ($\overrightarrow{AB} = \overrightarrow{DC}$),
-      puis :
-
-      >
-
-      > - deux côtés **consécutifs** égaux ($AB = BC$) : **losange** ;
-
-      > - **diagonales** égales ($AC = BD$) : **rectangle** ; les deux : **carré**.
-
-      > - Le mot **consécutifs** commande : $AB = DC$ est automatique et n''apprend rien.'
+      | **Conclusion :** $ABC$ est **rectangle et isocèle en $A$** (réciproque de Pythagore) ✓ | |'
     erreurs_frequentes:
     - erreur: conclure $AB = 25$ alors que $AB^{2} = 25$, ou simplifier $\sqrt{a^{2} + b^{2}}$ en $a +
         b$.

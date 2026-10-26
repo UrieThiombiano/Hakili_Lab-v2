@@ -1,35 +1,22 @@
-# Reconstruit manuellement le 2026-08-13 depuis le sujet et le corrige PDF recomposes
-# (data/Documents/, livraison data/New-docs/ du 2026-08-12) — PAS depuis Referentiel_Socle_v0.xlsx,
-# qui n'a pas ete mis a jour (voir docs/harmonisation_donnees.md, arbitrage H).
-# Ne pas relancer scripts/generer_baremes_socle.py sur ce fichier sans avoir d'abord
-# reporte la nouvelle composition (structure a 3 parties) dans le classeur, sous peine
-# d'ecraser ce travail et de revenir a l'ancienne composition a 2 parties.
+# Généré par scripts/generer_baremes_socle.py — ne pas éditer à la main.
+# Source : data/referentiel/Referentiel_Urie_v1.xlsx + data/knowledge/corriges_socle.yaml.
+# Pour corriger une réponse attendue, éditer corriges_socle.yaml puis
+# relancer le script ; pour la structure du test, mettre à jour le classeur.
 
 meta:
   test_id: socle_1ereD
   titre: Test diagnostique d'entrée en 1ère D
   niveau_test: 1ereD
   classe: 1ere
-  total_questions: 59
+  total_questions: 46
   total_possible: 20
   somme_baremes_reelle: 20.0
   bareme_classeur_total: 80.0
-  structure: Partie A 20 pts (20 x 1) - Partie B 28 pts (14 x 2) - Partie C 32 pts (4x5 + 2x6, 6 problemes
-    decomposes en 4 ou 5 sous-items chacun) — echelle lycee, bareme_classeur_total 80 converti /20 par
-    division par 4 (pas 3, comme au college)
-  source: data/Documents/Test_diagnostique_entree_1ereD.pdf et data/Documents/corriges/Corrige_test_diagnostique_entree_1ereD.pdf
-    (livraison 2026-08-12, corrige valide par un enseignant de mathematiques)
-  genere_par: 'reconstruction manuelle assistee (2026-08-13) — voir docs/harmonisation_donnees.md, arbitrage
-    H. Referentiel_Socle_v0.xlsx n''a PAS ete mis a jour : ce fichier est temporairement la source de
-    verite du bareme socle_1ereD, en avance sur le classeur.'
-  note_corriges: Reponses et demarches extraites en lisant les pages du corrige PDF (rendues en image,
-    les valeurs numeriques y sont en vectoriel et invisibles a l'extraction texte). Ce corrige donne la
-    repartition exacte des points de partie C par domaine et par probleme (ex. 'P1 donne 3,5 pts a L et
-    1,5 pt a G'), recoupee EXACTEMENT avec le tableau officiel 'profil par domaine' (aucun ecart sur les
-    5 domaines), comme pour 5e, 4e et 2ndeC. Deux sous-items isoles (P5d, P6e) n'ont pas de code canonique
-    parfaitement dedie a leur contenu precis (comparaison numerique de deux carres ; signalement d'une
-    donnee manquante) — rattaches par approximation a N.RAC et N.PROB respectivement, sans consequence
-    sur le total par domaine puisque celui-ci tombe exact.
+  source: 'Referentiel_Urie_v1.xlsx (batterie allégée du 2026-10-06) — onglets 04_Questions, 06_Distracteurs,
+    02_Competences ; corrigés : data/knowledge/corriges_socle.yaml'
+  genere_par: scripts/generer_baremes_socle.py
+  note_corriges: 7 QCM avec bonne réponse (classeur) ; 39 questions corrigées depuis le corrigé PDF enseignant
+    ; 0 sans corrigé.
 questions:
 - code: N1
   partie: A
@@ -39,10 +26,31 @@ questions:
   competence: N.RAC
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Simplifier une somme de racines carrees en reduisant des radicaux semblables (QCM)
-  reponse_attendue: c) 4√3
+  objet: 'Réduire √75 - √27 + √12 (QCM : 2√3, √60, 4√3, 6√3)'
+  reponse_attendue: c
   solution: ''
-  si_echoue: Extraction du carre parfait sous le radical et reduction de radicaux semblables.
+  options:
+  - lettre: a
+    texte: 2√3
+    correcte: false
+    type_erreur: ATT
+    erreur: √75 et √27 sont bien réduits (5√3 - 3√3 = 2√3) mais le terme + √12 est oublié en route.
+  - lettre: b
+    texte: √60
+    correcte: false
+    type_erreur: CPT
+    erreur: 'La racine est appliquée à la somme : √(75 - 27 + 12) = √60, comme si √(a + b) = √a + √b.'
+  - lettre: c
+    texte: 4√3
+    correcte: true
+  - lettre: d
+    texte: 6√3
+    correcte: false
+    type_erreur: PRC
+    erreur: '√12 est simplifié en 4√3 au lieu de 2√3 (le facteur 4 sort sans sa racine) : 5√3 - 3√3 +
+      4√3 = 6√3.'
+  si_echoue: Extraction du carré parfait sous le radical et réduction de radicaux semblables. Livret de
+    remédiation 1ère D / Tle D, module 1.
 - code: N2
   partie: A
   format: qcm
@@ -51,11 +59,32 @@ questions:
   competence: N.INT
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Ecrire sous forme d'intervalle l'ensemble des reels verifiant une inegalite de type |x-a|<r
-    (QCM)
-  reponse_attendue: b) ]-1 ; 5[
+  objet: 'Traduire |x - 2| < 3 par un intervalle (QCM : ]-3 ; 3[, ]-1 ; 5[, ]-5 ; 1[, ]2 ; 5[)'
+  reponse_attendue: b
   solution: ''
-  si_echoue: Passage de |x-a|<r a l'intervalle de centre a et de rayon r.
+  options:
+  - lettre: a
+    texte: ']-3 ; 3['
+    correcte: false
+    type_erreur: CNS
+    erreur: 'Seul le rayon 3 est gardé : l''équivalence |x - a| < r ⇔ a - r < x < a + r n''est pas mobilisée,
+      le centre 2 disparaît.'
+  - lettre: b
+    texte: ']-1 ; 5['
+    correcte: true
+  - lettre: c
+    texte: ']-5 ; 1['
+    correcte: false
+    type_erreur: PRC
+    erreur: 'Le centre est lu -2 dans x - 2 : l''intervalle construit est ]-2 - 3 ; -2 + 3[ = ]-5 ; 1[.'
+  - lettre: d
+    texte: ']2 ; 5['
+    correcte: false
+    type_erreur: CPT
+    erreur: '|x - 2| est remplacé par x - 2 sans discuter le signe : x - 2 < 3 donne x < 5, et l''élève
+      ajoute x > 2.'
+  si_echoue: Passage de |x - a| < r à l'intervalle de centre a et de rayon r. Livret de remédiation 1ère
+    D / Tle D, module 4.
 - code: L1
   partie: A
   format: court
@@ -64,22 +93,24 @@ questions:
   competence: L.EQ2
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Resoudre dans R une equation du second degre
+  objet: Résoudre dans ℝ l'équation 2x² - 5x - 3 = 0
   reponse_attendue: S = {-1/2 ; 3}
-  solution: ''
-  si_echoue: Resolution d'une equation du second degre par le discriminant.
+  solution: 'Barème : 1 pt, tout ou rien — les deux solutions sont exigées.'
+  si_echoue: Résolution d'une équation du second degré par le discriminant. Livret de remédiation 1ère
+    D / Tle D, module 7.
 - code: L2
   partie: A
   format: court
   bareme: 0.25
   bareme_classeur: 1.0
   competence: L.TRI
-  competence_secondaire: null
+  competence_secondaire: L.EQ2
   domaine: Calcul litteral et algebre
-  objet: Factoriser un trinome apres mise en facteur du coefficient dominant
-  reponse_attendue: P(x) = 3(x-1)(x-3)
-  solution: ''
-  si_echoue: Factorisation d'un trinome apres mise en facteur du coefficient dominant.
+  objet: Factoriser le trinôme P(x) = 3x² - 12x + 9
+  reponse_attendue: P(x) = 3(x - 1)(x - 3)
+  solution: 'Barème : 1 pt, tout ou rien. Accepter la forme 3(x - 3)(x - 1).'
+  si_echoue: Factorisation d'un trinôme après mise en facteur du coefficient dominant. Livret de remédiation
+    1ère D / Tle D, module 7.
 - code: L3
   partie: A
   format: court
@@ -88,10 +119,11 @@ questions:
   competence: L.SYSL
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Resoudre dans R x R un systeme de deux equations a deux inconnues
+  objet: Résoudre le système 3x - 2y = 8 et x + 2y = 0
   reponse_attendue: S = {(2 ; -1)}
-  solution: ''
-  si_echoue: Resolution d'un systeme lineaire de deux equations a deux inconnues.
+  solution: 'Barème : 1 pt, tout ou rien — le couple entier est exigé, une seule inconnue ne vaut rien.'
+  si_echoue: Résolution d'un système linéaire de deux équations à deux inconnues. Livret de remédiation
+    1ère D / Tle D, module 10.
 - code: L4
   partie: A
   format: qcm
@@ -100,22 +132,45 @@ questions:
   competence: L.INEQ2
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Choisir l'ensemble des solutions d'une inequation quotient (QCM)
-  reponse_attendue: d) ]-3 ; 2]
+  objet: 'Résoudre (x - 2)/(x + 3) ≤ 0 (QCM : [-3 ; 2], ]-∞ ; -3[ ∪ [2 ; +∞[, [-2 ; 3], ]-3 ; 2])'
+  reponse_attendue: d
   solution: ''
-  si_echoue: Signe d'un quotient et exclusion de la valeur qui annule le denominateur.
+  options:
+  - lettre: a
+    texte: '[-3 ; 2]'
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Le quotient est traité comme le produit (x - 2)(x + 3) ≤ 0 : la valeur interdite -3 est incluse.'
+  - lettre: b
+    texte: ']-∞ ; -3[ ∪ [2 ; +∞['
+    correcte: false
+    type_erreur: PRC
+    erreur: Le tableau de signe est juste mais l'élève retient les intervalles où le quotient est positif
+      ou nul.
+  - lettre: c
+    texte: '[-2 ; 3]'
+    correcte: false
+    type_erreur: PRQ
+    erreur: Les zéros de x - 2 et de x + 3 sont pris égaux à -2 et 3 (solution de x + b = 0 lue b), et
+      la borne 3 reste fermée.
+  - lettre: d
+    texte: ']-3 ; 2]'
+    correcte: true
+  si_echoue: Signe d'un quotient et exclusion de la valeur qui annule le dénominateur. Livret de remédiation
+    1ère D / Tle D, module 7.
 - code: F1
   partie: A
   format: court
   bareme: 0.25
   bareme_classeur: 1.0
-  competence: F.APP
+  competence: F.GRA
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Lire l'image de 0 par une fonction donnee par sa courbe
+  objet: Lire l'image de 0 par f, courbe passant par A(-3 ; 1), B(0 ; -2), C(2 ; 0) et D(5 ; 4)
   reponse_attendue: f(0) = -2
-  solution: ''
-  si_echoue: 'Lecture d''une image : confusion entre image et antecedent.'
+  solution: 'Barème : 1 pt, tout ou rien. Accepter la seule réponse -2.'
+  si_echoue: 'Lecture d''une image : confusion entre image et antécédent. Livret de remédiation 1ère D
+    / Tle D, module 8.'
 - code: F2
   partie: A
   format: court
@@ -124,10 +179,11 @@ questions:
   competence: F.DEF
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Determiner l'ensemble de definition d'une fonction rationnelle
-  reponse_attendue: 'Df = R \ {-3 ; 3}'
-  solution: ''
-  si_echoue: Recherche des valeurs interdites d'une fonction rationnelle.
+  objet: Déterminer l'ensemble de définition de f(x) = (x + 1)/(x² - 9)
+  reponse_attendue: Df = ℝ \ {-3 ; 3}
+  solution: 'Barème : 1 pt, tout ou rien. Accepter ]-∞ ; -3[ ∪ ]-3 ; 3[ ∪ ]3 ; +∞[.'
+  si_echoue: Recherche des valeurs interdites d'une fonction rationnelle. Livret de remédiation 1ère D
+    / Tle D, module 8.
 - code: F3
   partie: A
   format: qcm
@@ -136,10 +192,33 @@ questions:
   competence: F.REF
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Identifier le vecteur de translation reliant les courbes de deux fonctions de reference (QCM)
-  reponse_attendue: a) 3i⃗
+  objet: Choisir la translation qui envoie la courbe de x² sur celle de (x - 3)² (QCM)
+  reponse_attendue: a
   solution: ''
-  si_echoue: Sens de la translation associee a x↦f(x-a).
+  options:
+  - lettre: a
+    texte: 3 vecteur i
+    correcte: true
+  - lettre: b
+    texte: -3 vecteur i
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Le signe moins de (x - 3) est lu comme un déplacement vers la gauche : le sens de la translation
+      est inversé.'
+  - lettre: c
+    texte: 3 vecteur j
+    correcte: false
+    type_erreur: CNS
+    erreur: 'Le lien entre x ↦ f(x - a) et une translation horizontale n''est pas disponible : la courbe
+      est déplacée verticalement.'
+  - lettre: d
+    texte: -3 vecteur j
+    correcte: false
+    type_erreur: CPT
+    erreur: '(x - 3)² est confondu avec x² - 3 : un décalage de la variable est pris pour une constante
+      retranchée à f(x).'
+  si_echoue: Sens de la translation associée à x ↦ f(x - a). Livret de remédiation 1ère D / Tle D, module
+    8.
 - code: F4
   partie: A
   format: court
@@ -148,10 +227,11 @@ questions:
   competence: F.CIRC
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Convertir en degres une mesure d'angle donnee en radians
-  reponse_attendue: 210 degres
+  objet: Convertir en degrés un angle de 7π/6 radians
+  reponse_attendue: 210 degrés
   solution: ''
-  si_echoue: Conversion radians vers degres par la proportionnalite π rad = 180 degres.
+  si_echoue: Conversion radians vers degrés par la proportionnalité π rad = 180 degrés. Livret de remédiation
+    1ère D / Tle D, module 11.
 - code: F5
   partie: A
   format: court
@@ -160,10 +240,11 @@ questions:
   competence: F.REF
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Donner les coordonnees du sommet d'une parabole a partir de sa forme canonique
-  reponse_attendue: Sommet (-1 ; -4)
-  solution: ''
-  si_echoue: Lecture des coordonnees du sommet sur la forme canonique, notamment le signe de l'abscisse.
+  objet: Donner le sommet de la parabole d'équation y = (x + 1)² - 4
+  reponse_attendue: sommet (-1 ; -4)
+  solution: 'Barème : 1 pt, tout ou rien — les deux coordonnées sont exigées.'
+  si_echoue: Lecture des coordonnées du sommet sur la forme canonique, notamment le signe de l'abscisse.
+    Livret de remédiation 1ère D / Tle D, module 8.
 - code: F6
   partie: A
   format: court
@@ -172,10 +253,11 @@ questions:
   competence: F.PAR
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Determiner la parite d'une fonction polynome
-  reponse_attendue: Fonction impaire
+  objet: Donner la parité de la fonction u(x) = x³ - 4x définie sur ℝ
+  reponse_attendue: fonction impaire
   solution: ''
-  si_echoue: Reconnaissance de la parite par l'effet du changement de x en -x.
+  si_echoue: Reconnaissance de la parité par l'effet du changement de x en -x. Livret de remédiation 1ère
+    D / Tle D, module 8.
 - code: G1
   partie: A
   format: court
@@ -184,10 +266,11 @@ questions:
   competence: G.COL
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Determiner un reel pour que deux vecteurs donnes par leurs coordonnees soient colineaires
+  objet: Trouver m pour que les vecteurs u(m ; 6) et v(3 ; -2) soient colinéaires
   reponse_attendue: m = -9
   solution: ''
-  si_echoue: Critere de colinearite de deux vecteurs par le determinant.
+  si_echoue: Critère de colinéarité de deux vecteurs par le déterminant. Livret de remédiation 1ère D
+    / Tle D, module 9.
 - code: G2
   partie: A
   format: qcm
@@ -196,10 +279,31 @@ questions:
   competence: G.PS
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer un produit scalaire de deux vecteurs en repere orthonorme (QCM)
-  reponse_attendue: b) -11
+  objet: 'Calculer le produit scalaire de u(2 ; -3) et v(-4 ; 1) (QCM : -5, -11, 5, 11)'
+  reponse_attendue: b
   solution: ''
-  si_echoue: Calcul du produit scalaire en repere orthonorme, en particulier le signe du second produit.
+  options:
+  - lettre: a
+    texte: '-5'
+    correcte: false
+    type_erreur: PRC
+    erreur: 'La formule xx'' + yy'' est la bonne mais le second produit (-3) × 1 est pris égal à 3 : -8
+      + 3 = -5.'
+  - lettre: b
+    texte: '-11'
+    correcte: true
+  - lettre: c
+    texte: '5'
+    correcte: false
+    type_erreur: ATT
+    erreur: 'La coordonnée -4 est recopiée 4 : 2 × 4 + (-3) × 1 = 8 - 3 = 5.'
+  - lettre: d
+    texte: '11'
+    correcte: false
+    type_erreur: PRQ
+    erreur: 'Les deux produits sont pris positifs : 8 + 3 = 11, la règle des signes du produit n''est
+      pas sûre.'
+  si_echoue: Calcul du produit scalaire en repère orthonormé, en particulier le signe du second produit.
 - code: G3
   partie: A
   format: court
@@ -208,10 +312,10 @@ questions:
   competence: G.HOM
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer les coordonnees du symetrique d'un point par une symetrie centrale
+  objet: Calculer l'image A' de A(5 ; 3) par la symétrie de centre I(2 ; -1)
   reponse_attendue: A'(-1 ; -5)
-  solution: ''
-  si_echoue: 'Caracterisation du symetrique par le milieu : I est le milieu de [AA''].'
+  solution: 'Barème : 1 pt, tout ou rien — les deux coordonnées sont exigées.'
+  si_echoue: 'Caractérisation du symétrique par le milieu : I est le milieu de [AA''].'
 - code: G4
   partie: A
   format: court
@@ -220,10 +324,11 @@ questions:
   competence: G.PLAN
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer la distance entre deux points en repere orthonorme
+  objet: Calculer la distance AB pour A(-2 ; 3) et B(4 ; -5) en repère orthonormé
   reponse_attendue: AB = 10
   solution: ''
-  si_echoue: Formule de la distance de deux points en repere orthonorme.
+  si_echoue: Formule de la distance de deux points en repère orthonormé. Livret de remédiation 1ère D
+    / Tle D, module 9.
 - code: G5
   partie: A
   format: qcm
@@ -232,11 +337,33 @@ questions:
   competence: G.ESP
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Identifier la position relative de deux droites d'un cube (QCM)
-  reponse_attendue: c) paralleles
+  objet: Donner la position relative des droites (AB) et (HG) dans le cube ABCDEFGH (QCM)
+  reponse_attendue: c
   solution: ''
-  si_echoue: Positions relatives de deux droites de l'espace ; deux droites non secantes ne sont pas
-    toujours non coplanaires.
+  options:
+  - lettre: a
+    texte: sécantes
+    correcte: false
+    type_erreur: CNS
+    erreur: '(AB) ∥ (DC) et (DC) ∥ (HG) ne sont pas utilisés : l''élève se fie à l''aspect du dessin en
+      perspective.'
+  - lettre: b
+    texte: non coplanaires
+    correcte: false
+    type_erreur: CPT
+    erreur: Deux droites de faces différentes qui ne se coupent pas sont crues non coplanaires, alors
+      qu'elles sont dans le plan (ABGH).
+  - lettre: c
+    texte: parallèles
+    correcte: true
+  - lettre: d
+    texte: orthogonales
+    correcte: false
+    type_erreur: ATT
+    erreur: 'Aucune erreur de raisonnement nette n''y conduit : lecture probable d''une autre arête issue
+      de H, comme (HE), qui est orthogonale à (AB).'
+  si_echoue: 'Positions relatives de deux droites de l''espace : deux droites non sécantes ne sont pas
+    toujours non coplanaires.'
 - code: G6
   partie: A
   format: court
@@ -245,10 +372,10 @@ questions:
   competence: G.HOM
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer les coordonnees de l'image d'un point par une homothetie de rapport negatif
+  objet: Calculer l'image M' de M(4 ; 1) par l'homothétie de centre I(1 ; 3) et de rapport -2
   reponse_attendue: M'(-5 ; 7)
-  solution: ''
-  si_echoue: Relation vectorielle de l'homothetie et prise en compte du rapport negatif.
+  solution: 'Barème : 1 pt, tout ou rien — les deux coordonnées sont exigées.'
+  si_echoue: Relation vectorielle de l'homothétie et prise en compte du rapport négatif.
 - code: G7
   partie: A
   format: court
@@ -257,12 +384,11 @@ questions:
   competence: G.ESP
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Donner la position relative d'une droite et d'un plan d'un cube
-  reponse_attendue: La droite (AE) et le plan (EFG) sont secants en E ; la droite est perpendiculaire
-    au plan.
-  solution: ''
-  si_echoue: Position relative d'une droite et d'un plan de l'espace ; la reponse « paralleles » signale
-    que l'arete verticale n'est pas situee par rapport a la face superieure.
+  objet: Donner la position relative de la droite (AE) et du plan (EFG) dans le cube ABCDEFGH
+  reponse_attendue: (AE) et (EFG) sont sécants en E ; la droite est perpendiculaire au plan
+  solution: 'Barème : 1 pt, tout ou rien. Accepter « sécants en E » seul, comme « perpendiculaires » seul.'
+  si_echoue: 'Position relative d''une droite et d''un plan de l''espace : la réponse « parallèles » signale
+    que l''arête verticale n''est pas située par rapport à la face supérieure.'
 - code: D1
   partie: A
   format: qcm
@@ -270,12 +396,33 @@ questions:
   bareme_classeur: 1.0
   competence: D.STAT2
   competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: Calculer la mediane d'une serie de huit valeurs (QCM)
-  reponse_attendue: a) 49,5
+  domaine: Donnees, proportionnalite, statistique
+  objet: 'Trouver la médiane de 8 masses de sacs de mil à Réo : 48, 52, 45, 50, 47, 52, 49, 53 (QCM)'
+  reponse_attendue: a
   solution: ''
-  si_echoue: Mediane d'une serie d'effectif pair - ordonner la serie puis prendre la demi-somme des deux
-    valeurs centrales.
+  options:
+  - lettre: a
+    texte: 49,5
+    correcte: true
+  - lettre: b
+    texte: '49'
+    correcte: false
+    type_erreur: CNS
+    erreur: 'La série est rangée (45, 47, 48, 49, 50, 52, 52, 53) mais seule la 4e valeur est prise :
+      la règle de l''effectif pair n''est pas disponible.'
+  - lettre: c
+    texte: '50'
+    correcte: false
+    type_erreur: PRC
+    erreur: 'La série n''est pas rangée : la 4e valeur de la liste donnée (48, 52, 45, 50) est prise,
+      l''étape de rangement est omise.'
+  - lettre: d
+    texte: '52'
+    correcte: false
+    type_erreur: CPT
+    erreur: 'La médiane est confondue avec le mode : 52 apparaît deux fois.'
+  si_echoue: 'Médiane d''une série d''effectif pair : ordonner la série puis prendre la demi-somme des
+    deux valeurs centrales.'
 - code: N3
   partie: B
   format: redige
@@ -284,24 +431,31 @@ questions:
   competence: N.VAB
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Supprimer des valeurs absolues selon le signe de l'expression encadree, puis reduire
-  reponse_attendue: B = 3, pour tout x de ]2 ; 5[
-  solution: Comme 2<x<5, x-2>0 donc |x-2|=x-2, et x-5<0 donc |x-5|=5-x. Ainsi B=(x-2)+(5-x)=3.
-  si_echoue: Suppression d'une valeur absolue selon le signe de l'expression encadree.
+  objet: Ecrire B = |x - 2| + |x - 5| sans valeur absolue pour 2 < x < 5, puis donner sa valeur
+  reponse_attendue: B = (x - 2) + (5 - x) = 3
+  solution: 'Pour 2 < x < 5 : x - 2 > 0 donc |x - 2| = x - 2, et x - 5 < 0 donc |x - 5| = 5 - x. B vaut
+    3 quel que soit x de ]2 ; 5[. Barème : 1 pt pour avoir déterminé les deux signes et supprimé correctement
+    les deux valeurs absolues ; 1 pt pour la réduction aboutissant à B = 3. Un seul des deux signes correct
+    vaut 0,5 pt sur le premier point.'
+  si_echoue: Suppression d'une valeur absolue selon le signe de l'expression encadrée. Livret de remédiation
+    1ère D / Tle D, module 4.
 - code: N4
   partie: B
   format: redige
   bareme: 0.5
   bareme_classeur: 2.0
-  competence: N.MAJ
-  competence_secondaire: null
+  competence: N.INT
+  competence_secondaire: N.MAJ
   domaine: Activites numeriques
-  objet: Encadrer une expression a partir de deux intervalles, puis juger si un nombre est un minorant
-  reponse_attendue: -6 < 2x-y < 4 ; -4 n'est pas un minorant de 2x-y
-  solution: 'De -1<x<3 on tire -2<2x<6, et de 2<y<4 on tire -4<-y<-2. En ajoutant membre a membre : -6<2x-y<4.
-    Pour x=-0,5 et y=3,5, 2x-y=-4,5<-4.'
-  si_echoue: Operations sur les encadrements, notamment le renversement des bornes quand on retranche,
-    et notion de minorant.
+  objet: Encadrer 2x - y pour x dans ]-1 ; 3[ et y dans ]2 ; 4[, puis dire si -6 est un minorant
+  reponse_attendue: -6 < 2x - y < 4 ; oui, -6 est un minorant de 2x - y (jamais atteint)
+  solution: '-2 < 2x < 6 et -4 < -y < -2 ; en ajoutant : -6 < 2x - y < 4. Barème : 1 pt pour l''encadrement
+    -6 < 2x - y < 4, obtenu en multipliant par 2 puis en ajoutant l''encadrement de -y (le renversement
+    des bornes de y à -y est ce que ce point récompense) ; 1 pt pour la réponse affirmative justifiée
+    par 2x - y > -6 pour toutes les valeurs. « Oui » sans justification ne vaut rien ; un minorant conclu
+    d''un encadrement erroné mais correctement exploité garde le second point.'
+  si_echoue: Opérations sur les encadrements, notamment le renversement des bornes quand on change de
+    signe, et notion de minorant. Livret de remédiation 1ère D / Tle D, modules 5 et 6.
 - code: L5
   partie: B
   format: redige
@@ -310,41 +464,49 @@ questions:
   competence: L.EQ2
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Utiliser une solution connue d'une equation du second degre pour retrouver un coefficient, puis
-    l'autre solution
-  reponse_attendue: b = -7, l'autre solution est x' = 4
-  solution: 3 est solution donc 9+3b+12=0, soit b=-7. L'equation devient x²-7x+12=0. Le produit des solutions
-    vaut 12, donc 3x'=12, x'=4.
-  si_echoue: Emploi d'une solution connue dans l'equation pour retrouver un coefficient, puis relations
-    entre coefficients et racines.
+  objet: Trouver b pour que 3 soit solution de x² + bx + 12 = 0, puis l'autre solution
+  reponse_attendue: b = -7 ; l'autre solution est 4
+  solution: '3² + 3b + 12 = 0, 3b = -21, b = -7. x² - 7x + 12 = 0 : produit des solutions 12, donc 3x''
+    = 12, x'' = 4. Barème : 1 pt pour avoir remplacé x par 3 et obtenu b = -7 ; 1 pt pour x'' = 4 (produit,
+    somme des racines ou discriminant). La seconde solution juste obtenue à partir d''un b erroné garde
+    son point.'
+  si_echoue: Emploi d'une solution connue dans l'équation pour retrouver un coefficient, puis relations
+    entre coefficients et racines. Livret de remédiation 1ère D / Tle D, module 7.
 - code: L6
   partie: B
   format: redige
   bareme: 0.5
   bareme_classeur: 2.0
   competence: L.TRI
-  competence_secondaire: null
+  competence_secondaire: L.EQ2
   domaine: Calcul litteral et algebre
-  objet: Factoriser un trinome de coefficient dominant negatif, puis dresser son tableau de signe
-  reponse_attendue: Q(x) = -2(x+2)(x-3) ; positif sur ]-2 ; 3[, negatif ailleurs
-  solution: Q(x)=-2x²+2x+12=-2(x²-x-6)=-2(x+2)(x-3). Le coefficient de x² est negatif, donc Q est negatif
-    sur ]-∞;-2[ et ]3;+∞[, positif sur ]-2;3[.
-  si_echoue: Factorisation d'un trinome de coefficient dominant negatif et lecture du signe hors des
-    racines.
+  objet: Factoriser Q(x) = -2x² + 2x + 12 et valider « Q(x) > 0 sur ]-2 ; 3[ » (Fatimata)
+  reponse_attendue: Q(x) = -2(x + 2)(x - 3) ; sur ]-2 ; 3[, Q(x) > 0, l'affirmation de Fatimata est vraie
+  solution: 'Q(x) = -2(x² - x - 6) = -2(x + 2)(x - 3). Sur ]-2 ; 3[, x + 2 > 0 et x - 3 < 0, produit négatif,
+    multiplié par -2 : positif. Barème : 1 pt pour la factorisation (mise en facteur de -2 ou discriminant
+    Δ = 100) ; 1 pt pour la validation justifiée par le signe des deux facteurs et du coefficient -2.
+    « Vraie » sans étude de signe ne vaut rien ; une étude de signe correcte sur une factorisation erronée
+    garde le second point.'
+  si_echoue: Factorisation d'un trinôme de coefficient dominant négatif et signe d'un produit de deux
+    facteurs sur un intervalle. Livret de remédiation 1ère D / Tle D, module 7.
 - code: L7
   partie: B
   format: redige
   bareme: 0.5
   bareme_classeur: 2.0
   competence: L.INEQ2
-  competence_secondaire: null
+  competence_secondaire: F.DEF
   domaine: Calcul litteral et algebre
-  objet: Resoudre une inequation quotient en ramenant a un seul membre
-  reponse_attendue: 'S = ]-∞ ; 2['
-  solution: L'inequation est definie pour x≠2. On ecrit (x+1)/(x-2)-1≤0, soit 3/(x-2)≤0. Le numerateur
-    3 est positif, donc le quotient est negatif si et seulement si x-2<0, soit x<2.
-  si_echoue: 'Resolution d''une inequation quotient : tout ramener au meme membre au lieu de multiplier
-    par le denominateur.'
+  objet: Résoudre (x + 1)/(x - 2) ≤ 1, puis dire si 2 est solution (Nafissatou)
+  reponse_attendue: S = ]-∞ ; 2[ ; 2 n'est pas solution (quotient non défini), Nafissatou a tort
+  solution: 'Défini pour x ≠ 2 : (x + 1)/(x - 2) - 1 ≤ 0 ⇔ 3/(x - 2) ≤ 0 ; 3 > 0 donc x - 2 < 0. Barème
+    : 1 pt pour ]-∞ ; 2[, conclu du signe strictement positif de 3 et de x - 2 < 0 ; 1 pt pour « Nafissatou
+    a tort » justifié par la non-définition du quotient en 2. Le produit en croix effectué sans discuter
+    le signe de x - 2 ne vaut pas le premier point. Une borne 2 incluse dans l''ensemble puis exclue dans
+    la réponse à Nafissatou garde le second point.'
+  si_echoue: 'Résolution d''une inéquation quotient : tout ramener au même membre au lieu de multiplier
+    par le dénominateur, et exclusion de la valeur interdite. Livret de remédiation 1ère D / Tle D, module
+    7.'
 - code: L8
   partie: B
   format: redige
@@ -353,11 +515,14 @@ questions:
   competence: L.SYSL
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Traduire un enonce par un systeme de deux equations, puis le resoudre par combinaison
-  reponse_attendue: un sac de mil coute 8 000 FCFA
-  solution: 'Systeme 3m+2n=34000, 5m+4n=60000. En multipliant la premiere par 2 : 6m+4n=68000. En retranchant
-    la seconde : m=8000.'
-  si_echoue: Mise en equation d'un enonce en langue courante, puis resolution par combinaison.
+  objet: Mettre en système les prix du mil et du niébé à Léo (34 000 et 60 000 FCFA), trouver le mil
+  reponse_attendue: 3m + 2n = 34 000 et 5m + 4n = 60 000 ; m = 8 000 FCFA
+  solution: 'En multipliant la première par 2 : 6m + 4n = 68 000 ; en retranchant la seconde : m = 8 000.
+    Barème : 1 pt pour le système correctement écrit, inconnues nommées ; 1 pt pour la résolution donnant
+    m = 8 000 FCFA. Le prix du niébé n''est pas demandé (ne rien retirer ni ajouter). Une résolution juste
+    sur un système mal traduit garde le second point.'
+  si_echoue: Mise en équation d'un énoncé en langue courante, puis résolution d'un système par combinaison.
+    Livret de remédiation 1ère D / Tle D, module 10.
 - code: F7
   partie: B
   format: redige
@@ -366,10 +531,14 @@ questions:
   competence: F.DEF
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Determiner l'ensemble de definition d'une fonction combinant une racine et un denominateur
-  reponse_attendue: 'Dh = [-3 ; 1[ ∪ ]1 ; +∞['
-  solution: h est definie lorsque x+3≥0 et x-1≠0, soit x≥-3 et x≠1.
-  si_echoue: Conjonction de deux contraintes de definition - radicande positif et denominateur non nul.
+  objet: Trouver l'ensemble de définition de h(x) = √(x + 3)/(x - 1), puis dire si -3 en fait partie
+  reponse_attendue: Dh = [-3 ; 1[ ∪ ]1 ; +∞[ ; oui, -3 appartient à Dh (h(-3) = 0)
+  solution: 'Conditions : x + 3 ≥ 0 et x - 1 ≠ 0. Un radicande nul est permis et -3 ≠ 1. Barème : 1 pt
+    pour les deux conditions posées et Dh écrit avec -3 inclus et 1 exclu ; 1 pt pour la réponse affirmative
+    sur -3, justifiée par le radicande pouvant être nul. Exclure -3 au motif que la racine s''annule est
+    l''erreur visée et ne vaut pas le second point.'
+  si_echoue: 'Conjonction de deux contraintes de définition : radicande positif ou nul, dénominateur non
+    nul. Livret de remédiation 1ère D / Tle D, module 8.'
 - code: F8
   partie: B
   format: redige
@@ -378,27 +547,31 @@ questions:
   competence: F.PAR
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Etudier la parite d'une fonction rationnelle et juger une affirmation sur la symetrie de sa
-    courbe
-  reponse_attendue: v est paire, l'affirmation de Boukary est vraie
-  solution: Pour tout reel x, v(-x)=((-x)²+1)/((-x)²+3)=(x²+1)/(x²+3)=v(x). La fonction v est paire, sa
-    courbe admet l'axe des ordonnees pour axe de symetrie.
-  si_echoue: Preuve de la parite par le calcul de v(-x) et lien entre parite et axe de symetrie.
+  objet: Valider « l'axe des ordonnées est axe de symétrie » pour v(x) = (x² + 1)/(x² + 3) (Boukary)
+  reponse_attendue: v(-x) = v(x) pour tout réel x ; v est paire, l'axe des ordonnées est axe de symétrie,
+    Boukary a raison
+  solution: 'Pour tout x réel, -x est réel et v(-x) = ((-x)² + 1)/((-x)² + 3) = v(x). Barème : 1 pt pour
+    le calcul de v(-x) et l''égalité établie pour tout x ; 1 pt pour la conclusion nommant la parité,
+    la reliant à l''axe de symétrie et validant l''affirmation. « Vrai » sans calcul ne vaut rien.'
+  si_echoue: Preuve de la parité par le calcul de v(-x) et lien entre parité et axe de symétrie. Livret
+    de remédiation 1ère D / Tle D, module 8.
 - code: F9
   partie: B
   format: redige
   bareme: 0.5
   bareme_classeur: 2.0
-  competence: F.VAR
+  competence: F.GRA
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Dresser le tableau de variations d'une fonction donnee par sa courbe, puis resoudre une inequation
-    de signe
-  reponse_attendue: 'S = [-4 ; -2] ∪ [4 ; 6]'
-  solution: f decroit de 3 a -5 sur [-4;0], croit de -5 a 7 sur [0;6]. La courbe est au-dessus de l'axe
-    des abscisses avant -2 et apres 4.
-  si_echoue: Passage du tableau de variations au signe de la fonction et prise en compte de l'ensemble
-    de definition.
+  objet: Résoudre f(x) ≥ 0 (f décroît de (-4 ; 3) à (0 ; -5), croît à (6 ; 7)), juger le signe de f(1)
+  reponse_attendue: S = [-4 ; -2] ∪ [4 ; 6] ; f(1) < 0 car f croît strictement sur [0 ; 4] et 1 < 4, f(1)
+    < f(4) = 0
+  solution: 'Sur [-4 ; 0], f décroît de 3 à -5 et s''annule en -2 ; sur [0 ; 6], f croît de -5 à 7 et
+    s''annule en 4. Barème : 1 pt pour [-4 ; -2] ∪ [4 ; 6], bornes -2 et 4 incluses, ensemble restant
+    dans [-4 ; 6] (un morceau oublié : 0,5 pt) ; 1 pt pour f(1) négatif en invoquant la croissance stricte
+    sur [0 ; 4] et 1 < 4. « Négatif » sans argument de variation ne vaut rien.'
+  si_echoue: Passage du sens de variation et des zéros au signe de la fonction, et prise en compte de
+    l'ensemble de définition. Livret de remédiation 1ère D / Tle D, module 8.
 - code: F10
   partie: B
   format: redige
@@ -407,12 +580,13 @@ questions:
   competence: F.CIRC
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Utiliser la relation fondamentale de la trigonometrie pour calculer un cosinus, en discutant
-    le signe selon le quadrant
+  objet: Calculer cos x sachant sin x = 4/5 et x dans ]π/2 ; π[
   reponse_attendue: cos x = -3/5
-  solution: cos²x=1-sin²x=1-16/25=9/25, donc cos x=3/5 ou -3/5. Comme x appartient a ]π/2;π[, le cosinus
-    est negatif.
-  si_echoue: Relation cos²x+sin²x=1 et signe du cosinus selon le quadrant.
+  solution: 'cos²x = 1 - 16/25 = 9/25, cos x = ±3/5 ; x dans ]π/2 ; π[ : cosinus négatif. Barème : 1 pt
+    pour cos²x = 9/25 par la relation fondamentale ; 1 pt pour le signe négatif justifié par le deuxième
+    quadrant. 3/5 sans discussion du signe ne vaut que le premier point.'
+  si_echoue: Relation cos²x + sin²x = 1 et signe du cosinus selon le quadrant. Livret de remédiation 1ère
+    D / Tle D, module 11.
 - code: G8
   partie: B
   format: redige
@@ -421,23 +595,30 @@ questions:
   competence: G.COL
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Exprimer un vecteur par la relation de Chasles, puis demontrer un alignement par colinearite
-  reponse_attendue: 'BM = -2BC (vecteurs) ; B, C, M sont alignes'
-  solution: BM=BA+AM=-AB+3AB-2AC=2AB-2AC=2(AB-AC)=2CB=-2BC. Les vecteurs BM et BC sont colineaires.
-  si_echoue: Relation de Chasles et critere d'alignement par colinearite.
+  objet: Avec AM→ = 3 AB→ - 2 AC→, exprimer BM→ en fonction de BC→ et prouver B, C, M alignés
+  reponse_attendue: BM→ = -2 BC→ ; BM→ et BC→ colinéaires de même origine B, donc B, C, M alignés
+  solution: 'BM = BA + AM = -AB + 3AB - 2AC = 2AB - 2AC = 2CB = -2BC (vecteurs). Barème : 1 pt pour la
+    relation de Chasles conduisant à BM = -2BC ; 1 pt pour la conclusion d''alignement fondée sur la colinéarité
+    de deux vecteurs de même origine B. Un coefficient erroné mais une colinéarité correctement invoquée
+    garde le second point.'
+  si_echoue: Relation de Chasles et critère d'alignement par colinéarité. Livret de remédiation 1ère D
+    / Tle D, module 9.
 - code: G9
   partie: B
   format: redige
   bareme: 0.5
   bareme_classeur: 2.0
   competence: G.PS
-  competence_secondaire: null
+  competence_secondaire: G.COL
   domaine: Activites geometriques
-  objet: Calculer un produit scalaire en repere orthonorme pour tester l'orthogonalite d'un triangle
-  reponse_attendue: BA·BC = 6, le triangle ABC n'est pas rectangle en A
-  solution: AB(4;2) et AC(-1;5), donc AB·AC=4×(-1)+2×5=6. Le produit scalaire n'est pas nul.
-  si_echoue: Coordonnees d'un vecteur defini par deux points, puis emploi du produit scalaire comme test
-    d'orthogonalite.
+  objet: Calculer AB→ · AC→ pour A(1 ; -2), B(5 ; 0), C(0 ; 3), dire si ABC est rectangle en A
+  reponse_attendue: AB→(4 ; 2), AC→(-1 ; 5), AB→ · AC→ = 6 ≠ 0 ; ABC n'est pas rectangle en A
+  solution: 'AB · AC = 4 × (-1) + 2 × 5 = 6. Barème : 1 pt pour les coordonnées des deux vecteurs et le
+    produit scalaire égal à 6 ; 1 pt pour la conclusion appuyée sur « produit scalaire nul si et seulement
+    si angle droit ». Une valeur erronée mais non nulle conduisant à la même conclusion garde le second
+    point.'
+  si_echoue: Coordonnées d'un vecteur défini par deux points, puis emploi du produit scalaire comme test
+    d'orthogonalité.
 - code: G10
   partie: B
   format: redige
@@ -446,10 +627,15 @@ questions:
   competence: G.PLAN
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer un rayon de cercle par une distance, puis dire si un point appartient au cercle
-  reponse_attendue: rayon = 5, B appartient au cercle
-  solution: IA=√((6-2)²+(2+1)²)=√25=5. IB=√((-1-2)²+(3+1)²)=√25=5=rayon, donc B appartient au cercle.
-  si_echoue: Caracterisation d'un cercle par la distance au centre.
+  objet: Trouver les ordonnées des points d'abscisse 5 du cercle de centre I(2 ; -1), rayon 5 ; juger
+    x = 8
+  reponse_attendue: y = 3 ou y = -5 ; Rakieta a raison, aucun point d'abscisse 8 (36 > 25)
+  solution: 'M(5 ; y) sur le cercle ⇔ (5 - 2)² + (y + 1)² = 25 ⇔ (y + 1)² = 16 ⇔ y = 3 ou y = -5. Abscisse
+    8 : (8 - 2)² = 36, (y + 1)² = -11 impossible. Barème : 1 pt pour les deux ordonnées 3 et -5 (une seule
+    : 0,5 pt) ; 1 pt pour « Rakieta a raison » justifié par 36 > 25 ou par la distance de I à la droite
+    d''abscisse 8 (6 > rayon).'
+  si_echoue: Caractérisation d'un cercle par la distance au centre et raisonnement inverse à abscisse
+    imposée. Livret de remédiation 1ère D / Tle D, module 9.
 - code: D2
   partie: B
   format: redige
@@ -457,370 +643,211 @@ questions:
   bareme_classeur: 2.0
   competence: D.STAT2
   competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: Retrouver une valeur manquante a partir d'une moyenne, puis calculer la mediane de la serie
-    complete
-  reponse_attendue: note effacee = 15, mediane = 12
-  solution: La somme des sept notes vaut 7×12=84. Les six notes lisibles totalisent 69, donc la note
-    effacee vaut 15. Serie ordonnee 8,9,11,12,14,15,15 - mediane 12.
-  si_echoue: Retour de la moyenne a la somme, puis mediane d'une serie d'effectif impair.
-- code: P1a
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: L.SYSL
-  competence_secondaire: null
-  domaine: Calcul litteral et algebre
-  objet: '[P1, sous-question 1/4] Traduire un perimetre et une aire de rectangle par un systeme de deux
-    equations'
-  reponse_attendue: x+y = 23, xy = 120
-  solution: ''
-  si_echoue: Mise en equation d'une situation d'aire et de perimetre, equation du second degre et theoreme
-    de Pythagore.
-  probleme_parent: P1
-- code: P1b
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: L.EQ2
-  competence_secondaire: null
-  domaine: Calcul litteral et algebre
-  objet: '[P1, sous-question 2/4] Justifier que deux nombres de somme et produit connus sont solutions
-    d''une equation du second degre'
-  reponse_attendue: t² - 23t + 120 = 0
-  solution: ''
-  si_echoue: Mise en equation d'une situation d'aire et de perimetre, equation du second degre et theoreme
-    de Pythagore.
-  probleme_parent: P1
-- code: P1c
-  partie: C
-  format: redige
-  bareme: 0.375
-  bareme_classeur: 1.5
-  competence: L.EQ2
-  competence_secondaire: null
-  domaine: Calcul litteral et algebre
-  objet: '[P1, sous-question 3/4] Resoudre l''equation du second degre obtenue et donner les dimensions
-    du jardin'
-  reponse_attendue: longueur 15 m, largeur 8 m
-  solution: ''
-  si_echoue: Mise en equation d'une situation d'aire et de perimetre, equation du second degre et theoreme
-    de Pythagore.
-  probleme_parent: P1
-- code: P1d
-  partie: C
-  format: redige
-  bareme: 0.375
-  bareme_classeur: 1.5
-  competence: G.PYT
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P1, sous-question 4/4] Calculer la diagonale du jardin par Pythagore et conclure sur la longueur
-    de fil disponible'
-  reponse_attendue: diagonale = 17 m, 16 m de fil ne suffisent pas
-  solution: ''
-  si_echoue: Mise en equation d'une situation d'aire et de perimetre, equation du second degre et theoreme
-    de Pythagore.
-  probleme_parent: P1
-- code: P2a
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: D.STAT2
-  competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: '[P2, sous-question 1/4] Calculer la moyenne d''une serie de neuf valeurs'
-  reponse_attendue: 15 pintades
-  solution: ''
-  si_echoue: Indicateurs d'une serie statistique et encadrement d'un quotient a partir de l'encadrement
-    d'une somme.
-  probleme_parent: P2
-- code: P2b
-  partie: C
-  format: redige
-  bareme: 0.375
-  bareme_classeur: 1.5
-  competence: D.STAT2
-  competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: '[P2, sous-question 2/4] Determiner la mediane, le mode et l''etendue d''une serie'
-  reponse_attendue: mediane 14, mode 12, etendue 13
-  solution: ''
-  si_echoue: Indicateurs d'une serie statistique et encadrement d'un quotient a partir de l'encadrement
-    d'une somme.
-  probleme_parent: P2
-- code: P2c
-  partie: C
-  format: redige
-  bareme: 0.375
-  bareme_classeur: 1.5
-  competence: N.MAJ
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P2, sous-question 3/4] Encadrer la moyenne d''une serie de dix valeurs a partir d''un encadrement
-    de la dixieme'
-  reponse_attendue: 14,5 ≤ moyenne ≤ 15,5
-  solution: ''
-  si_echoue: Indicateurs d'une serie statistique et encadrement d'un quotient a partir de l'encadrement
-    d'une somme.
-  probleme_parent: P2
-- code: P2d
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: D.STAT2
-  competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: '[P2, sous-question 4/4] Denombrer les jours au-dessus d''un seuil et juger une affirmation
-    sur leur proportion'
-  reponse_attendue: 5 jours sur 9, l'affirmation est vraie
-  solution: ''
-  si_echoue: Indicateurs d'une serie statistique et encadrement d'un quotient a partir de l'encadrement
-    d'une somme.
-  probleme_parent: P2
-- code: P3a
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: F.REF
-  competence_secondaire: null
-  domaine: Fonctions et applications
-  objet: '[P3, sous-question 1/4] Calculer deux images d''une fonction trinome'
-  reponse_attendue: f(1) = 3, f(3) = 3
-  solution: ''
-  si_echoue: Forme canonique d'un trinome et lecture de son extremum.
-  probleme_parent: P3
-- code: P3b
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: L.TRI
-  competence_secondaire: null
-  domaine: Calcul litteral et algebre
-  objet: '[P3, sous-question 2/4] Verifier une forme canonique de trinome par developpement'
-  reponse_attendue: -(x-2)² + 4 = -x² + 4x = f(x)
-  solution: ''
-  si_echoue: Forme canonique d'un trinome et lecture de son extremum.
-  probleme_parent: P3
-- code: P3c
-  partie: C
-  format: redige
-  bareme: 0.375
-  bareme_classeur: 1.5
-  competence: F.VAR
-  competence_secondaire: null
-  domaine: Fonctions et applications
-  objet: '[P3, sous-question 3/4] Determiner le maximum de la fonction et la distance ou il est atteint'
-  reponse_attendue: hauteur maximale 4 m, atteinte a 2 m du jet
-  solution: ''
-  si_echoue: Forme canonique d'un trinome et lecture de son extremum.
-  probleme_parent: P3
-- code: P3d
-  partie: C
-  format: redige
-  bareme: 0.375
-  bareme_classeur: 1.5
-  competence: F.REF
-  competence_secondaire: null
-  domaine: Fonctions et applications
-  objet: '[P3, sous-question 4/4] Evaluer la fonction en un point, comparer a une hauteur donnee et conclure'
-  reponse_attendue: f(2,5) = 3,75 m > 3,5 m, l'eau passe au-dessus du mur
-  solution: ''
-  si_echoue: Forme canonique d'un trinome et lecture de son extremum.
-  probleme_parent: P3
-- code: P4a
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: G.PLAN
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P4, sous-question 1/4] Calculer deux distances entre bornes en repere orthonorme'
-  reponse_attendue: AB = 5, BC = 5
-  solution: ''
-  si_echoue: Distance et produit scalaire en repere orthonorme, translation, et encadrement d'une grandeur
-    multipliee par un entier.
-  probleme_parent: P4
-- code: P4b
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: G.PS
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P4, sous-question 2/4] Calculer un produit scalaire pour determiner la nature d''un triangle'
-  reponse_attendue: 'BA·BC = 0, triangle ABC rectangle isocele en B'
-  solution: ''
-  si_echoue: Distance et produit scalaire en repere orthonorme, translation, et encadrement d'une grandeur
-    multipliee par un entier.
-  probleme_parent: P4
-- code: P4c
-  partie: C
-  format: redige
-  bareme: 0.375
-  bareme_classeur: 1.5
-  competence: G.HOM
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P4, sous-question 3/4] Determiner l''image d''un point par une translation et la nature du
-    quadrilatere obtenu'
-  reponse_attendue: D(4 ; -2), ABCD est un carre
-  solution: ''
-  si_echoue: Distance et produit scalaire en repere orthonorme, translation, et encadrement d'une grandeur
-    multipliee par un entier.
-  probleme_parent: P4
-- code: P4d
-  partie: C
-  format: redige
-  bareme: 0.375
-  bareme_classeur: 1.5
-  competence: N.MAJ
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P4, sous-question 4/4] Encadrer un perimetre a partir d''un encadrement du cote et conclure
-    sur un grillage disponible'
-  reponse_attendue: 196 m ≤ perimetre ≤ 204 m, 190 m ne suffit dans aucun cas
-  solution: ''
-  si_echoue: Distance et produit scalaire en repere orthonorme, translation, et encadrement d'une grandeur
-    multipliee par un entier.
-  probleme_parent: P4
-- code: P5a
+  domaine: Donnees, proportionnalite, statistique
+  objet: Retrouver la note effacée (6 notes lisibles de somme 69, moyenne 12 sur 7), juger médiane = 12
+  reponse_attendue: 'note effacée 15 ; série ordonnée 8, 9, 11, 12, 14, 15, 15, médiane 12 = moyenne :
+    oui'
+  solution: 'Somme des sept notes : 7 × 12 = 84 ; 84 - 69 = 15. Effectif 7 impair : médiane = 4e valeur
+    = 12. Barème : 1 pt pour la note effacée 15 via la somme totale 84 ; 1 pt pour la médiane 12 après
+    avoir ordonné les sept notes, et la réponse affirmative. Une médiane juste sur une note effacée erronée
+    garde son point ; « oui » sans série ordonnée ne vaut rien.'
+  si_echoue: Retour de la moyenne à la somme, puis médiane d'une série d'effectif impair.
+- code: P1.1
   partie: C
   format: redige
   bareme: 0.5
   bareme_classeur: 2.0
+  competence: L.EQ2
+  competence_secondaire: null
+  domaine: Calcul litteral et algebre
+  objet: Vérifier que f(x) = -x² + 4x s'écrit -(x - 2)² + 4 (jet d'eau, Ziniaré)
+  reponse_attendue: -(x - 2)² + 4 = -(x² - 4x + 4) + 4 = -x² + 4x = f(x)
+  solution: 'Barème (2 pts) : 1 pt pour le développement de (x - 2)², 1 pt pour l''identification du résultat
+    à -x² + 4x.'
+  si_echoue: Forme canonique d'un trinôme. Livret de remédiation 1ère D / Tle D, modules 7 et 8.
+  probleme_parent: P1
+- code: P1.2
+  partie: C
+  format: redige
+  bareme: 0.75
+  bareme_classeur: 3.0
+  competence: F.REF
+  competence_secondaire: null
+  domaine: Fonctions et applications
+  objet: Déduire de f(x) = -(x - 2)² + 4 la hauteur maximale de l'eau et la distance où elle est atteinte
+  reponse_attendue: (x - 2)² ≥ 0 donc f(x) ≤ 4, égalité en x = 2 ; hauteur maximale 4 m, atteinte à 2
+    m du jet
+  solution: 'Barème (3 pts) : 1 pt pour l''argument (x - 2)² ≥ 0 conduisant à f(x) ≤ 4, 1 pt pour la hauteur
+    maximale 4 m, 1 pt pour la distance 2 m.'
+  si_echoue: Lecture de l'extremum d'un trinôme sur sa forme canonique. Livret de remédiation 1ère D /
+    Tle D, modules 7 et 8.
+  probleme_parent: P1
+- code: P1.3
+  partie: C
+  format: redige
+  bareme: 0.75
+  bareme_classeur: 3.0
+  competence: F.GRA
+  competence_secondaire: null
+  domaine: Fonctions et applications
+  objet: Calculer f(2,5) et dire si l'eau passe au-dessus d'un mur de 3,5 m placé à 2,5 m du jet
+  reponse_attendue: f(2,5) = 3,75 > 3,5 ; l'eau passe au-dessus du mur
+  solution: 'f(2,5) = -(0,5)² + 4 = 3,75. Conclusion : « A 2,5 m du jet, l''eau s''élève à 3,75 m, soit
+    plus haut que le mur de 3,5 m : l''eau passe au-dessus du mur. » Barème (3 pts) : 1 pt pour f(2,5)
+    = 3,75, 1 pt pour la comparaison à 3,5, 1 pt pour la conclusion. La conclusion seule, sans calcul
+    de f(2,5), ne vaut rien. Erreur propagée : une valeur de f(2,5) fausse correctement comparée à 3,5,
+    avec conclusion cohérente, garde les deux derniers points.'
+  si_echoue: Calcul d'une image et comparaison pour décider. Livret de remédiation 1ère D / Tle D, modules
+    7 et 8.
+  probleme_parent: P1
+- code: P2.1
+  partie: C
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: D.STAT2
+  competence_secondaire: null
+  domaine: Donnees, proportionnalite, statistique
+  objet: 'Déterminer médiane et étendue des ventes de pintades à Dori : 12, 15, 9, 18, 12, 21, 14, 12,
+    22'
+  reponse_attendue: médiane 14 pintades ; étendue 22 - 9 = 13 pintades
+  solution: 'Série ordonnée : 9, 12, 12, 12, 14, 15, 18, 21, 22 ; effectif 9 impair, médiane = 5e valeur.
+    Barème (2 pts) : 1 pt pour la médiane 14 après avoir ordonné la série, 1 pt pour l''étendue 13. Le
+    prix de 3 500 FCFA par pintade est une donnée inutile : son emploi n''est pas une erreur, son repérage
+    ne rapporte rien.'
+  si_echoue: Médiane et étendue d'une série.
+  probleme_parent: P2
+- code: P2.2
+  partie: C
+  format: redige
+  bareme: 0.75
+  bareme_classeur: 3.0
+  competence: N.INT
+  competence_secondaire: D.STAT2
+  domaine: Activites numeriques
+  objet: Encadrer la moyenne des 10 jours (total 135 sur 9 jours, 10e jour entre 10 et 20 pintades)
+  reponse_attendue: 145 ≤ 135 + n ≤ 155 ; 14,5 ≤ m ≤ 15,5
+  solution: '10 ≤ n ≤ 20, total des dix jours 135 + n. Barème (3 pts) : 1 pt pour l''encadrement du total
+    145 ≤ 135 + n ≤ 155, 1 pt pour la division des trois membres par 10, 1 pt pour 14,5 ≤ m ≤ 15,5 aux
+    bornes larges.'
+  si_echoue: Encadrement d'une moyenne à partir de l'encadrement d'un total.
+  probleme_parent: P2
+- code: P2.3
+  partie: C
+  format: redige
+  bareme: 0.75
+  bareme_classeur: 3.0
+  competence: D.STAT2
+  competence_secondaire: null
+  domaine: Donnees, proportionnalite, statistique
+  objet: Valider « au moins 14 pintades plus d'un jour sur deux » sur les 9 jours (affirmation d'Awa)
+  reponse_attendue: 5 jours sur 9 avec au moins 14 pintades ; 5 > 9/2, l'affirmation d'Awa est vraie
+  solution: 'Jours à 15, 18, 21, 14 et 22 pintades. Conclusion : « Awa a vendu au moins 14 pintades pendant
+    5 jours sur 9, soit plus d''un jour sur deux : son affirmation est vraie. » Barème (3 pts) : 1 pt
+    pour le dénombrement des 5 jours, 1 pt pour la comparaison de 5 à la moitié de 9, 1 pt pour la conclusion.
+    Un dénombrement faux correctement comparé à 4,5 garde les deux derniers points.'
+  si_echoue: Dénombrement sur une série et comparaison à la moitié de l'effectif.
+  probleme_parent: P2
+- code: P3.1
+  partie: C
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: G.PLAN
+  competence_secondaire: G.PS
+  domaine: Activites geometriques
+  objet: Calculer BA, BC et BA→ · BC→ pour A(1 ; 2), B(5 ; 5), C(8 ; 1) (lotissement, Tenkodogo)
+  reponse_attendue: BA = BC = 5 (50 m sur le terrain) ; BA→ · BC→ = 0
+  solution: 'BA→(-4 ; -3), BA = √25 = 5 ; BC→(3 ; -4), BC = 5 ; BA · BC = -12 + 12 = 0. Barème (2 pts)
+    : 1 pt pour les deux distances BA = BC = 5, 1 pt pour le produit scalaire nul.'
+  si_echoue: Distance et produit scalaire en repère orthonormé. Livret de remédiation 1ère D / Tle D,
+    module 9.
+  probleme_parent: P3
+- code: P3.2
+  partie: C
+  format: redige
+  bareme: 0.75
+  bareme_classeur: 3.0
+  competence: G.HOM
+  competence_secondaire: G.PS
+  domaine: Activites geometriques
+  objet: Donner la nature de ABC (BA = BC = 5, BA→ · BC→ = 0) et l'image D de A par la translation BC→
+  reponse_attendue: ABC rectangle isocèle en B ; D(4 ; -2)
+  solution: 'Produit scalaire nul : rectangle en B ; BA = BC : isocèle en B. D = A + BC→ = (1 + 3 ; 2
+    - 4). Barème (3 pts) : 1 pt pour « rectangle en B » appuyé sur le produit scalaire nul, 1 pt pour
+    « isocèle » appuyé sur BA = BC, 1 pt pour D(4 ; -2). Accepter l''ordre « isocèle rectangle en B ».'
+  si_echoue: Nature d'un triangle par produit scalaire et distances ; translation. Livret de remédiation
+    1ère D / Tle D, module 9.
+  probleme_parent: P3
+- code: P3.3
+  partie: C
+  format: redige
+  bareme: 0.75
+  bareme_classeur: 3.0
+  competence: N.INT
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: Encadrer le périmètre du carré de côté 49 à 51 m, dire si 190 m de grillage suffisent à coup
+    sûr
+  reponse_attendue: 196 ≤ P ≤ 204 ; 190 < 196, le grillage ne suffit pas à coup sûr (ni dans aucun cas)
+  solution: 'Côté c en mètres : 49 ≤ c ≤ 51, donc 196 ≤ 4c ≤ 204. Conclusion : « Le périmètre du carré
+    vaut au moins 196 m alors que Kadidiatou ne dispose que de 190 m de grillage : ce grillage ne suffit
+    pas à coup sûr, et il ne suffit même dans aucun cas. » Barème (3 pts) : 1 pt pour l''encadrement 196
+    ≤ P ≤ 204, 1 pt pour la comparaison de 190 à la borne inférieure 196, 1 pt pour la conclusion. Le
+    corrigé indique que comparer 190 à 204 au lieu de 196 ne vaut pas le second point (point contesté
+    : voir anomalie n° 3 du référentiel v1, qui propose d''accepter les deux comparaisons).'
+  si_echoue: Encadrement d'une grandeur multipliée par un entier. Livret de remédiation 1ère D / Tle D,
+    module 9.
+  probleme_parent: P3
+- code: P4.1
+  partie: C
+  format: redige
+  bareme: 0.5
+  bareme_classeur: 2.0
+  competence: N.RAC
+  competence_secondaire: null
+  domaine: Activites numeriques
+  objet: Calculer la diagonale AC de la base carrée de côté 3 m et l'écrire a√2 (grenier, Sapone)
+  reponse_attendue: AC = √18 = 3√2 m ; a = 3
+  solution: 'ABC rectangle en B, AB = BC = 3 m : AC² = 9 + 9 = 18. Barème (2 pts) : 1 pt pour AC² = 18
+    par Pythagore dans ABC rectangle en B, 1 pt pour l''écriture 3√2. Les 30 sacs de mil sont une donnée
+    inutile.'
+  si_echoue: Théorème de Pythagore et écriture des radicaux. Livret de remédiation 1ère D / Tle D, module
+    1.
+  probleme_parent: P4
+- code: P4.2
+  partie: C
+  format: redige
+  bareme: 0.75
+  bareme_classeur: 3.0
   competence: G.ESP
-  competence_secondaire: null
+  competence_secondaire: G.PLAN
   domaine: Activites geometriques
-  objet: '[P5, sous-question 1/4] Determiner la position relative de deux couples de droites d''un pave
-    droit'
-  reponse_attendue: (AB) et (HG) paralleles ; (AB) et (CG) non coplanaires
-  solution: ''
-  si_echoue: Positions relatives de deux droites de l'espace et theoreme de Pythagore applique deux fois
-    pour la diagonale d'un pave.
-  probleme_parent: P5
-- code: P5b
+  objet: Calculer AG (AC = 3√2 m, hauteur 4 m) et la position de (AB) et (CG) dans le pavé droit
+  reponse_attendue: AG = √34 m ; (AB) et (CG) sont non coplanaires
+  solution: '[CG] perpendiculaire au plan de base : ACG rectangle en C, CG = 4 m, AG² = 18 + 16 = 34.
+    (CG) ne rencontre le plan de base qu''en C, qui n''est pas sur (AB) : ni sécantes ni parallèles. Barème
+    (3 pts) : 1 pt pour avoir situé l''angle droit en C, 1 pt pour AG = √34 m, 1 pt pour « non coplanaires
+    ». « Orthogonales » seul ne vaut pas le point de la position relative ; accepter « non coplanaires
+    » seul comme « non coplanaires et orthogonales ».'
+  si_echoue: Positions relatives de deux droites de l'espace et théorème de Pythagore appliqué deux fois
+    pour la diagonale d'un pavé droit.
+  probleme_parent: P4
+- code: P4.3
   partie: C
   format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
+  bareme: 0.75
+  bareme_classeur: 3.0
   competence: N.RAC
-  competence_secondaire: null
+  competence_secondaire: G.ESP
   domaine: Activites numeriques
-  objet: '[P5, sous-question 2/4] Calculer une diagonale de base par Pythagore et l''ecrire sous la forme
-    a√2'
-  reponse_attendue: AC = 3√2 m
-  solution: ''
-  si_echoue: Positions relatives de deux droites de l'espace et theoreme de Pythagore applique deux fois
-    pour la diagonale d'un pave.
-  probleme_parent: P5
-- code: P5c
-  partie: C
-  format: redige
-  bareme: 0.375
-  bareme_classeur: 1.5
-  competence: G.PYT
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P5, sous-question 3/4] Calculer la grande diagonale du pave par Pythagore et l''ecrire sous
-    la forme √b'
-  reponse_attendue: AG = √34 m
-  solution: ''
-  si_echoue: Positions relatives de deux droites de l'espace et theoreme de Pythagore applique deux fois
-    pour la diagonale d'un pave.
-  probleme_parent: P5
-- code: P5d
-  partie: C
-  format: redige
-  bareme: 0.375
-  bareme_classeur: 1.5
-  competence: N.RAC
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P5, sous-question 4/4] Comparer deux carres pour juger si une perche donnee tient dans le
-    pave'
-  reponse_attendue: 33,64 < 34 donc 5,80 < AG ; la perche entre dans le grenier
-  solution: ''
-  si_echoue: Positions relatives de deux droites de l'espace et theoreme de Pythagore applique deux fois
-    pour la diagonale d'un pave.
-  probleme_parent: P5
-- code: P6a
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: F.CIRC
-  competence_secondaire: null
-  domaine: Fonctions et applications
-  objet: '[P6, sous-question 1/5] Convertir une mesure d''angle de degres en radians'
-  reponse_attendue: 150 degres = 5π/6 radians
-  solution: ''
-  si_echoue: Conversion degres et radians, valeurs remarquables du cercle trigonometrique et lecture
-    d'une ordonnee comme sinus.
-  probleme_parent: P6
-- code: P6b
-  partie: C
-  format: redige
-  bareme: 0.375
-  bareme_classeur: 1.5
-  competence: F.CIRC
-  competence_secondaire: null
-  domaine: Fonctions et applications
-  objet: '[P6, sous-question 2/5] Donner les coordonnees exactes d''un point du cercle trigonometrique'
-  reponse_attendue: M(-√3/2 ; 1/2)
-  solution: ''
-  si_echoue: Conversion degres et radians, valeurs remarquables du cercle trigonometrique et lecture
-    d'une ordonnee comme sinus.
-  probleme_parent: P6
-- code: P6c
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: G.PS
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P6, sous-question 3/5] Calculer un produit scalaire a partir de coordonnees sur le cercle
-    trigonometrique'
-  reponse_attendue: OA·OM = -√3/2
-  solution: ''
-  si_echoue: Conversion degres et radians, valeurs remarquables du cercle trigonometrique et lecture
-    d'une ordonnee comme sinus.
-  probleme_parent: P6
-- code: P6d
-  partie: C
-  format: redige
-  bareme: 0.375
-  bareme_classeur: 1.5
-  competence: F.CIRC
-  competence_secondaire: null
-  domaine: Fonctions et applications
-  objet: '[P6, sous-question 4/5] Comparer deux ordonnees sur le cercle trigonometrique et juger une
-    affirmation sur des hauteurs'
-  reponse_attendue: ordonnee de 5π/6 = 1/2, ordonnee de π/3 = √3/2 > 1/2, l'affirmation est fausse
-  solution: ''
-  si_echoue: Conversion degres et radians, valeurs remarquables du cercle trigonometrique et lecture
-    d'une ordonnee comme sinus.
-  probleme_parent: P6
-- code: P6e
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: N.PROB
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P6, sous-question 5/5] Reconnaitre qu''une donnee manque pour calculer une distance parcourue'
-  reponse_attendue: le nombre de tours par minute manque, le calcul est impossible en l'etat
-  solution: ''
-  si_echoue: Conversion degres et radians, valeurs remarquables du cercle trigonometrique et lecture
-    d'une ordonnee comme sinus.
-  probleme_parent: P6
+  objet: Comparer une perche de 5,80 m à AG = √34 m (5,80² = 33,64) et dire si elle tient dans le grenier
+  reponse_attendue: 5,80² = 33,64 < 34 = AG², donc 5,80 < AG ; la perche tient dans le grenier le long
+    de la diagonale AG
+  solution: 'La plus grande longueur rangeable dans un pavé droit est sa grande diagonale AG. Conclusion
+    : « La perche de 5,80 m est plus courte que la diagonale AG du grenier : Salif peut la ranger entièrement
+    à l''intérieur, en la plaçant le long de cette diagonale. » Barème (3 pts) : 1 pt pour avoir identifié
+    AG comme la plus grande longueur rangeable, 1 pt pour la comparaison 33,64 < 34, 1 pt pour la conclusion.
+    Comparer 5,80 à 34 au lieu de 33,64 à 34 ne vaut pas le second point.'
+  si_echoue: Comparaison de deux longueurs par leurs carrés ; diagonale d'un pavé droit.
+  probleme_parent: P4

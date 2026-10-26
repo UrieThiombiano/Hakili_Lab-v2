@@ -1,32 +1,22 @@
-# Reconstruit manuellement le 2026-08-12 depuis le sujet et le corrige PDF recomposes
-# (data/Documents/, livraison data/New-docs/ du 2026-08-12) — PAS depuis Referentiel_Socle_v0.xlsx,
-# qui n'a pas ete mis a jour (voir docs/harmonisation_donnees.md, arbitrage H).
-# Ne pas relancer scripts/generer_baremes_socle.py sur ce fichier sans avoir d'abord
-# reporte la nouvelle composition (structure a 3 parties) dans le classeur, sous peine
-# d'ecraser ce travail et de revenir a l'ancienne composition a 2 parties.
+# Généré par scripts/generer_baremes_socle.py — ne pas éditer à la main.
+# Source : data/referentiel/Referentiel_Urie_v1.xlsx + data/knowledge/corriges_socle.yaml.
+# Pour corriger une réponse attendue, éditer corriges_socle.yaml puis
+# relancer le script ; pour la structure du test, mettre à jour le classeur.
 
 meta:
   test_id: socle_6eme
   titre: Test diagnostique d'entrée en 6ème
   niveau_test: 6eme
   classe: 6e
-  total_questions: 43
+  total_questions: 36
   total_possible: 20
   somme_baremes_reelle: 20.0
   bareme_classeur_total: 60.0
-  structure: Partie A 16 pts (16 x 1) - Partie B 22 pts (11 x 2) - Partie C 22 pts (2x5 + 2x6, 4 problemes
-    decomposes en 4 sous-items chacun)
-  source: data/Documents/Test_diagnostique_entree_6eme.pdf et data/Documents/corriges/Corrige_test_diagnostique_entree_6eme.pdf
-    (livraison 2026-08-12, corrige valide par un enseignant de mathematiques)
-  genere_par: 'reconstruction manuelle assistee (2026-08-12) — voir docs/harmonisation_donnees.md, arbitrage
-    H. Referentiel_Socle_v0.xlsx n''a PAS ete mis a jour : ce fichier est temporairement la source de
-    verite du bareme socle_6eme, en avance sur le classeur.'
-  note_corriges: 'Reponses et demarches extraites en lisant les pages du corrigé PDF (rendues en image,
-    les valeurs numeriques y sont en vectoriel et invisibles a l''extraction texte). Competence de chaque
-    sous-item de Partie C deduite du texte (barème détaillé + ''si l''eleve echoue'') et recoupee avec
-    le tableau officiel ''profil par domaine'' du corrige (N 10 pts, M 6 pts, G 1 pt, D 5 pts) : l''allocation
-    retenue tombe a N 11 / M 5 (a 1 pt pres de l''officiel, sur l''item P3b qui merge deux savoir-faire).
-    A confirmer par l''enseignant qui a valide le corrige avant tout usage en notation automatique.'
+  source: 'Referentiel_Urie_v1.xlsx (batterie allégée du 2026-10-06) — onglets 04_Questions, 06_Distracteurs,
+    02_Competences ; corrigés : data/knowledge/corriges_socle.yaml'
+  genere_par: scripts/generer_baremes_socle.py
+  note_corriges: 6 QCM avec bonne réponse (classeur) ; 30 questions corrigées depuis le corrigé PDF enseignant
+    ; 0 sans corrigé.
 questions:
 - code: N1
   partie: A
@@ -36,11 +26,12 @@ questions:
   competence: N.CMP
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Ranger quatre nombres decimaux dans l'ordre decroissant
+  objet: Ranger dans l'ordre décroissant 9,08 ; 9,8 ; 9,081 ; 9,1
   reponse_attendue: 9,8 ; 9,1 ; 9,081 ; 9,08
-  solution: ''
-  si_echoue: 'Comparaison de decimaux : la partie decimale est lue comme un entier (9,081 juge plus grand
-    que 9,1).'
+  solution: 'Barème : 1 pt, tout ou rien — les quatre nombres doivent être rangés du plus grand au plus
+    petit.'
+  si_echoue: 'Comparaison de décimaux : la partie décimale est lue comme un entier, et 9,081 est jugé
+    plus grand que 9,1.'
 - code: N2
   partie: A
   format: qcm
@@ -49,10 +40,33 @@ questions:
   competence: N.NUM
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Ecrire en chiffres un nombre donne en centaines et centiemes
-  reponse_attendue: d) 500,09
+  objet: Choisir l'écriture du nombre qui vaut 5 centaines et 9 centièmes
+  reponse_attendue: d
   solution: ''
-  si_echoue: 'Valeur de position : confusion entre centaine et centieme, ou entre dixieme et centieme.'
+  options:
+  - lettre: a
+    texte: 5,09
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Les 5 centaines sont écrites comme 5 unités : l''ordre des rangs autour de la virgule est
+      confondu.'
+  - lettre: b
+    texte: '509'
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Les 9 centièmes sont écrits comme 9 unités : « centième » est lu comme « cent » et placé
+      dans la partie entière.'
+  - lettre: c
+    texte: 500,9
+    correcte: false
+    type_erreur: PRC
+    erreur: 'Le 9 est placé au premier rang après la virgule : le zéro des dixièmes est oublié, ce qui
+      donne 9 dixièmes.'
+  - lettre: d
+    texte: 500,09
+    correcte: true
+  si_echoue: 'Valeur de position : confusion entre la centaine et le centième, ou entre le dixième et
+    le centième.'
 - code: N3
   partie: A
   format: court
@@ -61,10 +75,11 @@ questions:
   competence: N.ADD
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Effectuer une addition de deux decimaux
+  objet: Effectuer la soustraction 14 - 6,75
   reponse_attendue: 7,25
   solution: ''
-  si_echoue: 'Technique operatoire de la soustraction/addition de decimaux : virgules non alignees.'
+  si_echoue: 'Technique opératoire de la soustraction de décimaux : les virgules ne sont pas alignées
+    et 14 n''est pas écrit 14,00.'
 - code: N4
   partie: A
   format: court
@@ -73,10 +88,10 @@ questions:
   competence: N.MUL
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Effectuer une multiplication d'un decimal par un entier
+  objet: Effectuer le produit 4,06 × 25
   reponse_attendue: 101,5
   solution: ''
-  si_echoue: 'Technique operatoire de la multiplication d''un decimal par un entier : placement de la
+  si_echoue: 'Technique opératoire de la multiplication d''un décimal par un entier : placement de la
     virgule dans le produit.'
 - code: N5
   partie: A
@@ -86,10 +101,31 @@ questions:
   competence: N.FRA1
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Calculer les trois quarts d'une quantite en kg (QCM)
-  reponse_attendue: c) 45 kg
+  objet: Choisir la valeur des trois quarts de 60 kg
+  reponse_attendue: c
   solution: ''
-  si_echoue: 'Sens de la fraction d''une quantite : prendre les trois quarts, c''est diviser par 4 puis
+  options:
+  - lettre: a
+    texte: 15 kg
+    correcte: false
+    type_erreur: PRC
+    erreur: 'Seul le quart est calculé (60 : 4 = 15) : la multiplication par 3 est omise.'
+  - lettre: b
+    texte: 20 kg
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Division par le numérateur (60 : 3 = 20) : les rôles du numérateur et du dénominateur sont
+      confondus.'
+  - lettre: c
+    texte: 45 kg
+    correcte: true
+  - lettre: d
+    texte: 80 kg
+    correcte: false
+    type_erreur: CPT
+    erreur: 'La fraction est appliquée à l''envers (60 : 3 × 4 = 80) : l''élève prend les quatre tiers
+      au lieu des trois quarts.'
+  si_echoue: 'Sens de la fraction d''une quantité : prendre les trois quarts, c''est diviser par 4 puis
     multiplier par 3.'
 - code: N6
   partie: A
@@ -99,10 +135,10 @@ questions:
   competence: N.DIVE
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Effectuer une division euclidienne, donner quotient et reste
+  objet: Effectuer la division euclidienne de 842 par 25 (quotient et reste)
   reponse_attendue: quotient 33, reste 17
-  solution: ''
-  si_echoue: 'Division euclidienne : la division n''est pas posee, ou le reste obtenu n''est pas plus
+  solution: 'Barème : 1 pt, tout ou rien — le quotient et le reste sont exigés tous les deux.'
+  si_echoue: 'Division euclidienne : la division n''est pas posée, ou le reste obtenu n''est pas plus
     petit que le diviseur.'
 - code: N7
   partie: A
@@ -112,10 +148,32 @@ questions:
   competence: N.PROB
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Choisir le calcul qui donne la somme rendue apres un achat (QCM)
-  reponse_attendue: b) 20 000 - 4 x 3 500
+  objet: 'Choisir le calcul de la monnaie : 4 pagnes à 3 500 FCFA payés avec 20 000 FCFA (Rasmané)'
+  reponse_attendue: b
   solution: ''
-  si_echoue: 'Sens de l''operation et ordre des calculs : l''eleve ne voit pas qu''il faut d''abord multiplier,
+  options:
+  - lettre: a
+    texte: (20 000 - 3 500) × 4
+    correcte: false
+    type_erreur: MOD
+    erreur: La monnaie d'un seul pagne est calculée puis multipliée par 4, comme si chaque pagne était
+      payé avec un billet de 20 000 FCFA.
+  - lettre: b
+    texte: 20 000 - 4 × 3 500
+    correcte: true
+  - lettre: c
+    texte: 4 × 3 500 - 20 000
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Les termes de la soustraction sont inversés : la soustraction est traitée comme si l''ordre
+      ne comptait pas (le résultat serait négatif).'
+  - lettre: d
+    texte: 20 000 - 3 500 + 4
+    correcte: false
+    type_erreur: MOD
+    erreur: 'Le nombre de pagnes est ajouté comme une somme d''argent : la quantité 4 n''est pas traduite
+      en multiplication.'
+  si_echoue: 'Sens de l''opération et ordre des calculs : l''élève ne voit pas qu''il faut d''abord multiplier,
     puis soustraire.'
 - code: M1
   partie: A
@@ -125,22 +183,22 @@ questions:
   competence: M.CONV
   competence_secondaire: null
   domaine: Mesures et grandeurs
-  objet: Convertir des metres en centimetres
+  objet: Convertir 3,07 m en centimètres
   reponse_attendue: 307 cm
   solution: ''
-  si_echoue: 'Conversion des longueurs : la relation entre le metre et le centimetre n''est pas installee.'
+  si_echoue: 'Conversion des longueurs : la relation entre le mètre et le centimètre n''est pas installée.'
 - code: M2
   partie: A
   format: court
   bareme: 0.333333
   bareme_classeur: 1.0
   competence: M.PER
-  competence_secondaire: null
+  competence_secondaire: N.ADD
   domaine: Mesures et grandeurs
-  objet: Calculer le perimetre d'un triangle a partir de ses trois cotes
+  objet: Calculer le périmètre d'un triangle de côtés 4,5 cm, 6 cm et 3,8 cm
   reponse_attendue: 14,3 cm
-  solution: ''
-  si_echoue: 'Perimetre d''un triangle, ou addition de decimaux : les trois cotes ne sont pas additionnes.'
+  solution: 'Barème : 1 pt, tout ou rien. L''unité n''est pas exigée ici.'
+  si_echoue: 'Périmètre d''un triangle, ou addition de décimaux : les trois côtés ne sont pas additionnés.'
 - code: M3
   partie: A
   format: qcm
@@ -149,10 +207,33 @@ questions:
   competence: M.AIRE
   competence_secondaire: null
   domaine: Mesures et grandeurs
-  objet: Calculer l'aire d'un triangle a partir de la base et la hauteur (QCM)
-  reponse_attendue: a) 14 cm²
+  objet: Choisir l'aire d'un triangle de base 7 cm et de hauteur 4 cm (côté de 5 cm inutile)
+  reponse_attendue: a
   solution: ''
-  si_echoue: 'Aire du triangle : le cote donne est pris pour la hauteur, ou la division par deux est oubliee.'
+  options:
+  - lettre: a
+    texte: 14 cm²
+    correcte: true
+  - lettre: b
+    texte: 17,5 cm²
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Le côté de 5 cm est pris pour la hauteur (7 × 5 : 2 = 17,5) : la hauteur n''est pas reconnue
+      comme perpendiculaire à la base.'
+  - lettre: c
+    texte: 28 cm²
+    correcte: false
+    type_erreur: CNS
+    erreur: 'La division par 2 est oubliée (7 × 4 = 28) : la formule de l''aire du rectangle remplace
+      celle du triangle.'
+  - lettre: d
+    texte: 16 cm²
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Les trois longueurs données sont additionnées (7 + 4 + 5 = 16) : l''aire est confondue avec
+      une somme de longueurs.'
+  si_echoue: 'Aire du triangle : le côté de 5 cm est pris pour la hauteur, ou la division par deux est
+    oubliée.'
 - code: G1
   partie: A
   format: court
@@ -161,10 +242,10 @@ questions:
   competence: G.VOC
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer une longueur a partir du milieu d'un segment
+  objet: Calculer EF sachant que I est le milieu de [EF] et IE = 3,5 cm
   reponse_attendue: EF = 7 cm
   solution: ''
-  si_echoue: 'Milieu d''un segment : le milieu partage le segment en deux longueurs egales, donc EF est
+  si_echoue: 'Milieu d''un segment : le milieu partage le segment en deux longueurs égales, donc EF est
     le double de IE.'
 - code: G2
   partie: A
@@ -174,10 +255,11 @@ questions:
   competence: G.PARA
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Nommer les deux cotes d'un carre perpendiculaires a un cote donne
+  objet: Nommer les deux côtés perpendiculaires au côté [AB] dans le carré ABCD
   reponse_attendue: '[AD] et [BC]'
-  solution: ''
-  si_echoue: Perpendicularite dans le carre, ou nom des cotes d'un quadrilatere.
+  solution: 'Barème : 1 pt, tout ou rien — les deux côtés sont exigés. Accepter les écritures [DA] et
+    [CB].'
+  si_echoue: Perpendicularité dans le carré, ou nom des côtés d'un quadrilatère.
 - code: G3
   partie: A
   format: qcm
@@ -186,11 +268,33 @@ questions:
   competence: G.ANG1
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Lire un angle obtus au rapporteur entre deux graduations (QCM)
-  reponse_attendue: b) 140°
+  objet: Choisir la mesure d'un angle obtus lu 40 et 140 au rapporteur (Kadidiatou)
+  reponse_attendue: b
   solution: ''
-  si_echoue: 'Lecture d''un instrument : la graduation du rapporteur n''est pas choisie d''apres la nature
-    de l''angle.'
+  options:
+  - lettre: a
+    texte: 40°
+    correcte: false
+    type_erreur: CNS
+    erreur: 'La petite lecture est retenue : la définition de l''angle obtus (plus de 90°) n''est pas
+      mobilisée pour choisir la graduation.'
+  - lettre: b
+    texte: 140°
+    correcte: true
+  - lettre: c
+    texte: 180°
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Les deux lectures sont additionnées (40 + 140 = 180) : les deux graduations sont vues comme
+      deux morceaux de l''angle.'
+  - lettre: d
+    texte: 100°
+    correcte: false
+    type_erreur: CPT
+    erreur: 'La différence des deux lectures est prise (140 - 40 = 100) : la double graduation du rapporteur
+      n''est pas comprise.'
+  si_echoue: 'Lecture d''un instrument : la graduation du rapporteur n''est pas choisie d''après la nature
+    de l''angle, alors qu''un angle obtus mesure plus de 90°.'
 - code: G4
   partie: A
   format: court
@@ -199,10 +303,10 @@ questions:
   competence: G.FIG
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Determiner lequel de deux points appartient a un cercle de rayon donne
+  objet: Dire lequel de P (OP = 4,5 cm) ou Q (OQ = 3 cm) est sur le cercle de centre O, rayon 3 cm
   reponse_attendue: le point Q
   solution: ''
-  si_echoue: 'Definition du cercle : un point appartient au cercle lorsque sa distance au centre est egale
+  si_echoue: 'Définition du cercle : un point appartient au cercle lorsque sa distance au centre est égale
     au rayon.'
 - code: D1
   partie: A
@@ -211,8 +315,8 @@ questions:
   bareme_classeur: 1.0
   competence: D.PROP
   competence_secondaire: null
-  domaine: Organisation de donnees et proportionnalite
-  objet: Calculer un prix proportionnel (masse de riz)
+  domaine: Donnees, proportionnalite, statistique
+  objet: Calculer le prix de 7 kg de riz sachant que 4 kg coûtent 2 600 FCFA
   reponse_attendue: 4 550 FCFA
   solution: ''
   si_echoue: 'Prix unitaire : le passage par le prix d''un kilogramme n''est pas fait.'
@@ -223,11 +327,32 @@ questions:
   bareme_classeur: 1.0
   competence: D.POUR
   competence_secondaire: null
-  domaine: Organisation de donnees et proportionnalite
-  objet: Calculer un pourcentage simple d'eleves (QCM)
-  reponse_attendue: d) 25 %
+  domaine: Donnees, proportionnalite, statistique
+  objet: 'Choisir le pourcentage d''élèves de CM2 : 50 sur 200 élèves (école de Manga)'
+  reponse_attendue: d
   solution: ''
-  si_echoue: 'Pourcentage simple : le rapport est inverse, ou l''effectif est recopie tel quel.'
+  options:
+  - lettre: a
+    texte: 50 %
+    correcte: false
+    type_erreur: CNS
+    erreur: 'L''effectif 50 est recopié comme pourcentage : la notion de pourcentage (rapport ramené à
+      100) n''est pas disponible.'
+  - lettre: b
+    texte: 4 %
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Le rapport est inversé (200 : 50 = 4) : l''effectif total est divisé par la partie.'
+  - lettre: c
+    texte: 40 %
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Rapport inversé (200 : 50 = 4) puis 4 lu comme 0,4, soit 40 % : erreur de sens du rapport
+      aggravée d''une virgule mal placée.'
+  - lettre: d
+    texte: 25 %
+    correcte: true
+  si_echoue: 'Pourcentage simple : le rapport est inversé, ou l''effectif est recopié tel quel.'
 - code: N8
   partie: B
   format: redige
@@ -236,23 +361,33 @@ questions:
   competence: N.ADD
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Retrouver une quantite initiale a partir d'ajouts et de retraits successifs (reservoir d'essence)
-  reponse_attendue: 2,45 litres
-  solution: 3,2 + 1,75 = 4,95 (avant retrait) ; 4,95 - 2,5 = 2,45 litres au depart.
-  si_echoue: 'Raisonnement inverse : les operations de l''enonce sont refaites dans le sens direct au
-    lieu d''etre remontees.'
+  objet: 'Retrouver l''essence au départ : 4,25 L dans le réservoir après ajout de 1,5 L (Salif)'
+  reponse_attendue: 4,25 - 1,5 = 2,75 litres
+  solution: 'L''opération attendue est une soustraction : 4,25 - 1,5 = 2,75 litres au départ. Barème :
+    1 pt pour l''écriture de la soustraction 4,25 - 1,5 (remonter de l''état final à l''état initial)
+    ; 1 pt pour le résultat 2,75 litres. L''élève qui écrit 4,25 + 1,5 n''obtient aucun des deux points.
+    Erreur propagée : une soustraction correctement posée mais mal effectuée garde le premier point.'
+  si_echoue: 'Raisonnement inverse sur l''addition : l''opération de l''énoncé est refaite dans le sens
+    direct (4,25 + 1,5) au lieu d''être remontée. Ou alignement des virgules dans la soustraction, 4,25
+    moins 1,50.'
 - code: N9
   partie: B
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
   competence: N.MUL
-  competence_secondaire: null
+  competence_secondaire: N.PROB
   domaine: Activites numeriques
-  objet: Calculer un prix total et verifier une affirmation (achat de savons)
-  reponse_attendue: 3 900 FCFA ; Ousseni a raison
-  solution: '12 x 325 = 3 900 FCFA ; 3 900 < 4 000 : Ousseni a raison, il lui reste meme 100 FCFA.'
-  si_echoue: Technique operatoire de la multiplication, ou absence de conclusion.
+  objet: Ecrire en une ligne puis calculer le prix du double de 12 savons à 325 FCFA (Safiatou)
+  reponse_attendue: 325 × (2 × 12) = 325 × 24 = 7 800 FCFA
+  solution: 'Le double de 12 savons : 2 × 12 = 24 savons. Calcul en une ligne : 325 × (2 × 12) ou 325
+    × 24 = 7 800 FCFA. Barème : 1 pt pour le passage de « le double » au nombre 24 et l''écriture du calcul
+    en une ligne ; 1 pt pour le produit 7 800 FCFA. L''élève qui écrit 325 × 12 × 2 obtient le premier
+    point. L''élève qui calcule 325 × 12 = 3 900 puis 3 900 × 2 = 7 800 obtient les 2 pts. Erreur propagée
+    : un produit correctement posé à partir d''un nombre de savons faux garde le second point.'
+  si_echoue: 'Passage de la langue courante à l''écriture mathématique : « le double » n''est pas traduit,
+    et la somme est calculée pour 12 savons. Ou technique opératoire de la multiplication par un nombre
+    à deux chiffres.'
 - code: N10
   partie: B
   format: redige
@@ -261,12 +396,14 @@ questions:
   competence: N.DIVE
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Repartir des oeufs en plateaux (quotient, reste, nombre de plateaux a prendre)
-  reponse_attendue: 16 plateaux pleins, reste 20, il faut prendre 17 plateaux
-  solution: '500 = 30 x 16 + 20 ; 16 plateaux complets et 20 oeufs restants occupent un plateau de plus
-    : 17 plateaux.'
-  si_echoue: 'Division euclidienne et interpretation du reste : le reste est calcule mais n''est pas traduit
-    dans la situation.'
+  objet: Juger si 16 plateaux de 30 oeufs suffisent pour 500 oeufs (Nafissatou)
+  reponse_attendue: 500 = 30 × 16 + 20 ; il faut 17 plateaux, Nafissatou a tort
+  solution: '500 = 30 × 16 + 20 : 16 plateaux remplis et il reste 20 oeufs, qui demandent un plateau de
+    plus : 17 plateaux. Barème : 1 pt pour la division euclidienne, quotient 16 et reste 20 ; 1 pt pour
+    avoir compté le plateau incomplet et conclu que Nafissatou a tort. Le second point n''est pas acquis
+    si le reste est calculé sans être traduit dans la situation.'
+  si_echoue: 'Interprétation du reste d''une division euclidienne : le reste est trouvé mais la réponse
+    s''arrête à 16 plateaux.'
 - code: N11
   partie: B
   format: redige
@@ -275,35 +412,52 @@ questions:
   competence: N.FRA1
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Calculer l'effectif total d'une classe a partir du tiers de filles
-  reponse_attendue: 36 eleves, dont 24 garcons
-  solution: 12 filles = tiers de la classe donc 12 x 3 = 36 eleves ; 36 - 12 = 24 garcons.
-  si_echoue: 'Sens de la fraction d''une quantite : l''eleve divise par trois au lieu de multiplier.'
+  objet: Retrouver le grenier plein (le tiers vaut 12 sacs) et juger l'ajout de 30 sacs (Réo)
+  reponse_attendue: grenier plein = 36 sacs ; 24 places libres < 30, elle ne peut pas ajouter les 30 sacs
+  solution: 'Les 12 sacs sont le tiers du grenier : 12 × 3 = 36 sacs. Il reste 36 - 12 = 24 places libres.
+    Or 30 > 24 : non. Barème : 1 pt pour la multiplication par 3 et la contenance totale 36 sacs ; 1 pt
+    pour la comparaison des 30 sacs aux 24 places libres et la réponse négative. L''élève qui compare
+    30 à 36 et répond « oui » perd le second point. L''élève qui divise par 3 et répond 4 sacs n''obtient
+    aucun des deux points.'
+  si_echoue: 'Sens de la fraction d''une quantité : la partie est connue et le tout cherché, donc on multiplie
+    ; l''élève divise par trois. Ou condition non repérée : la comparaison est faite avec la contenance
+    totale au lieu de la place disponible.'
 - code: N12
   partie: B
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
   competence: N.PROB
-  competence_secondaire: null
+  competence_secondaire: N.DIVE
   domaine: Activites numeriques
-  objet: Calculer un benefice et verifier une affirmation (achat-revente de poulets)
-  reponse_attendue: 7 000 FCFA, l'affirmation est fausse
-  solution: 8 x 2 750 = 22 000 FCFA (vente) ; 22 000 - 15 000 = 7 000 FCFA de benefice ; 7 000 < 8 000.
-  si_echoue: 'Choix de l''operation dans un probleme a deux etapes : le benefice est confondu avec la
-    recette.'
+  objet: Calculer le prix de vente d'un poulet pour gagner 8 000 FCFA sur 8 poulets payés 15 000 FCFA
+  reponse_attendue: 2 875 FCFA par poulet ; 2 750 FCFA ne suffit pas
+  solution: 'Recette à atteindre : 15 000 + 8 000 = 23 000 FCFA ; prix par poulet : 23 000 : 8 = 2 875
+    FCFA. Or 2 750 < 2 875 : ne suffit pas. Barème : 1 pt pour la recette 23 000 FCFA ; 1 pt pour le prix
+    de vente 2 875 FCFA et la réponse négative. L''élève qui divise directement 15 000 ou 8 000 par 8
+    n''obtient aucun point. Erreur propagée : une division juste sur une recette fausse garde le second
+    point. L''élève qui répond par la vérification seule (8 × 2 750 = 22 000, 22 000 - 15 000 = 7 000
+    < 8 000) obtient 1 pt.'
+  si_echoue: 'Choix des opérations dans un problème inverse : le gain visé n''est pas ajouté au prix d''achat
+    avant le partage entre les 8 poulets.'
 - code: M4
   partie: B
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
   competence: M.PER
-  competence_secondaire: null
+  competence_secondaire: N.DIVE
   domaine: Mesures et grandeurs
-  objet: Calculer une largeur puis une longueur de grillage (perimetre d'un jardin)
-  reponse_attendue: largeur 9 m, 92 m de grillage
-  solution: '46 : 2 = 23 m (demi-perimetre) ; 23 - 14 = 9 m (largeur) ; deux tours = 2 x 46 = 92 m.'
-  si_echoue: Formule du perimetre du rectangle employee a l'envers.
+  objet: Calculer la largeur d'un rectangle (périmètre 46 m, longueur 14 m) et les rouleaux de 20 m
+  reponse_attendue: largeur 9 m ; 3 rouleaux
+  solution: 'Demi-périmètre : 46 : 2 = 23 m ; largeur 23 - 14 = 9 m. Le grillage fait 46 m ; 2 rouleaux
+    = 40 m, insuffisant : 3 rouleaux. Barème : 1 pt pour la largeur 9 m via le demi-périmètre 23 m ; 1
+    pt pour les 3 rouleaux, justifiés par 40 m < 46 m. « 2 rouleaux et un peu plus » ou « 2,3 rouleaux
+    » ne vaut pas le second point. L''élève qui écrit 46 - 14 = 32 m perd le premier point mais garde
+    le second s''il compte bien les rouleaux pour 46 m.'
+  si_echoue: 'Formule du périmètre du rectangle employée à l''envers : la longueur est retranchée du périmètre
+    entier au lieu du demi-périmètre. Ou condition non repérée : le résultat de la division n''est pas
+    arrondi au rouleau entier supérieur.'
 - code: M5
   partie: B
   format: redige
@@ -312,25 +466,31 @@ questions:
   competence: M.AIRE
   competence_secondaire: null
   domaine: Mesures et grandeurs
-  objet: Calculer une aire restante apres soustraction d'un hangar carre
-  reponse_attendue: 536 m²
-  solution: Aire du terrain 30 x 20 = 600 m² ; aire du hangar 8 x 8 = 64 m² ; aire libre 600 - 64 = 536
-    m².
-  si_echoue: Aire du rectangle et du carre, ou aire vue comme une difference de longueurs.
+  objet: Juger s'il reste plus de 550 m² sur un terrain de 600 m² après un hangar carré de 8 m
+  reponse_attendue: hangar 64 m² ; reste 536 m² < 550 m², Sibiri a tort
+  solution: 'Aire du hangar : 8 × 8 = 64 m² ; terrain libre : 600 - 64 = 536 m² ; 536 < 550. Barème :
+    1 pt pour l''aire du hangar 64 m² ; 1 pt pour la différence 536 m² et la conclusion. L''aire du carré
+    calculée comme 4 × 8 ne vaut pas le premier point.'
+  si_echoue: 'Aire du carré, ou aire vue comme une différence de deux aires : l''élève calcule un périmètre,
+    ou soustrait des longueurs.'
 - code: G5
   partie: B
-  format: construction
+  format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
   competence: G.PARA
-  competence_secondaire: null
+  competence_secondaire: G.FIG
   domaine: Activites geometriques
-  objet: Tracer deux perpendiculaires successives et conclure sur leur position relative
-  reponse_attendue: ''
-  solution: 'Trace attendu : droite (d), point A hors de (d), (d1) perpendiculaire a (d) passant par A,
-    (d2) perpendiculaire a (d1) passant par A. (d2) est parallele a (d) : deux droites perpendiculaires
-    a une meme troisieme droite sont paralleles entre elles.'
-  si_echoue: Usage de l'equerre, ou lien entre perpendicularite et parallelisme.
+  objet: Calculer RS dans le rectangle MNPQ (NP = 4 cm) et juger si (RS) et (MQ) sont perpendiculaires
+  reponse_attendue: RS = 4 cm ; (RS) et (MQ) sont parallèles, Issouf a tort
+  solution: 'MRSQ a quatre angles droits : rectangle, donc RS = MQ = NP = 4 cm. (RS) ⊥ (MN) et [MQ] ⊥
+    [MN] ; deux droites perpendiculaires à une même droite sont parallèles. Barème : 1 pt pour RS = 4
+    cm, reliée à la largeur du rectangle ; 1 pt pour « Issouf a tort » justifié par la propriété. « Il
+    a tort » sans justification ne vaut pas ce point. RS = 10 cm (confondu avec la longueur) ne vaut pas
+    le premier point.'
+  si_echoue: 'Lien entre perpendicularité et parallélisme : la propriété n''est pas mobilisée, et la perpendicularité
+    est traitée comme si elle se transmettait. Ou figure non construite mentalement : le segment [RS]
+    n''est pas vu comme la largeur du rectangle.'
 - code: G6
   partie: B
   format: construction
@@ -339,13 +499,13 @@ questions:
   competence: G.FIG
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Construire un carre a partir de son perimetre puis un cercle passant par un sommet
-  reponse_attendue: ''
-  solution: 'Cote du carre = 20 : 4 = 5 cm ; construction du carre EFGH de 5 cm de cote a la regle et
-    a l''equerre ; le cercle a pour centre E et pour rayon EG (diagonale, ouverture au compas reportee
-    sans mesurer, elle vaut environ 7,1 cm).'
-  si_echoue: Raisonnement inverse sur le perimetre du carre, ou definition du cercle donnee par son centre
-    et un point.
+  objet: Calculer le rayon d'un cercle de diamètre 7 cm puis tracer ce cercle au compas
+  reponse_attendue: rayon 3,5 cm ; cercle de centre O et de rayon 3,5 cm tracé au compas
+  solution: 'Rayon : 7 : 2 = 3,5 cm. Barème : 1 pt pour le rayon 3,5 cm (diamètre divisé par 2) ; 1 pt
+    pour le tracé au compas d''un cercle de rayon 3,5 cm à 2 mm près, centre O marqué. Un cercle correctement
+    tracé à partir d''un rayon faux garde le second point.'
+  si_echoue: 'Relation entre rayon et diamètre : l''élève multiplie par 2 au lieu de diviser, et trace
+    un cercle de 7 cm de rayon. Ou passage du calcul au tracé : le compas est ouvert au diamètre.'
 - code: G7
   partie: B
   format: redige
@@ -354,9 +514,11 @@ questions:
   competence: G.ANG1
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer la mesure d'un angle par difference et verifier une affirmation sur sa nature
-  reponse_attendue: 90°, Kadidiatou a tort (angle droit, pas aigu)
-  solution: 130° - 40° = 90° ; un angle de 90° est un angle droit, non un angle aigu.
+  objet: Calculer l'angle zOy (xOy = 130°, xOz = 40°) et juger s'il est aigu (Kadidiatou)
+  reponse_attendue: zOy = 130° - 40° = 90° ; angle droit, Kadidiatou a tort
+  solution: 'zOy = 130° - 40° = 90°, un angle droit et non aigu. Barème : 1 pt pour la mesure 90° obtenue
+    par soustraction ; 1 pt pour la nature de l''angle et la conclusion. Erreur propagée : une nature
+    correctement déduite d''une mesure fausse garde le second point.'
   si_echoue: 'Addition et soustraction d''angles adjacents, ou nature d''un angle : un angle aigu mesure
     moins de 90°.'
 - code: D3
@@ -365,27 +527,31 @@ questions:
   bareme: 0.666667
   bareme_classeur: 2.0
   competence: D.PROP
-  competence_secondaire: null
-  domaine: Organisation de donnees et proportionnalite
-  objet: Calculer un prix unitaire puis un nombre d'unites achetees (sacs de riz)
-  reponse_attendue: 8 500 FCFA le sac, 7 sacs achetes
-  solution: '34 000 : 4 = 8 500 FCFA (prix d''un sac) ; 59 500 : 8 500 = 7 sacs.'
-  si_echoue: 'Prix unitaire et proportionnalite : l''eleve multiplie au lieu de diviser.'
-- code: P1a
+  competence_secondaire: N.DIVE
+  domaine: Donnees, proportionnalite, statistique
+  objet: Calculer le nombre de sacs à 8 500 FCFA payés 59 500 FCFA et juger l'affirmation « 8 sacs »
+  reponse_attendue: '59 500 : 8 500 = 7 sacs ; 7 ≠ 8, le client a tort'
+  solution: 'Barème : 1 pt pour avoir choisi la division et obtenu 7 sacs ; 1 pt pour la conclusion qui
+    invalide l''affirmation. Démarche équivalente acceptée : 8 × 8 500 = 68 000 FCFA ≠ 59 500 (2 pts).'
+  si_echoue: 'Proportionnalité et prix unitaire : l''élève multiplie au lieu de diviser, ou ne relie pas
+    la somme payée au prix d''un sac.'
+- code: P1.1
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 0.666667
+  bareme_classeur: 2.0
   competence: G.VOC
-  competence_secondaire: null
+  competence_secondaire: N.ADD
   domaine: Activites geometriques
-  objet: '[P1, sous-question 1/4] Determiner si un point intermediaire est le milieu d''un trajet (proportionnalite/distance)'
-  reponse_attendue: 'oui, justifie par 180 = 360 : 2'
-  solution: ''
-  si_echoue: 'Calcul sur les heures et les minutes : l''heure est traitee comme 100 minutes. Ou milieu
-    d''un segment non relie a la moitie de la longueur.'
+  objet: Calculer la distance Boromo-Bobo (route de 360 km, Boromo à 180 km) et dire si Boromo est le
+    milieu
+  reponse_attendue: 360 - 180 = 180 km ; les deux distances sont égales, Boromo est le milieu
+  solution: 'Barème (2 pts) : 1 pt pour la distance 180 km, 1 pt pour la conclusion appuyée sur l''égalité
+    des deux distances (le mot « oui » seul ne vaut rien). Les 55 voyageurs sont une donnée inutile.'
+  si_echoue: 'Milieu d''un segment non relié à l''égalité de deux longueurs. Ou calcul sur les heures
+    et les minutes : l''heure est comptée pour 100 minutes.'
   probleme_parent: P1
-- code: P1b
+- code: P1.2
   partie: C
   format: redige
   bareme: 0.666667
@@ -393,211 +559,121 @@ questions:
   competence: M.CONV
   competence_secondaire: null
   domaine: Mesures et grandeurs
-  objet: '[P1, sous-question 2/4] Calculer une heure d''arrivee avec un temps de trajet puis un arret'
-  reponse_attendue: 9 h 10, puis 9 h 35 apres l'arret
-  solution: ''
-  si_echoue: 'Calcul sur les heures et les minutes : l''heure est traitee comme 100 minutes. Ou milieu
-    d''un segment non relie a la moitie de la longueur.'
+  objet: 'Calculer l''heure de départ de Boromo : départ 6 h 40, trajet 2 h 30 min, arrêt 25 min'
+  reponse_attendue: arrivée à Boromo 9 h 10 ; départ de Boromo 9 h 35
+  solution: '6 h 40 min + 2 h 30 min = 9 h 10 min ; avec l''arrêt : 9 h 10 min + 25 min = 9 h 35 min.
+    Barème (2 pts) : 1 pt pour l''arrivée à 9 h 10, 1 pt pour l''ajout des 25 minutes et l''heure de départ
+    9 h 35.'
+  si_echoue: 'Calcul sur les heures et les minutes : l''heure est comptée pour 100 minutes.'
   probleme_parent: P1
-- code: P1c
+- code: P1.3
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 1.0
+  bareme_classeur: 3.0
   competence: M.CONV
-  competence_secondaire: null
+  competence_secondaire: N.PROB
   domaine: Mesures et grandeurs
-  objet: '[P1, sous-question 3/4] Calculer une heure d''arrivee finale a partir d''un second temps de
-    trajet'
-  reponse_attendue: 12 h 20
-  solution: ''
-  si_echoue: 'Calcul sur les heures et les minutes : l''heure est traitee comme 100 minutes. Ou milieu
-    d''un segment non relie a la moitie de la longueur.'
+  objet: Calculer l'arrivée (9 h 35 + 2 h 45 min) et la durée depuis 6 h 40, juger « moins de 6 h »
+  reponse_attendue: arrivée 12 h 20 ; durée 5 h 40 min < 6 h, le voyageur a raison
+  solution: '9 h 35 min + 2 h 45 min = 12 h 20 min ; départ 6 h 40 : durée 5 h 40 min. Accepter aussi
+    2 h 30 min + 25 min + 2 h 45 min = 5 h 40 min. Barème (3 pts) : 1 pt pour l''heure d''arrivée 12 h
+    20, 1 pt pour la durée 5 h 40 min, 1 pt pour la phrase de conclusion. Erreur propagée : une durée
+    juste calculée à partir d''une heure d''arrivée fausse garde son point.'
+  si_echoue: 'Calcul sur les heures et les minutes : l''heure est comptée pour 100 minutes.'
   probleme_parent: P1
-- code: P1d
+- code: P2.1
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.ADD
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P1, sous-question 4/4] Calculer une duree totale et conclure sur une affirmation (comparaison
-    a une duree donnee)'
-  reponse_attendue: 5 h 40 min, le voyageur a raison (moins de 6 heures)
-  solution: ''
-  si_echoue: 'Calcul sur les heures et les minutes : l''heure est traitee comme 100 minutes. Ou milieu
-    d''un segment non relie a la moitie de la longueur.'
-  probleme_parent: P1
-- code: P2a
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.ADD
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P2, sous-question 1/4] Calculer une somme totale a partir de billets et pieces de differentes
-    valeurs'
-  reponse_attendue: 37 500 FCFA
-  solution: ''
-  si_echoue: 'Numeration en contexte monetaire : passage de l''ecriture chiffree a l''ecriture en lettres,
-    ou calcul d''un pourcentage d''une somme.'
-  probleme_parent: P2
-- code: P2b
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 0.666667
+  bareme_classeur: 2.0
   competence: N.NUM
-  competence_secondaire: null
+  competence_secondaire: N.ADD
   domaine: Activites numeriques
-  objet: '[P2, sous-question 2/4] Ecrire une somme en toutes lettres'
-  reponse_attendue: trente-sept mille cinq cents
-  solution: ''
-  si_echoue: 'Numeration en contexte monetaire : passage de l''ecriture chiffree a l''ecriture en lettres,
-    ou calcul d''un pourcentage d''une somme.'
+  objet: Calculer 3 billets de 10 000, 7 de 1 000 et 5 pièces de 100 FCFA, écrire la somme en lettres
+  reponse_attendue: 37 500 FCFA, trente-sept mille cinq cents francs CFA
+  solution: '3 × 10 000 + 7 × 1 000 + 5 × 100 = 30 000 + 7 000 + 500 = 37 500. Barème (2 pts) : 1 pt pour
+    la somme 37 500 FCFA, 1 pt pour l''écriture en lettres (orthographe non prise en compte).'
+  si_echoue: 'Numération en contexte monétaire : décomposition d''une somme en billets et pièces, ou passage
+    de l''écriture chiffrée à l''écriture en lettres.'
   probleme_parent: P2
-- code: P2c
+- code: P2.2
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 0.666667
+  bareme_classeur: 2.0
   competence: D.POUR
-  competence_secondaire: null
-  domaine: Organisation de donnees et proportionnalite
-  objet: '[P2, sous-question 3/4] Calculer un pourcentage d''une somme'
+  competence_secondaire: N.DIVE
+  domaine: Donnees, proportionnalite, statistique
+  objet: Calculer 20 % de 37 500 FCFA (apport de la mairie au forage de Ziniaré)
   reponse_attendue: 7 500 FCFA
-  solution: ''
-  si_echoue: 'Numeration en contexte monetaire : passage de l''ecriture chiffree a l''ecriture en lettres,
-    ou calcul d''un pourcentage d''une somme.'
+  solution: '37 500 : 100 = 375, puis 375 × 20 = 7 500. Accepter le passage par le cinquième : 37 500
+    : 5 = 7 500. Barème (2 pts) : 1 pt pour la méthode de calcul des 20 %, 1 pt pour le montant 7 500
+    FCFA.'
+  si_echoue: Calcul du pourcentage d'une somme.
   probleme_parent: P2
-- code: P2d
+- code: P2.3
   partie: C
   format: redige
-  bareme: 0.666667
-  bareme_classeur: 2.0
+  bareme: 1.0
+  bareme_classeur: 3.0
   competence: N.PROB
-  competence_secondaire: null
+  competence_secondaire: N.ADD
   domaine: Activites numeriques
-  objet: '[P2, sous-question 4/4] Comparer un total a une depense et conclure, avec la somme manquante'
-  reponse_attendue: 45 000 FCFA au total, il manque 15 000 FCFA
-  solution: ''
-  si_echoue: 'Numeration en contexte monetaire : passage de l''ecriture chiffree a l''ecriture en lettres,
-    ou calcul d''un pourcentage d''une somme.'
+  objet: Comparer 37 500 + 7 500 FCFA au forage de 60 000 FCFA et donner la somme qui manque
+  reponse_attendue: 45 000 FCFA < 60 000 FCFA ; il manque 15 000 FCFA
+  solution: '37 500 + 7 500 = 45 000 FCFA, et 45 000 < 60 000 ; il manque 60 000 - 45 000 = 15 000 FCFA.
+    Conclusion attendue : « L''association ne peut pas payer le forage : il lui manque 15 000 FCFA. »
+    Barème (3 pts) : 1 pt pour le total disponible 45 000 FCFA, 1 pt pour la comparaison avec 60 000 FCFA,
+    1 pt pour la phrase de conclusion donnant la somme manquante 15 000 FCFA.'
+  si_echoue: 'Numération en contexte monétaire, ou calcul du pourcentage d''une somme : le total disponible
+    n''est pas reconstitué avant la comparaison.'
   probleme_parent: P2
-- code: P3a
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: M.AIRE
-  competence_secondaire: null
-  domaine: Mesures et grandeurs
-  objet: '[P3, sous-question 1/4] Calculer l''aire d''une salle rectangulaire'
-  reponse_attendue: 54 m²
-  solution: ''
-  si_echoue: Aire du rectangle, division pour trouver un nombre de paquets, ou incapacite a reperer qu'une
-    donnee manque.
-  probleme_parent: P3
-- code: P3b
+- code: P3.1
   partie: C
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
   competence: N.DIVE
-  competence_secondaire: null
+  competence_secondaire: M.CONV
   domaine: Activites numeriques
-  objet: '[P3, sous-question 2/4] Calculer un nombre de paquets necessaires puis leur prix total'
-  reponse_attendue: 27 paquets, 94 500 FCFA
-  solution: ''
-  si_echoue: Aire du rectangle, division pour trouver un nombre de paquets, ou incapacite a reperer qu'une
-    donnee manque.
+  objet: Calculer le nombre de sacs de 100 kg pour 2 400 kg de sorgho (Dori-Kaya, 180 km inutile)
+  reponse_attendue: '2 400 : 100 = 24 sacs'
+  solution: 'Barème (2 pts) : 1 pt pour avoir choisi la division par 100, 1 pt pour le résultat 24 sacs.
+    La distance de 180 km est une donnée inutile.'
+  si_echoue: 'Choix de l''opération : la division par la contenance d''un sac n''est pas reconnue.'
   probleme_parent: P3
-- code: P3c
+- code: P3.2
   partie: C
   format: redige
-  bareme: 0.666667
-  bareme_classeur: 2.0
-  competence: N.PROB
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P3, sous-question 3/4] Comparer une depense totale a un budget et conclure, avec la somme restante'
-  reponse_attendue: 119 500 FCFA, le directeur peut payer, il reste 10 500 FCFA
-  solution: ''
-  si_echoue: Aire du rectangle, division pour trouver un nombre de paquets, ou incapacite a reperer qu'une
-    donnee manque.
-  probleme_parent: P3
-- code: P3d
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: M.PER
-  competence_secondaire: null
-  domaine: Mesures et grandeurs
-  objet: '[P3, sous-question 4/4] Reperer une donnee manquante necessaire a un second calcul d''aire (murs)'
-  reponse_attendue: la hauteur des murs manque
-  solution: ''
-  si_echoue: Aire du rectangle, division pour trouver un nombre de paquets, ou incapacite a reperer qu'une
-    donnee manque.
-  probleme_parent: P3
-- code: P4a
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.DIVE
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P4, sous-question 1/4] Calculer un nombre de sacs a partir d''une masse totale et d''une masse
-    unitaire'
-  reponse_attendue: 24 sacs
-  solution: ''
-  si_echoue: Choix de l'operation dans une comparaison de deux offres, ou generalisation d'un cas particulier
-    sans verification.
-  probleme_parent: P4
-- code: P4b
-  partie: C
-  format: redige
-  bareme: 0.666667
-  bareme_classeur: 2.0
+  bareme: 1.0
+  bareme_classeur: 3.0
   competence: D.PROP
-  competence_secondaire: null
-  domaine: Organisation de donnees et proportionnalite
-  objet: '[P4, sous-question 2/4] Calculer le prix de deux offres tarifaires (l''une proportionnelle,
-    l''autre avec frais fixe)'
-  reponse_attendue: 'offre A : 36 000 FCFA ; offre B : 34 400 FCFA'
-  solution: ''
-  si_echoue: Choix de l'operation dans une comparaison de deux offres, ou generalisation d'un cas particulier
-    sans verification.
-  probleme_parent: P4
-- code: P4c
+  competence_secondaire: N.MUL
+  domaine: Donnees, proportionnalite, statistique
+  objet: 'Calculer le prix de 24 sacs : offre A 1 500 FCFA par sac, offre B 20 000 FCFA plus 600 FCFA
+    par sac'
+  reponse_attendue: offre A 36 000 FCFA ; offre B 34 400 FCFA
+  solution: 'Offre A : 24 × 1 500 = 36 000 FCFA. Offre B : 20 000 + 24 × 600 = 20 000 + 14 400 = 34 400
+    FCFA. Barème (3 pts) : 1 pt pour l''offre A à 36 000 FCFA ; pour l''offre B, 1 pt pour le produit
+    14 400 FCFA et 1 pt pour l''ajout des 20 000 FCFA du camion.'
+  si_echoue: 'Comparaison de deux tarifs dont l''un comporte une part fixe : la part fixe est oubliée.'
+  probleme_parent: P3
+- code: P3.3
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 1.0
+  bareme_classeur: 3.0
   competence: N.CMP
-  competence_secondaire: null
+  competence_secondaire: N.MUL
   domaine: Activites numeriques
-  objet: '[P4, sous-question 3/4] Comparer deux offres et calculer l''economie realisee'
-  reponse_attendue: offre B moins chere, economie de 1 600 FCFA
-  solution: ''
-  si_echoue: Choix de l'operation dans une comparaison de deux offres, ou generalisation d'un cas particulier
-    sans verification.
-  probleme_parent: P4
-- code: P4d
-  partie: C
-  format: redige
-  bareme: 0.666667
-  bareme_classeur: 2.0
-  competence: D.PROP
-  competence_secondaire: null
-  domaine: Organisation de donnees et proportionnalite
-  objet: '[P4, sous-question 4/4] Verifier une affirmation de generalisation en recalculant les deux offres
-    pour un autre volume'
-  reponse_attendue: 'pour 10 sacs, offre A 15 000 FCFA moins chere : l''affirmation est fausse'
-  solution: ''
-  si_echoue: Choix de l'operation dans une comparaison de deux offres, ou generalisation d'un cas particulier
-    sans verification.
-  probleme_parent: P4
+  objet: Calculer les deux offres pour 10 sacs et juger si l'offre B est toujours la moins chère
+  reponse_attendue: pour 10 sacs, A = 15 000 FCFA et B = 26 000 FCFA ; l'offre B n'est pas toujours la
+    moins chère, Hamidou a tort
+  solution: 'A : 10 × 1 500 = 15 000 FCFA ; B : 20 000 + 10 × 600 = 26 000 FCFA. Barème (3 pts) : 1 pt
+    pour l''offre A à 15 000 FCFA, 1 pt pour l''offre B à 26 000 FCFA, 1 pt pour la phrase de conclusion
+    qui invalide l''affirmation de Hamidou. Erreur propagée : une comparaison correctement conduite sur
+    deux prix faux garde le dernier point.'
+  si_echoue: Comparaison de deux tarifs dont l'un comporte une part fixe, ou généralisation d'un cas particulier
+    sans vérification sur un second cas.
+  probleme_parent: P3

@@ -46,6 +46,18 @@ similaire, même structure), pour voir si l'erreur se reproduit. Une hypothèse
 vérifier si l'erreur se répète (à noter par l'enseignant) ou non (étourderie
 confirmée, hypothèse écartée).
 
+## La question qui a fait naître l'hypothèse (`question_t0`)
+
+Le libellé de compétence est un intitulé de chapitre, souvent bien plus large
+que l'erreur réellement observée. Quand une hypothèse porte un champ
+`question_t0` (code et énoncé résumé de la question ratée à T0, à lire avec
+la `justification` qui cite la réponse de l'élève), **tes deux questions
+portent sur le geste précis que cette question testait** — pas sur une autre
+notion du même chapitre. Exemple : `question_t0` = « Choisir le volume d'une
+pyramide… », compétence « Polygones et sections de solides » → les deux
+questions font calculer des volumes de **pyramides** (ou de cônes), là où
+l'élève a oublié le facteur 1/3 ; un volume de prisme ne départage rien.
+
 ## Ancrage pédagogique (`reference_pedagogique`)
 
 Quand une hypothèse porte un champ `reference_pedagogique` non vide, c'est un
@@ -128,6 +140,13 @@ avant ou après) :
   sa propre ligne : `1. ...\n2. ...\n3. ...`. Jamais de tiret, de lettre
   (a/b/c), de numérotation collée sans retour à la ligne, ni de simple phrase
   capitalisée pour introduire une sous-question.
+- **Une sous-question numérotée est une consigne** (verbe à l'impératif ou
+  question directe). Une donnée ou une affirmation à discuter (« Fatou affirme
+  que… », « M est le milieu de [AB] ») fait partie du **contexte**, avant le
+  premier `1.` — jamais une ligne numérotée.
+- **Une liste de valeurs à traiter** (« pour chacun des nombres suivants… »)
+  : une valeur par ligne numérotée, jamais deux valeurs sur la même ligne
+  (`1. -7\n2. 9/4\n3. sqrt(25)`, pas `1. -7 2. 9/4`).
 - Puissances : toujours `a^n` avec le caret — jamais `an` sans caret. Exposants
   composés entre parenthèses : `a^(n+m)`, `a^(-n)`.
 - Multiplication : symbole `×` uniquement — jamais `*`.

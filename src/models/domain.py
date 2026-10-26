@@ -1,7 +1,7 @@
 from enum import Enum
 from pathlib import Path
 from typing import Any, Literal
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 # ── Validation enseignant ──────────────────────────────────────────────────────
@@ -36,6 +36,12 @@ class RubricItem(BaseModel):
     label: str
     max_score: float = 1.0        # Points de la question (ex : 0.25, 0.5, 1.0, 2.0)
     parent_id: str | None = None  # Non-None si sous-question
+    # Tests du référentiel (barèmes socle) : points de la question dans le
+    # corrigé enseignant (ex : 2 sur 60), et pas de note admis sur l'échelle
+    # max_score — max_score lui-même pour un tout-ou-rien (partie A), un
+    # demi-point du corrigé sinon. None = barème binaire historique.
+    points_corrige: float | None = None
+    score_step: float | None = None
 
 
 class Rubric(BaseModel):
@@ -48,12 +54,17 @@ class Rubric(BaseModel):
 
 class QuestionGrade(BaseModel):
     rubric_item_id: str
-    score: float                  # proposition IA : 0 ou max_score
+    score: float                  # proposition IA : 0, max_score, ou multiple de score_step
     confidence: float = Field(ge=0.0, le=1.0)
     comment: str
     observed_answer: str          # ce que l'élève a écrit ("—" si absent/illisible)
     correct_answer: str = ""      # bonne réponse (corrigé officiel ou calculée par l'IA)
     requires_review: bool
+    # Barème détaillé (item avec points_corrige) : points DU CORRIGÉ obtenus,
+    # ex. 1 sur 2. Le modèle compte des critères ; la conversion vers
+    # max_score est faite par validate_grading, pas par le modèle — il s'y
+    # trompait (0,5/2 au lieu de 1/2 en recette du 2026-10-16).
+    points_obtenus: float | None = None
     # ── Validation enseignant ──────────────────────────────────────────────────
     teacher_decision: TeacherDecision = TeacherDecision.pending
     teacher_score: float | None = None  # note saisie par l'enseignant si refus
@@ -72,6 +83,23 @@ class CopyGrade(BaseModel):
     final_score: float | None = None        # calculé après validation enseignant
     final_score_on_20: float | None = None  # note /20 convertie
     validation_complete: bool = False       # True quand toutes les questions ont été décidées
+
+    @model_validator(mode="before")
+    @classmethod
+    def _totaux_manquants(cls, data: Any) -> Any:
+        # Claude Sonnet 5 omet parfois total_score/total_possible alors que toutes
+        # les questions sont notées (prod du 2026-10-21) : la copie entière était
+        # rejetée. validate_grading() recalcule les deux totaux depuis le barème,
+        # une valeur provisoire suffit ici.
+        if isinstance(data, dict) and isinstance(data.get("questions"), list):
+            if "total_score" not in data or "total_possible" not in data:
+                data = dict(data)
+                data.setdefault("total_score", sum(
+                    float(q.get("score") or 0) if isinstance(q, dict) else float(q.score)
+                    for q in data["questions"]
+                ))
+                data.setdefault("total_possible", 0.0)
+        return data
 
     def compute_final_score(self) -> "CopyGrade":
         """Calcule final_score en priorisant les décisions enseignant."""
@@ -256,6 +284,221 @@ class RemediationSubject(BaseModel):
     is_enrichment: bool = False  # True quand score parfait → exercices d'approfondissement
 
 
+# ── Plan de remédiation (cahier élève, un seul PDF) ─────────────────────────────
+# Remplace le sujet de remédiation/enrichissement : un cahier qui reprend la
+# copie compétence par compétence, dans l'ordre de travail, avec 5 exercices
+# chacune et les réponses en annexe. Gabarit : templates/plan_remediation/,
+# modèle validé : l'exemplaire NIKIEMA K. Amale (tests/fixtures/).
+# Le texte est en LaTeX entre \( \) et \[ \], rendu par MathJax.
+
+#: Durée d'une séance de travail, en heures (« séances de 1 h 30 »).
+DUREE_SEANCE_H = 1.5
+#: Rythme hebdomadaire annoncé à l'élève.
+SEANCES_PAR_SEMAINE = 2
+#: Note sur 20 à partir de laquelle aucun plan n'est produit.
+SEUIL_SANS_PLAN = 19.0
+
+
+class LigneEcrit(BaseModel):
+    """Une ligne de « Ce que tu as écrit »."""
+    question: str                 # "N1", ou "N4, P2.2, P3.3"
+    reponse_eleve: str = ""       # vide si `reussie`
+    reponse_attendue: str
+    #: Question réussie : une seule cellule « réussie : <reponse_attendue> ».
+    reussie: bool = False
+
+
+class ExercicePlan(BaseModel):
+    enonce: str
+    niveau: int = Field(ge=1, le=3)
+    reponse: str                  # reprise dans l'annexe « Réponses des exercices »
+
+
+class CompetencePlan(BaseModel):
+    titre: str
+    titre_tableau: str | None = None  # libellé dans « Le plan, séance par séance », sinon `titre`
+    titre_court: str              # titre de la rubrique dans l'annexe
+    duree_h: float = Field(gt=0)
+    questions: list[str] = Field(min_length=1)
+    #: Numéros d'ordre (1 = première section) des sections à faire avant.
+    prerequis: list[int] = Field(default_factory=list)
+    ecrits: list[LigneEcrit] = Field(min_length=1)
+    #: Paragraphes séparés par une ligne vide ; un paragraphe qui n'est qu'une
+    #: formule \[ … \] est centré hors paragraphe ; *mot* met en italique.
+    ce_qui_ne_va_pas: str
+    causes: list[str] = Field(min_length=1)
+    a_retenir: list[str] = Field(min_length=1)
+    methode_titre: str = "Méthode"
+    methode: list[str] = Field(default_factory=list)  # bloc omis si vide
+    #: Consigne commune en tête de « A toi de jouer » (« Pour les exercices 1 à 3 : … »).
+    consigne_exercices: str | None = None
+    exercices: list[ExercicePlan] = Field(min_length=5, max_length=5)
+    code_competence: str | None = None  # code canonique du référentiel, si connu
+
+
+class PlanRemediation(BaseModel):
+    copy_id: str
+    eleve_nom: str                # "NIKIEMA K. Amale"
+    prenom: str                   # "Amale" — l'introduction tutoie l'élève
+    classe: str                   # "1ère D"
+    test_libelle: str             # "test diagnostique d'entrée en 1ère D"
+    date: str                     # "24 octobre 2026"
+    acquis: list[str] = Field(default_factory=list)  # « Ce que tu sais déjà faire »
+    competences: list[CompetencePlan] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _prerequis_anterieurs(self) -> "PlanRemediation":
+        for i, c in enumerate(self.competences, start=1):
+            if any(not 1 <= p < i for p in c.prerequis):
+                raise ValueError(f"section {i} : un prérequis doit désigner une section antérieure")
+        return self
+
+    @property
+    def total_h(self) -> float:
+        return sum(c.duree_h for c in self.competences)
+
+    @property
+    def nb_seances(self) -> int:
+        return int(-(-self.total_h // DUREE_SEANCE_H))
+
+    @property
+    def nb_semaines(self) -> int:
+        return -(-self.nb_seances // SEANCES_PAR_SEMAINE)
+
+    def seances(self) -> list[tuple[int, int]]:
+        """Première et dernière séance de chaque section, dans l'ordre : une
+        séance peut finir une compétence et commencer la suivante."""
+        bornes, debut = [], 0.0
+        for c in self.competences:
+            fin = debut + c.duree_h
+            bornes.append((int(debut // DUREE_SEANCE_H) + 1, int(-(-fin // DUREE_SEANCE_H))))
+            debut = fin
+        return bornes
+
+
+# Génération du plan : le squelette (quelles compétences, dans quel ordre,
+# combien d'heures, quelles questions) est déterministe — diagnostic contraint,
+# référentiel, formule de coût. Le modèle ne rédige que le contenu de chaque
+# section ; il ne choisit ni les compétences ni les durées.
+
+class QuestionPlan(BaseModel):
+    """Une question de la copie, telle que la correction l'a relevée."""
+    code: str                     # "N1", "P4.1"
+    intitule: str = ""            # libellé de la question dans le barème
+    reponse_eleve: str = ""       # "—" si rien n'est écrit
+    reponse_attendue: str = ""
+    reussie: bool = False
+    commentaire: str = ""         # commentaire de la correction
+    citation: str = ""            # ce que le diagnostic a lu sur la copie
+
+
+class TypeErreurPlan(BaseModel):
+    code: str                     # "CPT", "PRC"…
+    libelle: str
+    definition: str = ""
+
+
+class SectionPlanDemande(BaseModel):
+    """Squelette d'une section : tout ce que le modèle ne doit pas décider."""
+    ordre: int
+    code_competence: str
+    libelle_competence: str
+    description_competence: str = ""
+    niveau_intro: str = ""
+    types_erreur: list[TypeErreurPlan] = Field(default_factory=list)
+    questions: list[QuestionPlan] = Field(min_length=1)
+    #: « ce que l'élève a probablement écrit → ce que ça révèle » (référentiel).
+    signatures: list[str] = Field(default_factory=list)
+    duree_h: float = Field(gt=0)
+    prerequis: list[int] = Field(default_factory=list)
+    #: Libellés des sections prérequises, pour que la rédaction s'y réfère.
+    libelles_prerequis: list[str] = Field(default_factory=list)
+
+
+class DemandePlan(BaseModel):
+    copy_id: str
+    eleve_nom: str
+    prenom: str
+    classe: str                   # "1ère D"
+    test_libelle: str             # "test diagnostique d'entrée en 1ère D"
+    date: str
+    sections: list[SectionPlanDemande]
+    questions_reussies: list[QuestionPlan] = Field(default_factory=list)
+
+
+#: Les cinq exercices d'une section, un par emplacement nommé : l'outil de
+#: rédaction les demande ainsi, pour qu'aucun ne puisse manquer ni changer de
+#: niveau (le mode strict garantit la présence de chaque clé).
+EMPLACEMENTS_EXERCICES: dict[str, int] = {
+    "niveau_1_a": 1, "niveau_1_b": 1, "niveau_2_a": 2, "niveau_2_b": 2, "niveau_3": 3,
+}
+
+
+class ContenuSection(BaseModel):
+    """Ce que le modèle rédige pour une section — rien d'autre.
+
+    Une section acceptée est complète : aucun texte obligatoire vide (une
+    cellule blanche dans le cahier d'un élève est un trou, pas un détail),
+    cinq exercices de niveaux 1, 1, 2, 2, 3. Les messages d'erreur sont
+    rendus au modèle tels quels : ils disent quoi corriger."""
+    titre: str
+    titre_tableau: str | None = None
+    titre_court: str
+    ecrits: list[LigneEcrit] = Field(min_length=1)
+    ce_qui_ne_va_pas: str
+    causes: list[str] = Field(min_length=1)
+    a_retenir: list[str] = Field(min_length=1)
+    methode_titre: str = "Méthode"
+    methode: list[str] = Field(default_factory=list)
+    consigne_exercices: str | None = None
+    exercices: list[ExercicePlan] = Field(min_length=5, max_length=5)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _exercices_par_emplacement(cls, data: Any) -> Any:
+        if isinstance(data, dict) and isinstance(data.get("exercices"), dict):
+            emplacements = data["exercices"]
+            manquants = [nom for nom in EMPLACEMENTS_EXERCICES if not isinstance(emplacements.get(nom), dict)]
+            if manquants:
+                raise ValueError(f"exercices : emplacement(s) manquant(s) : {', '.join(manquants)}")
+            data = {**data, "exercices": [
+                {**emplacements[nom], "niveau": niveau} for nom, niveau in EMPLACEMENTS_EXERCICES.items()
+            ]}
+        return data
+
+    @model_validator(mode="after")
+    def _complete(self) -> "ContenuSection":
+        vides: list[str] = []
+
+        def verifier(champ: str, valeur: str | None) -> None:
+            if not (valeur or "").strip():
+                vides.append(champ)
+
+        for champ in ("titre", "titre_court", "ce_qui_ne_va_pas", "methode_titre"):
+            verifier(champ, getattr(self, champ))
+        for i, ligne in enumerate(self.ecrits, start=1):
+            verifier(f"ecrits[{i}].question", ligne.question)
+            verifier(f"ecrits[{i}].reponse_attendue", ligne.reponse_attendue)
+            if not ligne.reussie:
+                verifier(f"ecrits[{i}].reponse_eleve", ligne.reponse_eleve)
+        for champ in ("causes", "a_retenir", "methode"):
+            for i, texte in enumerate(getattr(self, champ), start=1):
+                verifier(f"{champ}[{i}]", texte)
+        noms = list(EMPLACEMENTS_EXERCICES)
+        for nom, exercice in zip(noms, self.exercices):
+            verifier(f"exercices.{nom}.enonce", exercice.enonce)
+            verifier(f"exercices.{nom}.reponse", exercice.reponse)
+        if vides:
+            raise ValueError(f"texte vide : {', '.join(vides)}")
+        if [e.niveau for e in self.exercices] != list(EMPLACEMENTS_EXERCICES.values()):
+            raise ValueError("exercices : niveaux attendus 1, 1, 2, 2, 3 dans cet ordre")
+        return self
+
+
+class ContenuAcquis(BaseModel):
+    acquis: list[str] = Field(default_factory=list)
+
+
 # ── Sujet de confirmation (T1, module 5) ────────────────────────────────────────
 # À ne pas confondre avec `RemediationSubject` : T1 ne cherche pas à faire
 # progresser l'élève, il départage une hypothèse de lacune (`suivi.Probleme`,
@@ -277,6 +520,11 @@ class ConfirmationHypothesis(BaseModel):
     competence_code: str | None = None
     niveau: str | None = None
     reference_pedagogique: str | None = None
+    # Énoncé de la (des) question(s) T0 qui ont fait naître l'hypothèse. Le
+    # libellé de compétence est souvent bien plus large que l'erreur observée
+    # (« Polygones et sections de solides » pour un volume de pyramide raté) :
+    # sans lui, T1 testait une autre notion (recette du 2026-10-17).
+    question_t0: str | None = None
 
 
 class ConfirmationRequest(BaseModel):

@@ -1,0 +1,836 @@
+"""Port de `correction_web/taches.py` — exécution du pipeline en arrière-plan.
+
+Même choix qu'en Django : **un thread, pas une file de tâches** (voir le
+fichier d'origine pour la justification — un enseignant qui corrige ses
+copies une par une n'a pas besoin de Celery/Redis, et le suivi de
+progression passe par la base, donc il fonctionne même si la requête
+suivante est servie par un autre worker uvicorn).
+
+Ce qui change par rapport à Django : pas de `close_old_connections()` à
+appeler — chaque fonction de thread ouvre sa propre session SQLAlchemy
+(`SessionLocal()`) et la ferme à la fin, le même geste que `DepotFastAPI`
+utilise déjà pour la même raison (une session par tâche de fond, jamais
+partagée avec celle de la requête qui a lancé le thread).
+"""
+from __future__ import annotations
+
+import logging
+import re
+import shutil
+import threading
+from collections import defaultdict
+from datetime import datetime, timedelta
+from pathlib import Path
+
+from sqlalchemy.orm import Session as SQLASession
+
+from app.db import SessionLocal
+from app.models import Copie, Correction, Document, Evaluation, Probleme
+from app.models.correction import ETATS_EN_COURS
+from app.services import diagnostic_referentiel as diag_ref
+from app.services import diagnostic_suivi as diag_suivi
+from app.services import plan_eleve
+from app.services.contexte import contexte_diagnostic, lacunes_competences
+from src.core.config import settings
+
+logger = logging.getLogger(__name__)
+
+#: Au-delà, une correction « en cours » est considérée comme abandonnée
+#: (voir `correction_web/taches.py` pour la justification du délai).
+DELAI_ABANDON = timedelta(minutes=15)
+
+_LIBELLES_ETAPE = {
+    "ingestion": "Lecture de la copie",
+    "transcription": "Transcription de l'écriture",
+    "correction": "Correction question par question",
+    "rag": "Recherche dans le programme officiel",
+    "diagnostic": "Diagnostic pédagogique",
+    "remediation": "Plan de remédiation",
+    "plan": "Rédaction du plan de remédiation",
+    "export": "Génération du rapport",
+}
+
+
+def _liberer_connexion(db: SQLASession) -> None:
+    """Termine la transaction de lecture avant les appels IA : sans ça, la
+    connexion reste empruntée pendant toute la correction (plusieurs minutes
+    depuis le champ `analyse`), Neon la coupe, et l'écriture finale échoue
+    (« SSL connection has been closed unexpectedly », copie-6ec656923aeb,
+    2026-10-17) — la copie reste figée en « correction ». Rendue au pool, la
+    connexion est revalidée par `pool_pre_ping` au moment d'écrire."""
+    db.commit()
+
+
+def _rapporteur(correction_id: int):
+    """Callback `on_progress` du pipeline → progression en base."""
+
+    def rapporter(etape: str, pourcentage: int) -> None:
+        try:
+            db = SessionLocal()
+            try:
+                db.query(Correction).filter(Correction.id == correction_id).update(
+                    {
+                        "etape": _LIBELLES_ETAPE.get(etape, etape),
+                        "progression": max(0, min(100, pourcentage)),
+                        "maj_le": datetime.utcnow(),
+                    }
+                )
+                db.commit()
+            finally:
+                db.close()
+        except Exception:  # noqa: BLE001
+            logger.debug("[%s] Progression non enregistrée.", correction_id)
+
+    return rapporter
+
+
+def _dans_un_thread(cible, *args) -> None:
+    threading.Thread(target=cible, args=args, daemon=True).start()
+
+
+def _supprimer_scans(copy_id: str) -> None:
+    """Fin d'analyse : les scans (`depot/`, `pages/`) ne sont jamais conservés
+    — décision du 2026-10-26. Rapport et plan restent dans `runs/<copy_id>/`
+    jusqu'à la sauvegarde explicite de l'enseignant."""
+    for nom in ("depot", "pages"):
+        shutil.rmtree(Path(settings.runs_dir) / copy_id / nom, ignore_errors=True)
+
+
+def _echouer(db: SQLASession, correction: Correction, message: str) -> None:
+    correction.etat = "echec"
+    correction.erreurs = list(correction.erreurs or []) + [message]
+    db.add(correction)
+    db.commit()
+
+
+# ── Phase A, première moitié : transcription ─────────────────────────────────
+
+
+def lancer_transcription(
+    db: SQLASession,
+    correction: Correction,
+    chemins: list[Path],
+    rubric,
+    test,
+    sujet: Path | None = None,
+    subject_text: str = "",
+) -> None:
+    """`test` vaut None en mode libre. `subject_text`, fourni, prime sur
+    `test.subject_text` (cas de la confirmation T1, énoncé déjà connu)."""
+    correction.etat = "transcription"
+    correction.etape = "Lecture de la copie"
+    correction.progression = 2
+    db.add(correction)
+    db.commit()
+    _dans_un_thread(_executer_transcription, correction.id, chemins, rubric, test, sujet, subject_text)
+
+
+def _executer_transcription(correction_id: int, chemins: list[Path], rubric, test, sujet: Path | None, subject_text: str) -> None:
+    from src.pipeline.pipeline import run_transcription
+    from src.pipeline.serialisation import serialiser
+
+    db = SessionLocal()
+    try:
+        correction = db.get(Correction, correction_id)
+        _liberer_connexion(db)
+        try:
+            resultat = run_transcription(
+                copy_id=correction.copy_id,
+                identifiant_hakili=correction.identifiant_hakili,
+                student_name=f"{correction.eleve_prenom} {correction.eleve_nom}".strip(),
+                file_paths=chemins,
+                rubric=rubric,
+                subject_text=subject_text or getattr(test, "subject_text", ""),
+                subject_file_path=sujet,
+                expert_instructions=correction.instructions_expert,
+                bareme_id=correction.bareme_id,
+                official_answers=getattr(test, "official_answers", ""),
+                on_progress=_rapporteur(correction_id),
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("[%s] Transcription interrompue : %s", correction.copy_id, exc)
+            _echouer(db, correction, f"Transcription interrompue : {exc}")
+            return
+
+        correction.resultat = serialiser(resultat)
+        correction.erreurs = list(resultat.errors or [])
+        if resultat.errors or resultat.transcription is None:
+            correction.etat = "echec"
+        else:
+            correction.etat = "relecture"
+            correction.etape = "Relecture de la transcription"
+            correction.progression = 40
+        db.add(correction)
+        db.commit()
+    finally:
+        db.close()
+
+
+# ── Phase A, seconde moitié : correction ─────────────────────────────────────
+
+
+def lancer_correction(db: SQLASession, correction: Correction) -> None:
+    correction.etat = "correction"
+    correction.etape = "Correction question par question"
+    correction.progression = 45
+    db.add(correction)
+    db.commit()
+    _dans_un_thread(_executer_correction, correction.id)
+
+
+def _executer_correction(correction_id: int) -> None:
+    from src.pipeline.pipeline import run_grading
+    from src.pipeline.serialisation import deserialiser, serialiser
+
+    db = SessionLocal()
+    try:
+        correction = db.get(Correction, correction_id)
+        _liberer_connexion(db)
+        try:
+            resultat = run_grading(result=deserialiser(correction.resultat), on_progress=_rapporteur(correction_id))
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("[%s] Correction interrompue : %s", correction.copy_id, exc)
+            _echouer(db, correction, f"Correction interrompue : {exc}")
+            return
+
+        correction.resultat = serialiser(resultat)
+        correction.erreurs = list(resultat.errors or [])
+        if resultat.grade is None:
+            correction.etat = "echec"
+        else:
+            correction.etat = "validation"
+            correction.etape = "Validation des notes"
+            correction.progression = 60
+        db.add(correction)
+        db.commit()
+    finally:
+        db.close()
+
+
+# ── Dépôt en lot : Phase A complète, sans arrêt de relecture ─────────────────
+
+
+def lancer_phase_a_complete(db: SQLASession, correction: Correction, chemins: list[Path], rubric, test) -> None:
+    """Transcription **et** correction d'affilée — le tableau de validation
+    reste néanmoins traversé (D-CEO-16 : « la correction automatique sans
+    validation est inacceptable pour un document officiel »)."""
+    correction.etat = "transcription"
+    correction.etape = "Lecture de la copie"
+    correction.progression = 2
+    db.add(correction)
+    db.commit()
+    _dans_un_thread(_executer_phase_a_complete, correction.id, chemins, rubric, test)
+
+
+def _executer_phase_a_complete(correction_id: int, chemins: list[Path], rubric, test) -> None:
+    from src.pipeline.pipeline import run_phase_a
+    from src.pipeline.serialisation import serialiser
+
+    db = SessionLocal()
+    try:
+        correction = db.get(Correction, correction_id)
+        _liberer_connexion(db)
+        try:
+            resultat = run_phase_a(
+                copy_id=correction.copy_id,
+                identifiant_hakili=correction.identifiant_hakili,
+                student_name=f"{correction.eleve_prenom} {correction.eleve_nom}".strip(),
+                file_paths=chemins,
+                rubric=rubric,
+                subject_text=getattr(test, "subject_text", ""),
+                expert_instructions=correction.instructions_expert,
+                bareme_id=correction.bareme_id,
+                official_answers=getattr(test, "official_answers", ""),
+                on_progress=_rapporteur(correction_id),
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("[%s] Correction interrompue : %s", correction.copy_id, exc)
+            _echouer(db, correction, f"Correction interrompue : {exc}")
+            return
+
+        correction.resultat = serialiser(resultat)
+        correction.erreurs = list(resultat.errors or [])
+        if resultat.grade is None:
+            correction.etat = "echec"
+        else:
+            correction.etat = "validation"
+            correction.etape = "Validation des notes"
+            correction.progression = 60
+        db.add(correction)
+        db.commit()
+    finally:
+        db.close()
+
+
+# ── Phase B : diagnostic, remédiation, rapport ───────────────────────────────
+
+
+def lancer_diagnostic(db: SQLASession, correction: Correction) -> None:
+    correction.etat = "diagnostic"
+    correction.etape = "Recherche dans le programme officiel"
+    correction.progression = 65
+    db.add(correction)
+    db.commit()
+    _dans_un_thread(_executer_diagnostic, correction.id)
+
+
+def _ancrage_referentiel(db: SQLASession, niveau_test: str):
+    """Fonction d'ancrage passée au pipeline — `None` si le test n'est pas au
+    référentiel (mode libre, ancien test) : le pipeline retombe sur son
+    ancrage historique."""
+    if not niveau_test:
+        return None
+
+    def ancrer(codes_questions: list[str]) -> tuple[str, list[dict]]:
+        ancrage = (contexte_diagnostic(db, niveau_test, codes_questions), lacunes_competences(db, niveau_test, codes_questions))
+        # Appelé juste avant le diagnostic (plusieurs minutes) : sans ça, la
+        # transaction de lecture garde la connexion et Neon la coupe
+        # (copie-b50db36edb7f, 2026-10-17).
+        _liberer_connexion(db)
+        return ancrage
+
+    return ancrer
+
+
+def _niveau_test(bareme_id: str) -> str:
+    return bareme_id[len("socle_"):] if bareme_id.startswith("socle_") else ""
+
+
+def _executer_diagnostic(correction_id: int) -> None:
+    from src.pipeline.pipeline import run_phase_b
+    from src.pipeline.serialisation import deserialiser, serialiser
+
+    db = SessionLocal()
+    try:
+        correction = db.get(Correction, correction_id)
+        resultat_a = deserialiser(correction.resultat)
+        diagnostic, demande = _preparer_plan(db, correction, resultat_a)
+        _liberer_connexion(db)
+        try:
+            resultat = run_phase_b(
+                result=resultat_a,
+                on_progress=_rapporteur(correction_id),
+                ancrage=_ancrage_referentiel(db, _niveau_test(correction.bareme_id)),
+                demande_plan=demande,
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("[%s] Diagnostic interrompu : %s", correction.copy_id, exc)
+            _echouer(db, correction, f"Diagnostic interrompu : {exc}")
+            _supprimer_scans(correction.copy_id)
+            return
+
+        # Rien n'est écrit en base ici : hypothèses, copie et documents le sont
+        # à la sauvegarde explicite de l'enseignant (`sauvegarder`).
+        resultat.diagnostic_module4 = diagnostic
+
+        correction.resultat = serialiser(resultat)
+        correction.erreurs = list(resultat.errors or [])
+        correction.etat = "echec" if resultat.errors else "terminee"
+        correction.etape = "Terminée"
+        correction.progression = 100
+        db.add(correction)
+        db.commit()
+        _supprimer_scans(correction.copy_id)
+    finally:
+        db.close()
+
+
+# ── Reprise d'un plan de remédiation incomplet ───────────────────────────────
+
+
+def plan_a_reprendre(correction: Correction) -> bool:
+    """Analyse terminée dont le plan manque (section non rédigée, PDF non
+    produit) alors que son squelette existe."""
+    resultat = correction.resultat or {}
+    demande = resultat.get("demande_plan") or {}
+    return (
+        correction.etat in ("terminee", "echec")
+        and bool(demande.get("sections"))
+        and not (resultat.get("plan_remediation") and resultat.get("remediation_pdf_path"))
+    )
+
+
+def lancer_reprise_plan(db: SQLASession, correction: Correction) -> None:
+    correction.etat = "diagnostic"
+    correction.etape = _LIBELLES_ETAPE["plan"]
+    correction.progression = 80
+    db.add(correction)
+    db.commit()
+    _dans_un_thread(_executer_reprise_plan, correction.id)
+
+
+def _executer_reprise_plan(correction_id: int) -> None:
+    from src.pipeline.pipeline import reprendre_plan
+    from src.pipeline.serialisation import deserialiser, serialiser
+
+    db = SessionLocal()
+    try:
+        correction = db.get(Correction, correction_id)
+        resultat = deserialiser(correction.resultat)
+        _liberer_connexion(db)
+        try:
+            resultat = reprendre_plan(resultat)
+        except Exception as exc:  # noqa: BLE001 — la copie reste consultable
+            logger.exception("[%s] Reprise du plan interrompue : %s", correction.copy_id, exc)
+            resultat.plan_erreur = f"Reprise du plan interrompue — {exc}"
+        correction.resultat = serialiser(resultat)
+        correction.etat = "echec" if resultat.errors else "terminee"
+        correction.etape = "Terminée"
+        correction.progression = 100
+        db.add(correction)
+        db.commit()
+        _supprimer_scans(correction.copy_id)
+    finally:
+        db.close()
+
+
+# ── Sujet T1 : généré seulement à la demande de l'enseignant ────────────────
+
+
+def _evaluation_t0(db: SQLASession, correction: Correction):
+    return (
+        db.query(Evaluation)
+        .filter(Evaluation.copy_id == correction.copy_id, Evaluation.type == "T0")
+        .order_by(Evaluation.id.desc())
+        .first()
+    )
+
+
+def t1_a_generer(db: SQLASession, correction: Correction) -> bool:
+    """Bouton « Générer le T1 » proposé : T0 au référentiel, analyse terminée
+    et sauvegardée, note au-dessus du seuil de dispense (D-CEO-46), hypothèses
+    ouvertes et aucun sujet déjà attaché au parcours."""
+    if not (correction.terminee and correction.type_evaluation == "T0" and (correction.bareme_id or "").startswith("socle_")):
+        return False
+    if db.get(Copie, correction.copy_id) is None:
+        return False
+    note = ((correction.resultat or {}).get("grade") or {}).get("final_score_on_20")
+    if diag_suivi.t1_dispense(note):
+        return False
+    evaluation = _evaluation_t0(db, correction)
+    if evaluation is None or _session_a_un_sujet_t1(db, evaluation.session_id):
+        return False
+    return db.query(Probleme.id).filter(Probleme.session_id == evaluation.session_id, Probleme.etat == "hypothese").first() is not None
+
+
+def lancer_t1(db: SQLASession, correction: Correction) -> None:
+    correction.etat = "diagnostic"
+    correction.etape = "Génération du sujet T1"
+    correction.progression = 90
+    db.add(correction)
+    db.commit()
+    _dans_un_thread(_executer_t1, correction.id)
+
+
+def _executer_t1(correction_id: int) -> None:
+    db = SessionLocal()
+    try:
+        correction = db.get(Correction, correction_id)
+        motif = "Évaluation T0 introuvable."
+        evaluation = _evaluation_t0(db, correction)
+        if evaluation is not None:
+            motif = _generer_sujet_confirmation(db, correction, evaluation)
+        # Le motif d'un échec reste lisible à l'écran ; un succès l'efface.
+        resultat = dict(correction.resultat or {})
+        resultat["t1_erreur"] = motif or ""
+        correction.resultat = resultat
+        correction.etat = "terminee"
+        correction.etape = "Terminée"
+        correction.progression = 100
+        db.add(correction)
+        db.commit()
+    finally:
+        db.close()
+
+
+def _client_diagnostic_module4():
+    """Absent plutôt qu'en échec : une clé d'API absente ne doit pas
+    empêcher la part mécanique (QCM) de tourner."""
+    try:
+        from src.api.claude_client import ClaudeClient
+
+        return ClaudeClient()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[module 4] Aucun client de diagnostic (%s) — QCM seuls.", exc)
+        return None
+
+
+#: Intitulé du plan pour une copie hors test du référentiel, par type.
+_EVALUATION_HORS_REFERENTIEL = {
+    "T0": "Évaluation",
+    "T1": "Test de confirmation",
+    "T3": "Test de vérification",
+    "T4": "Test de rétention",
+    "T5": "Test de rétention",
+}
+
+
+def _classe_eleve(identifiant_hakili: str) -> str:
+    """Classe déclarée dans le Sheet élèves ; vide si injoignable."""
+    try:
+        from src.integrations.google_sheets import get_eleve_by_identifiant
+
+        return ((get_eleve_by_identifiant(identifiant_hakili) or {}).get("classe") or "").strip()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[plan] Classe de l'élève %s non lue (%s)", identifiant_hakili, exc)
+        return ""
+
+
+def _preparer_plan(db: SQLASession, correction: Correction, resultat):
+    """Diagnostic contraint (module 4) de la copie, et le squelette de son
+    plan de remédiation tiré de ce diagnostic. Calculé avant la Phase B, qui
+    fait rédiger le plan, et réutilisé ensuite pour écrire les hypothèses — un
+    seul appel de diagnostic par copie.
+
+    Toute copie a son plan : un T0 au référentiel par le diagnostic ancré sur
+    ses questions ; le mode libre et les copies T1/T3… par
+    `plan_eleve.diagnostic_hors_referentiel`. Rend `(None, None)` en cas
+    d'échec : la correction se termine alors sans plan, avec son motif
+    (`PipelineResult.plan_erreur`). Lecture seule."""
+    if resultat.grade is None or resultat.rubric is None:
+        return None, None
+
+    ancre = correction.type_evaluation == "T0" and correction.bareme_id.startswith("socle_")
+    if not ancre:
+        from src.pipeline.plan_remediation import plan_requis
+
+        if resultat.grade.final_score_on_20 is None:
+            resultat.grade.compute_final_score()
+        if not plan_requis(resultat.grade.final_score_on_20):
+            return None, None  # hors référentiel, le diagnostic ne sert qu'au plan
+    try:
+        if ancre:
+            from src.knowledge.test_registry import get_registry
+
+            niveau = _niveau_test(correction.bareme_id)
+            test = get_registry().get_test(correction.bareme_id)
+            titre = test.label if test else ""
+            reponses = diag_ref.reponses_depuis_correction(resultat.grade, resultat.rubric)
+            diagnostic = diag_ref.diagnostiquer(db, niveau_test=niveau, reponses=reponses, client=_client_diagnostic_module4(), copy_id=correction.copy_id)
+        else:
+            niveau = ""  # pas de question du référentiel à rattacher
+            classe = _classe_eleve(correction.identifiant_hakili)
+            evaluation = _EVALUATION_HORS_REFERENTIEL.get(correction.type_evaluation, "Évaluation")
+            titre = f"{evaluation} en {classe}" if classe else evaluation
+            diagnostic = plan_eleve.diagnostic_hors_referentiel(
+                db, copy_id=correction.copy_id, classe=classe, evaluation=evaluation,
+                grade=resultat.grade, rubric=resultat.rubric, client=_client_diagnostic_module4(),
+            )
+        demande = plan_eleve.demande_plan(
+            db,
+            copy_id=correction.copy_id,
+            nom=correction.eleve_nom,
+            prenom=correction.eleve_prenom,
+            titre_test=titre,
+            niveau_test=niveau,
+            grade=resultat.grade,
+            rubric=resultat.rubric,
+            diagnostic=diagnostic,
+        )
+    except Exception as exc:  # noqa: BLE001
+        db.rollback()
+        logger.warning("[%s] Squelette du plan non calculé (%s)", correction.copy_id, exc)
+        return None, None
+
+    logger.info("[%s] Plan — %d compétence(s) à reprendre, %.1f h.", correction.copy_id,
+                len(demande.sections), sum(s.duree_h for s in demande.sections))
+    return diagnostic, demande
+
+
+def sauvegarder(db: SQLASession, correction: Correction) -> None:
+    """Sauvegarde explicite de l'analyse (bouton « Sauvegarder ») : la copie
+    (classe, note), le rapport et le plan en base, puis les hypothèses du
+    diagnostic. Seul moment où l'analyse écrit en base. Rejouable : une copie
+    déjà sauvegardée n'est pas réécrite."""
+    from src.pipeline.pipeline import _CLASSE_PLACEHOLDER
+    from src.pipeline.serialisation import deserialiser
+
+    if not correction.terminee or not correction.resultat:
+        raise ValueError("L'analyse n'est pas terminée : rien à sauvegarder.")
+    if db.get(Copie, correction.copy_id) is not None:
+        return
+
+    resultat = deserialiser(correction.resultat)
+    note = None
+    if resultat.grade is not None:
+        if resultat.grade.final_score_on_20 is None:
+            resultat.grade.compute_final_score()
+        note = resultat.grade.final_score_on_20
+
+    db.add(Copie(
+        copy_id=correction.copy_id,
+        identifiant_hakili=correction.identifiant_hakili,
+        classe=resultat.classe or _classe_eleve(correction.identifiant_hakili) or _CLASSE_PLACEHOLDER,
+        annee_scolaire=str(datetime.now().year),
+        notes_finales=note,
+    ))
+    db.flush()
+    for type_document, chemin in (("rapport", resultat.pdf_path), ("remediation", resultat.remediation_pdf_path)):
+        if chemin and Path(chemin).is_file():
+            db.add(Document(copy_id=correction.copy_id, type=type_document, fichier=Path(chemin).read_bytes()))
+    db.commit()
+
+    _ecrire_hypotheses_module4(db, correction, resultat, resultat.diagnostic_module4)
+
+
+def _ecrire_hypotheses_module4(db: SQLASession, correction: Correction, resultat, diagnostic=None) -> None:
+    """Point d'injection module 4 : écrit les lacunes de cette copie comme
+    hypothèses, ou pour une copie T1, tranche automatiquement les hypothèses
+    déjà ouvertes. Best-effort : un échec ici ne fait jamais échouer une
+    correction déjà terminée.
+
+    `diagnostic` : celui déjà calculé pour le plan (`_preparer_plan`) ; refait
+    ici seulement s'il manque."""
+    if correction.type_evaluation == "T1":
+        _confirmer_hypotheses_module4(db, correction, resultat)
+        return
+
+    if correction.type_evaluation in ("T3", "T4", "T5"):
+        _trancher_verification_module5(db, correction, resultat)
+        return
+
+    if not correction.bareme_id.startswith("socle_"):
+        return
+    if resultat.grade is None or resultat.rubric is None:
+        return
+
+    niveau = _niveau_test(correction.bareme_id)
+    try:
+        if diagnostic is None:
+            reponses = diag_ref.reponses_depuis_correction(resultat.grade, resultat.rubric)
+            diagnostic = diag_ref.diagnostiquer(db, niveau_test=niveau, reponses=reponses, client=_client_diagnostic_module4(), copy_id=correction.copy_id)
+        evaluation = diag_suivi.preparer_evaluation(db, identifiant_hakili=correction.identifiant_hakili, type_evaluation=correction.type_evaluation, copy_id=correction.copy_id)
+        ecriture = diag_suivi.enregistrer(db, evaluation, diagnostic)
+        db.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.rollback()
+        logger.warning("[%s] Module 4 : hypothèses non écrites (%s)", correction.copy_id, exc)
+        return
+
+    logger.info(
+        "[%s] Module 4 — %d hypothèse(s) écrite(s) sur la session %s (%.1f h estimées).",
+        correction.copy_id, len(ecriture.crees), evaluation.session_id, ecriture.cout_total,
+    )
+
+    # Note T0 < 10/20 (D-CEO-46) : pas de test de confirmation — les
+    # hypothèses sont confirmées d'office, le plan est définitif dès le T0.
+    note = getattr(resultat.grade, "final_score_on_20", None)
+    if correction.type_evaluation == "T0" and diag_suivi.t1_dispense(note):
+        _confirmer_sans_t1(db, correction, evaluation, note)
+        return
+    # Le sujet T1 n'est jamais généré ici : bouton « Générer le T1 » (`lancer_t1`).
+
+
+def _session_a_un_sujet_t1(db: SQLASession, session_id: int) -> bool:
+    """Vrai si un T0 de cette session porte déjà un sujet de confirmation
+    persisté (`Evaluation.sujet_confirmation`) — même critère que
+    `sessions.py::session_detail` pour afficher le lien « Sujet T1 »."""
+    return (
+        db.query(Evaluation.id)
+        .filter(Evaluation.session_id == session_id, Evaluation.type == "T0", Evaluation.sujet_confirmation.isnot(None))
+        .first()
+        is not None
+    )
+
+
+def _confirmer_sans_t1(db: SQLASession, correction: Correction, evaluation, note: float) -> None:
+    """Confirmation d'office des hypothèses d'un T0 sous la barre des 10/20.
+    Best-effort, comme le reste du module 5 : en cas d'échec les hypothèses
+    restent ouvertes et l'enseignant peut trancher à la main."""
+    try:
+        ecriture = diag_suivi.confirmer_sans_t1(db, evaluation, note)
+        db.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.rollback()
+        logger.warning("[%s] Note < 10 : confirmation sans T1 impossible (%s)", correction.copy_id, exc)
+        return
+
+    logger.info(
+        "[%s] Note T0 %.2f/20 — pas de T1 : %d confirmé(s), %d écarté(s) sur la session %s.",
+        correction.copy_id, note, len(ecriture.confirmes), len(ecriture.ecartes), evaluation.session_id,
+    )
+
+
+def _confirmer_hypotheses_module4(db: SQLASession, correction: Correction, resultat) -> None:
+    """Point d'injection module 5 (suite) : tranche automatiquement les
+    hypothèses ouvertes à partir d'une copie T1 corrigée et validée.
+    Best-effort — l'enseignant garde la main via la saisie manuelle si ce
+    circuit ne peut pas trancher."""
+    if resultat.grade is None:
+        return
+
+    try:
+        evaluation = diag_suivi.preparer_evaluation(db, identifiant_hakili=correction.identifiant_hakili, type_evaluation=correction.type_evaluation, copy_id=correction.copy_id)
+        ecriture = diag_suivi.confirmer_depuis_correction(db, evaluation, resultat.grade)
+        db.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.rollback()
+        logger.warning("[%s] Module 5 : confirmation automatique impossible (%s)", correction.copy_id, exc)
+        return
+
+    logger.info(
+        "[%s] Module 5 — %d confirmé(s), %d écarté(s) sur la session %s.",
+        correction.copy_id, len(ecriture.confirmes), len(ecriture.ecartes), evaluation.session_id,
+    )
+
+
+def _trancher_verification_module5(db: SQLASession, correction: Correction, resultat) -> None:
+    """Point d'injection module 5 (T3/T4/T5) : tranche automatiquement les
+    problèmes ciblés par le sujet de vérification déposé — résolu/non résolu
+    (T3), régressé/silencieux (T4), clos/régressé (T5). Miroir de
+    `_confirmer_hypotheses_module4`, avec deux différences : l'évaluation
+    n'existe pas encore (elle est créée ici, au retour de la copie — jamais à
+    la génération, pour que le rang ne soit consommé que par un dépôt réel),
+    et le sujet en attente porté par la session est effacé une fois consommé."""
+    if resultat.grade is None:
+        return
+
+    try:
+        evaluation = diag_suivi.preparer_evaluation(
+            db, identifiant_hakili=correction.identifiant_hakili, type_evaluation=correction.type_evaluation, copy_id=correction.copy_id
+        )
+        evaluation.sujet_confirmation = evaluation.session.sujet_verification_exercices
+        ecriture = diag_suivi.trancher_verification_depuis_correction(db, evaluation, resultat.grade, correction.type_evaluation)
+        evaluation.session.sujet_verification_type = None
+        evaluation.session.sujet_verification_exercices = None
+        db.add(evaluation.session)
+        db.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.rollback()
+        logger.warning("[%s] Module 5 : vérification %s automatique impossible (%s)", correction.copy_id, correction.type_evaluation, exc)
+        return
+
+    logger.info(
+        "[%s] Module 5 — %s : %d résolu(s), %d non résolu(s), %d régressé(s), %d clos.",
+        correction.copy_id, correction.type_evaluation,
+        len(ecriture.resolus), len(ecriture.non_resolus), len(ecriture.regresses), len(ecriture.clos),
+    )
+
+
+def _libelles_questions(bareme_id: str) -> dict[str, str]:
+    """Libellé de chaque question du test T0 (`N1` → « Ecrire lequel de … »),
+    pour dire au générateur T1 sur quelle question précise l'erreur est née."""
+    if not bareme_id:
+        return {}
+    try:
+        from src.knowledge.test_registry import get_registry
+
+        test = get_registry().get_test(bareme_id)
+    except Exception:  # best-effort, comme tout le module 5
+        return {}
+    return {item.id: item.label for item in test.rubric.items} if test else {}
+
+
+def _generer_sujet_confirmation(db: SQLASession, correction: Correction, evaluation) -> str | None:
+    """Point d'injection module 5 : génère le sujet T1 à partir des
+    hypothèses encore ouvertes, et l'attache à la copie T0 qui les a
+    révélées. Lancé à la demande de l'enseignant (`lancer_t1`). Rend le motif
+    de l'échec, ou None si le sujet est attaché."""
+    hypotheses = [
+        p for p in db.query(Probleme).filter(Probleme.session_id == evaluation.session_id, Probleme.etat == "hypothese").all()
+    ]
+    if not hypotheses:
+        return "Aucune hypothèse ouverte : rien à confirmer."
+
+    try:
+        from src.core.config import settings
+        from src.models.domain import ConfirmationHypothesis, ConfirmationRequest
+        from src.pipeline.depot import depot
+        from src.pipeline.orchestrator import validate_confirmation
+        from src.pipeline.pdf_remediation_html import generate_remediation_pdf
+        from src.knowledge.remediation_retriever import get_remediation_retriever
+
+        client = _client_diagnostic_module4()
+        if client is None:
+            logger.warning("[%s] Module 5 : aucun client disponible, sujet T1 non généré.", correction.copy_id)
+            return "Aucun modèle d'IA disponible pour générer le sujet."
+
+        niveau = _niveau_test(correction.bareme_id)
+        retriever = get_remediation_retriever()
+        libelles = _libelles_questions(correction.bareme_id)
+
+        def _hypothese(p: Probleme) -> ConfirmationHypothesis:
+            chunk = retriever.get_by_competence(p.competence.code, niveau) if niveau else None
+            codes = re.findall(r"\[([^\]]+)\]", p.justification or "")
+            question_t0 = " ; ".join(
+                f"{code} — {libelles[code]}" for code in codes if code in libelles
+            )
+            return ConfirmationHypothesis(
+                question_t0=question_t0 or None,
+                competence_label=p.competence.libelle,
+                type_erreur_label=p.type_erreur.libelle,
+                justification=p.justification,
+                is_att=p.type_erreur_id == "ATT",
+                competence_code=p.competence.code,
+                niveau=niveau or None,
+                reference_pedagogique=chunk.to_context_text() if chunk else None,
+            )
+
+        request = ConfirmationRequest(copy_id=correction.copy_id, hypotheses=[_hypothese(p) for p in hypotheses])
+        _liberer_connexion(db)  # génération T1 : plusieurs minutes
+        reponse = client.generate_confirmation_subject(request)
+        if not reponse.success or reponse.data is None:
+            logger.warning("[%s] Module 5 : génération T1 échouée (%s)", correction.copy_id, reponse.error)
+            return f"Génération du sujet échouée : {reponse.error}"
+
+        validation = validate_confirmation(reponse.data, request)
+        if not validation.valid:
+            erreurs = [i.message for i in validation.issues if i.severity == "error"]
+            logger.warning("[%s] Module 5 : sujet T1 invalide, non attaché (%s)", correction.copy_id, erreurs)
+            return f"Sujet invalide, non attaché : {'; '.join(erreurs)}"
+
+        pdf_path = Path(settings.runs_dir) / correction.copy_id / "sujet_confirmation.pdf"
+        generate_remediation_pdf(
+            output_path=pdf_path,
+            copy_id=correction.copy_id,
+            student_name=f"{correction.eleve_nom} {correction.eleve_prenom}".strip(),
+            remediation_subject=validation.data,
+        )
+        depot().ajouter_document(copy_id=correction.copy_id, type_document="sujet_confirmation", contenu=pdf_path.read_bytes())
+        _persister_sujet_confirmation(db, evaluation, hypotheses, validation.data)
+        db.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.rollback()
+        logger.warning("[%s] Module 5 : sujet T1 non généré (%s)", correction.copy_id, exc)
+        return f"Sujet non généré : {exc}"
+    return None
+
+    logger.info("[%s] Module 5 — sujet T1 généré et attaché (%d hypothèse(s)).", correction.copy_id, len(hypotheses))
+
+
+def _persister_sujet_confirmation(db: SQLASession, evaluation, hypotheses: list[Probleme], sujet) -> None:
+    """Enregistre le sujet T1 et le lien exercice → hypothèse, par
+    correspondance de `topic` (voir `prompts/confirmation_subject_prompt.md`) —
+    jamais par position dans la liste, plus fragile."""
+    numeros_par_topic: dict[str, list[int]] = defaultdict(list)
+    for exercice in sujet.exercises:
+        numeros_par_topic[exercice.topic].append(exercice.number)
+
+    for probleme in hypotheses:
+        topic = f"{probleme.competence.libelle} × {probleme.type_erreur.libelle}"
+        numeros = numeros_par_topic.get(topic)
+        if not numeros:
+            continue
+        probleme.exercices_confirmation = numeros
+        db.add(probleme)
+
+    evaluation.sujet_confirmation = [
+        {"numero": e.number, "topic": e.topic, "question": e.question, "hint": e.hint} for e in sujet.exercises
+    ]
+    db.add(evaluation)
+
+
+# ── Corrections abandonnées ──────────────────────────────────────────────────
+
+
+def signaler_si_abandonnee(db: SQLASession, correction: Correction) -> bool:
+    """Passe en échec une correction « en cours » qui ne bouge plus (process
+    arrêté pendant qu'un thread travaillait)."""
+    if correction.etat not in ETATS_EN_COURS:
+        return False
+    if datetime.utcnow() - correction.maj_le < DELAI_ABANDON:
+        return False
+
+    logger.warning("[%s] Correction abandonnée après %s sans progression.", correction.copy_id, DELAI_ABANDON)
+    _echouer(db, correction, "Le traitement s'est interrompu (le serveur a probablement redémarré). Relancez la correction de cette copie.")
+    return True
