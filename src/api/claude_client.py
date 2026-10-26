@@ -13,12 +13,15 @@ from src.models.domain import (
     ClaudeResponse,
     ConfirmationRequest,
     ConfirmationSubject,
+    ContenuAcquis,
+    ContenuSection,
     CopyGrade,
+    DemandePlan,
     DiagnosticResult,
     PageTranscription,
     Rubric,
     RubricItem,
-    RemediationSubject,
+    SectionPlanDemande,
     SortieDiagnosticContraint,
     TranscriptionResult,
     VerificationRequest,
@@ -154,6 +157,68 @@ _GRADING_TOOL: dict[str, Any] = {
         "required": ["copy_id", "total_score", "total_possible", "questions"],
     },
 }
+
+_TEXTES = {"type": "array", "items": {"type": "string"}}
+
+#: Outil de rédaction d'une section du plan de remédiation — mêmes champs que
+#: `ContenuSection`. Les bornes (5 exercices, niveaux 1 à 3) sont dans le
+#: schéma pour que le modèle les respecte, et revalidées par Pydantic.
+_OUTIL_SECTION_PLAN: dict[str, Any] = {
+    "name": "rediger_section",
+    "description": "Enregistre le contenu rédigé d'une section du plan de remédiation.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "titre": {"type": "string"},
+            "titre_tableau": {"type": ["string", "null"]},
+            "titre_court": {"type": "string"},
+            "ecrits": {
+                "type": "array", "minItems": 1,
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "question": {"type": "string"},
+                        "reponse_eleve": {"type": "string"},
+                        "reponse_attendue": {"type": "string"},
+                        "reussie": {"type": "boolean"},
+                    },
+                    "required": ["question", "reponse_eleve", "reponse_attendue"],
+                },
+            },
+            "ce_qui_ne_va_pas": {"type": "string"},
+            "causes": {**_TEXTES, "minItems": 1},
+            "a_retenir": {**_TEXTES, "minItems": 1},
+            "methode_titre": {"type": "string"},
+            "methode": _TEXTES,
+            "consigne_exercices": {"type": ["string", "null"]},
+            "exercices": {
+                "type": "array", "minItems": 5, "maxItems": 5,
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "enonce": {"type": "string"},
+                        "niveau": {"type": "integer", "minimum": 1, "maximum": 3},
+                        "reponse": {"type": "string"},
+                    },
+                    "required": ["enonce", "niveau", "reponse"],
+                },
+            },
+        },
+        "required": ["titre", "titre_court", "ecrits", "ce_qui_ne_va_pas", "causes",
+                     "a_retenir", "methode_titre", "methode", "exercices"],
+    },
+}
+
+_OUTIL_ACQUIS_PLAN: dict[str, Any] = {
+    "name": "rediger_acquis",
+    "description": "Enregistre l'encadré « Ce que tu sais déjà faire ».",
+    "input_schema": {
+        "type": "object",
+        "properties": {"acquis": _TEXTES},
+        "required": ["acquis"],
+    },
+}
+
 
 def _diagnostic_contraint_tool(
     codes_questions: list[str],
@@ -378,7 +443,8 @@ class ClaudeClient:
         self._diagnostic_plancher_prompt = self._load_prompt(
             "diagnostic_plancher_prompt.md"
         )
-        self._enrichment_subject_prompt = self._load_prompt("enrichment_subject_prompt.md")
+        self._plan_remediation_prompt = self._load_prompt("plan_remediation_prompt.md")
+        self._plan_acquis_prompt = self._load_prompt("plan_acquis_prompt.md")
         self._confirmation_subject_prompt = self._load_prompt("confirmation_subject_prompt.md")
         self._verification_subject_prompt = self._load_prompt("verification_subject_prompt.md")
         self._retention_subject_prompt = self._load_prompt("retention_subject_prompt.md")
@@ -1065,66 +1131,107 @@ class ClaudeClient:
             return ClaudeResponse(success=False, data=None, confidence=0.0, raw_response="", error=str(exc))
         return self._parse_response(raw, VerificationSubject)
 
-    # ── Sujet d'enrichissement (score parfait) ────────────────────────────────
+    # ── Plan de remédiation (cahier élève) ────────────────────────────────────
 
-    @_retry
-    def generate_enrichment_subject(self, grade: CopyGrade, rubric: "Rubric | None" = None) -> ClaudeResponse:
-        """Génère 5 exercices d'approfondissement niveau 2nde/1ère pour un élève à 20/20."""
-        logger.info("[%s] Claude enrichissement — modèle : %s | score parfait 20/20",
-                    grade.copy_id, settings.claude_model_heavy)
+    def _appel_outil(self, *, copy_id: str, etape: str, prompt_fixe: str, prompt_variable: str,
+                     outil: dict[str, Any], max_tokens: int) -> Any:
+        """Appel à sortie par outil, Opus puis repli Sonnet sur 400 (même
+        repli que `diagnose_constrained`). La partie fixe du prompt (consignes
+        + exemples) est mise en cache : elle est identique pour toutes les
+        sections d'un plan, appelées en parallèle.
 
-        rubric_block = ""
-        if rubric and rubric.items:
-            rubric_block = (
-                f"\n\nSUJET DU TEST (pour contextualiser les thèmes maîtrisés) :\n"
-                f"{rubric.model_dump_json(indent=2)}"
-            )
+        L'outil n'est pas forcé (`tool_choice` auto) : un choix forcé interdit
+        la réflexion préalable, et c'est elle qui fait vérifier au modèle ses
+        calculs avant d'écrire les exercices (essai réel du 2026-10-26 :
+        réponses incohérentes et exercices hors sujet sans elle). Le prompt
+        demande l'appel ; une réponse sans bloc `tool_use` est un échec, que
+        l'appelant redemande."""
+        import anthropic as _anthropic
 
-        prompt = (
-            f"{self._enrichment_subject_prompt}"
-            f"{rubric_block}"
-            f"\n\ncopy_id : {grade.copy_id}"
-            "\n\nIMPORTANT: Réponds UNIQUEMENT avec un objet JSON valide commençant"
-            " par { et finissant par }. Aucun texte avant ou après."
-        )
-
-        # `stream=True` + `max_tokens` large : voir `generate_confirmation_subject`.
-        response = self._creer_message(
-            model=settings.claude_model_heavy,
-            stream=True,
-            max_tokens=64000,
-            temperature=0,
-            messages=[
-                {
+        def _appeler(model: str) -> Any:
+            return self._creer_message(
+                model=model,
+                stream=True,
+                max_tokens=max_tokens,
+                thinking={"type": "adaptive"},
+                output_config={"effort": "high"},
+                tools=[outil],
+                tool_choice={"type": "auto"},
+                messages=[{
                     "role": "user",
                     "content": [
-                        {
-                            "type": "text",
-                            "text": prompt,
-                            "cache_control": {"type": "ephemeral"},
-                        }
+                        {"type": "text", "text": prompt_fixe, "cache_control": {"type": "ephemeral"}},
+                        {"type": "text", "text": prompt_variable},
                     ],
-                },
-            ],
-        )
+                }],
+            )
 
         try:
-            raw = self._texte_reponse(response)
-        except ValueError as exc:
-            # Même situation que diagnose() : le budget de tokens a pu être
-            # entièrement consommé par un bloc `thinking`, sans qu'aucun texte
-            # ne soit produit. L'appelant (`_run_phase_b`) traite un
-            # enrichissement en échec comme non bloquant (score déjà parfait,
-            # rien à remédier) — il ne faut donc pas laisser cette erreur
-            # remonter et interrompre toute la Phase B.
-            logger.error("[%s] Enrichissement — %s", grade.copy_id, exc)
-            return ClaudeResponse(success=False, data=None, confidence=0.0,
-                                  raw_response="", error=str(exc))
+            return _appeler(self._modele_opus)
+        except _anthropic.BadRequestError as refus:
+            logger.warning("[%s] %s : modèle '%s' refusé (400 : %s) — repli sur %s",
+                           copy_id, etape, self._modele_opus, refus, self._modele_heavy)
+            return _appeler(self._modele_heavy)
 
-        result = self._parse_response(raw, RemediationSubject)
-        if result.success and result.data is not None:
-            result.data.is_enrichment = True
-        return result
+    @_retry
+    def generate_plan_section(self, demande: "DemandePlan", section: "SectionPlanDemande") -> ClaudeResponse:
+        """Rédige une section du plan de remédiation. Le squelette (compétence,
+        durée, questions, prérequis) est fixé par l'appelant ; le modèle n'écrit
+        que le contenu (`ContenuSection`)."""
+        import json as _json
+
+        logger.info("[%s] Plan — section %d (%s), modèle : %s",
+                    demande.copy_id, section.ordre, section.code_competence, self._modele_opus)
+        contexte = {
+            "eleve": {"prenom": demande.prenom, "classe": demande.classe},
+            "test": demande.test_libelle,
+            "section": section.model_dump(exclude={"duree_h"}),
+        }
+        prompt_variable = (
+            "## Section à rédiger\n"
+            "`questions` : les questions de la copie rattachées à cette compétence, "
+            "telles que la correction les a relevées (`citation` : ce que le "
+            "diagnostic a lu sur la copie). `types_erreur` : le diagnostic retenu, "
+            "à expliquer dans `causes`. `libelles_prerequis` : compétences "
+            "travaillées dans les sections précédentes.\n"
+            f"```json\n{_json.dumps(contexte, ensure_ascii=False, indent=2)}\n```"
+        )
+        try:
+            response = self._appel_outil(
+                copy_id=demande.copy_id, etape=f"plan section {section.ordre}",
+                prompt_fixe=self._plan_remediation_prompt, prompt_variable=prompt_variable,
+                outil=_OUTIL_SECTION_PLAN, max_tokens=32000,
+            )
+        except Exception as exc:  # noqa: BLE001
+            if _is_retryable(exc):
+                raise  # surcharge, quota : relancé par @_retry
+            logger.error("[%s] Plan — section %d : %s", demande.copy_id, section.ordre, exc)
+            return ClaudeResponse(success=False, data=None, confidence=0.0, raw_response="", error=str(exc))
+        return self._extract_tool_result(response, ContenuSection)
+
+    @_retry
+    def generate_plan_acquis(self, demande: "DemandePlan") -> ClaudeResponse:
+        """Rédige « Ce que tu sais déjà faire » à partir des questions réussies."""
+        import json as _json
+
+        questions = [q.model_dump(include={"code", "intitule", "reponse_eleve", "reponse_attendue"})
+                     for q in demande.questions_reussies]
+        prompt_variable = (
+            f"## Élève\n{demande.prenom}, {demande.classe} — {demande.test_libelle}.\n\n"
+            f"## Questions réussies\n```json\n{_json.dumps(questions, ensure_ascii=False, indent=2)}\n```"
+        )
+        try:
+            response = self._appel_outil(
+                copy_id=demande.copy_id, etape="plan acquis",
+                prompt_fixe=self._plan_acquis_prompt, prompt_variable=prompt_variable,
+                outil=_OUTIL_ACQUIS_PLAN, max_tokens=8000,
+            )
+        except Exception as exc:  # noqa: BLE001
+            if _is_retryable(exc):
+                raise  # surcharge, quota : relancé par @_retry
+            logger.error("[%s] Plan — acquis : %s", demande.copy_id, exc)
+            return ClaudeResponse(success=False, data=None, confidence=0.0, raw_response="", error=str(exc))
+        return self._extract_tool_result(response, ContenuAcquis)
 
     # ── Nom de l'élève depuis la première page ────────────────────────────────
 
@@ -1511,6 +1618,30 @@ class ClaudeClient:
 
         return data
 
+    @staticmethod
+    def _normaliser_listes_texte(data: dict) -> dict:
+        """Listes de textes du plan (`causes`, `a_retenir`, `methode`,
+        `acquis`) : Opus 5 y glisse parfois un objet vide `{}` (essai réel du
+        2026-10-26, section entière rejetée deux fois de suite). Un élément
+        vide est retiré, un objet à valeur texte unique ramené à ce texte ; si
+        la liste se vide, la validation échoue et la section est redemandée."""
+        for champ in ("causes", "a_retenir", "methode", "acquis"):
+            valeurs = data.get(champ)
+            if not isinstance(valeurs, list):
+                continue
+            propres = []
+            for v in valeurs:
+                if isinstance(v, dict):
+                    textes = [x for x in v.values() if isinstance(x, str) and x.strip()]
+                    v = textes[0] if len(textes) == 1 else None
+                if isinstance(v, str) and v.strip():
+                    propres.append(v)
+            if len(propres) != len(valeurs):
+                logger.warning("Plan : %d élément(s) non textuel(s) retiré(s) de « %s »",
+                               len(valeurs) - len(propres), champ)
+            data[champ] = propres
+        return data
+
     def _extract_tool_result(self, response: Any, model_cls: type) -> ClaudeResponse:
         """Extrait le résultat d'un appel tool_use — JSON garanti correctement formé."""
         tool_block = next(
@@ -1572,6 +1703,8 @@ class ClaudeClient:
                 data = self._normalize_transcription(data)
             elif model_cls is SortieDiagnosticContraint:
                 data = self._normaliser_problemes(data)
+            elif model_cls in (ContenuSection, ContenuAcquis):
+                data = self._normaliser_listes_texte(data)
 
             validated = model_cls(**data)
             return ClaudeResponse(

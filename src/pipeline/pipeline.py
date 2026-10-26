@@ -4,8 +4,7 @@ Pipeline Hakili Lab — Correction assistée par IA.
 Flux en deux phases :
   Phase A : ingestion → transcription → (relecture enseignant) → correction IA
             → (arrêt : validation enseignant)
-  Phase B : RAG → diagnostic → export PDF + JSON (pas de sujet de remédiation
-            généré ici — voir la note plus bas)
+  Phase B : RAG → diagnostic → plan de remédiation → export PDF + JSON
 
   Mode Copie Unique (interactif, avec relecture transcription) :
     run_transcription() → écran de relecture (l'enseignant corrige la
@@ -26,15 +25,13 @@ prime sur .env — D-CEO-44) :
   échoue — transcription, nom élève, correction, diagnostic.
   Claude n'est plus utilisé comme fallback : il reste seul utilisé là où il
   n'y a pas d'alternative (extraction sujet/barème uploadé, barème virtuel,
-  enrichissement 20/20 — voir claude_client.py).
+  plan de remédiation — voir claude_client.py).
 
-  Aucun sujet de remédiation IA n'est plus généré par le pipeline (D-CEO-33) :
-  à T0, seules des hypothèses de lacunes sont produites (diagnostic
-  ci-dessous), et c'est le sujet de confirmation T1 (module 5,
-  `generate_confirmation_subject`) qui prend le relais — jamais un sujet
-  d'exercices de remédiation généré à l'aveugle avant confirmation. Le plan de
-  remédiation chiffré (module 6, `suivi/plan.py`) est généré à la demande,
-  après confirmation, hors de ce pipeline.
+  Deux PDF par copie : le rapport de correction, et — sous 19/20 — le plan de
+  remédiation (cahier élève, exercices et réponses compris). Le squelette du
+  plan (compétences, ordre, durées) vient du diagnostic contraint et du
+  référentiel : l'application le calcule et le passe à `run_phase_b`
+  (`demande_plan`) ; ce module n'en rédige que le contenu.
 """
 from __future__ import annotations
 
@@ -56,10 +53,11 @@ from src.knowledge.curriculum_retriever import CurriculumRetriever
 from src.models.domain import (
     CompetencyGap,
     CopyGrade,
+    DemandePlan,
     DiagnosticResult,
     IngestionResult,
+    PlanRemediation,
     Rubric,
-    RemediationSubject,
     TeacherDecision,
     TranscriptionResult,
 )
@@ -73,8 +71,9 @@ from src.pipeline.orchestrator import (
     validate_grading,
     validate_transcription,
 )
-from src.pipeline.pdf_remediation_html import generate_remediation_pdf
+from src.pipeline.pdf_plan_remediation import generate_plan_remediation_pdf
 from src.pipeline.pdf_report_html import generate_copy_report
+from src.pipeline.plan_remediation import PlanIncomplet, generer_plan, plan_requis
 
 # Singleton RAG — chargé une seule fois pour toute la session
 _retriever: CurriculumRetriever | None = None
@@ -380,8 +379,11 @@ class PipelineResult:
     transcription: TranscriptionResult | None = None
     grade: CopyGrade | None = None
     diagnostic: DiagnosticResult | None = None
-    remediation_subject: RemediationSubject | None = None
+    plan_remediation: PlanRemediation | None = None
+    #: Motif d'absence de plan alors qu'il en fallait un (note < 19) — vide sinon.
+    plan_erreur: str = ""
     pdf_path: Path | None = None
+    #: PDF du plan de remédiation (`plan_remediation.pdf`), None sans plan.
     remediation_pdf_path: Path | None = None
     json_path: Path | None = None
     errors: list[str] = field(default_factory=list)
@@ -786,18 +788,24 @@ def run_phase_b(
     result: PipelineResult,
     on_progress: Callable[[str, int], None] | None = None,
     ancrage: Callable[[list[str]], tuple[str, list[dict]]] | None = None,
+    demande_plan: DemandePlan | None = None,
 ) -> PipelineResult:
     """
-    Phase B : ancrage programme + diagnostic + remédiation + export PDF + JSON.
+    Phase B : ancrage programme + diagnostic + plan de remédiation + export PDF + JSON.
     Reçoit le PipelineResult de la Phase A après validation enseignant.
     result.grade doit avoir compute_final_score() déjà appelé.
 
     `ancrage` : fonction qui, pour une liste de codes de questions échouées, rend
     (contexte_texte, lacunes). Passée par l'appelant plutôt qu'importée ici, parce
-    que sa source — le référentiel — vit dans une application Django, et que ce
+    que sa source — le référentiel — vit dans l'application, et que ce
     module doit rester indépendant de tout framework. Sans elle, on retombe sur
     l'ancrage historique par `chunk_ids`, qui ne couvre que les tests d'avant le
     référentiel v2.
+
+    `demande_plan` : squelette du plan de remédiation, calculé par l'application
+    depuis le diagnostic contraint et le référentiel, pour même raison. Sans
+    lui (mode libre, test hors référentiel), pas de plan ; une note ≥ 19/20
+    n'en a pas non plus.
     """
     if result.grade is None:
         result.errors.append("Phase B impossible : aucune correction disponible.")
@@ -809,7 +817,7 @@ def run_phase_b(
 
     sentinel = result
     try:
-        return _run_phase_b(result=result, on_progress=on_progress, ancrage=ancrage)
+        return _run_phase_b(result=result, on_progress=on_progress, ancrage=ancrage, demande_plan=demande_plan)
     except Exception as exc:
         logger.exception("[%s] Erreur Phase B : %s", result.copy_id, exc)
         sentinel.errors.append(f"Erreur Phase B : {exc}")
@@ -821,6 +829,7 @@ def _run_phase_b(
     result: PipelineResult,
     on_progress: Callable[[str, int], None] | None,
     ancrage: Callable[[list[str]], tuple[str, list[dict]]] | None = None,
+    demande_plan: DemandePlan | None = None,
 ) -> PipelineResult:
 
     def _progress(step: str, pct: int) -> None:
@@ -848,19 +857,10 @@ def _run_phase_b(
         "Diagnostic": _client_label(diagnostic_client, "diagnostic"),
     })
 
-    # Détection score parfait (20/20 après validation enseignant)
+    # Score parfait (20/20 après validation enseignant) : rien à diagnostiquer.
     is_perfect = (grade.final_score_on_20 or 0) >= 20.0
 
-    if is_perfect:
-        # Score parfait → exercices d'enrichissement niveau 2nde/1ère, pas de remédiation
-        logger.warning("[%s] Score parfait 20/20 — génération d'exercices d'enrichissement", copy_id)
-        _progress("enrichment", 75)
-        enrich_resp = claude_client.generate_enrichment_subject(grade, rubric)
-        if enrich_resp.success and enrich_resp.data is not None:
-            result.remediation_subject = enrich_resp.data
-        else:
-            logger.warning("[%s] Enrichissement échoué (non bloquant) : %s", copy_id, enrich_resp.error)
-    else:
+    if not is_perfect:
         # Le diagnostic raisonne en taux de réussite (0 = échouée, 1 = complète) :
         # avec les barèmes détaillés, une question vaut 0,333 ou 0,667 point
         # sur 20 et une réussite partielle n'est ni 0 ni 1.
@@ -931,10 +931,22 @@ def _run_phase_b(
         else:
             logger.warning("[%s] Diagnostic échoué (non bloquant) : %s", copy_id, diag_resp.error)
 
-        # Pas de sujet de remédiation généré ici : à T0, seules des hypothèses
-        # de lacunes sont produites (diagnostic ci-dessus). C'est le test de
-        # confirmation T1 (module 5) qui départage hypothèse confirmée / écartée
-        # avant qu'un plan de remédiation ait un sens — voir docs/cycle_de_suivi.md.
+    # 6. Plan de remédiation — sous 19/20 seulement. Non bloquant : sans plan,
+    # le rapport de correction reste produit, et le motif est conservé pour
+    # être montré à l'enseignant.
+    if plan_requis(grade.final_score_on_20):
+        if demande_plan is None:
+            result.plan_erreur = "Pas de plan : ce test n'est pas rattaché au référentiel."
+        elif not demande_plan.sections:
+            result.plan_erreur = "Pas de plan : le diagnostic n'a relevé aucune compétence à reprendre."
+        else:
+            _progress("plan", 80)
+            try:
+                result.plan_remediation = generer_plan(demande_plan, claude_client)
+            except PlanIncomplet as exc:
+                result.plan_erreur = f"Plan de remédiation non produit — {exc}"
+        if result.plan_erreur:
+            logger.warning("[%s] %s", copy_id, result.plan_erreur)
 
     # 7. Export JSON
     _progress("export", 94)
@@ -950,20 +962,18 @@ def _run_phase_b(
         "transcription": result.transcription.model_dump() if result.transcription else None,
         "grade": grade.model_dump(),
         "diagnostic": result.diagnostic.model_dump() if result.diagnostic else None,
-        "remediation_subject": result.remediation_subject.model_dump() if result.remediation_subject else None,
+        "plan_remediation": result.plan_remediation.model_dump() if result.plan_remediation else None,
+        "plan_erreur": result.plan_erreur,
         "errors": list(result.errors or []),
         "validation_issues": [asdict(i) for i in (result.validation_issues or [])],
     }
     json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     result.json_path = json_path
 
-    # 8. Génération PDF (rapport + remédiation/enrichissement en parallèle)
+    # 8. Génération PDF (rapport + plan de remédiation en parallèle)
     pdf_path = json_dir / "rapport_correction.pdf"
-    _is_enrich = getattr(result.remediation_subject, "is_enrichment", False)
-    remediation_pdf_path = json_dir / (
-        "sujet_enrichissement.pdf" if _is_enrich else "sujet_remediation.pdf"
-    )
-    has_remediation = bool(result.remediation_subject and result.remediation_subject.exercises)
+    remediation_pdf_path = json_dir / "plan_remediation.pdf"
+    has_remediation = result.plan_remediation is not None
 
     def _gen_report() -> None:
         generate_copy_report(
@@ -977,16 +987,18 @@ def _run_phase_b(
 
     def _gen_remediation() -> None:
         if has_remediation:
-            generate_remediation_pdf(
-                output_path=remediation_pdf_path,
-                copy_id=copy_id,
-                student_name=result.student_name,
-                remediation_subject=result.remediation_subject,
-            )
+            generate_plan_remediation_pdf(remediation_pdf_path, result.plan_remediation)
 
     with ThreadPoolExecutor(max_workers=2) as pool:
-        pool.submit(_gen_report).result()
-        pool.submit(_gen_remediation).result()
+        rapport = pool.submit(_gen_report)
+        plan_pdf = pool.submit(_gen_remediation)
+        rapport.result()
+        try:
+            plan_pdf.result()
+        except Exception as exc:  # noqa: BLE001 — Chromium absent, etc. : le rapport reste
+            logger.exception("[%s] PDF du plan de remédiation non produit : %s", copy_id, exc)
+            result.plan_erreur = f"PDF du plan de remédiation non produit — {exc}"
+            has_remediation = False
 
     result.pdf_path = pdf_path
     # Point d'injection 2 — rapport généré : document "rapport" (best-effort)
@@ -994,16 +1006,16 @@ def _run_phase_b(
 
     if has_remediation:
         result.remediation_pdf_path = remediation_pdf_path
-        # Point d'injection 3 — remédiation générée : document "remediation" (best-effort)
+        # Point d'injection 3 — plan généré : document "remediation" (best-effort)
         _db_add_document(copy_id, "remediation", remediation_pdf_path)
 
-    n_exercises = len(result.remediation_subject.exercises) if result.remediation_subject else 0
+    n_sections = len(result.plan_remediation.competences) if has_remediation else 0
     logger.warning(
-        "[%s] ✓ Phase B terminée — note finale : %g/%g (%.1f/20) | %d exercices remédiation",
+        "[%s] ✓ Phase B terminée — note finale : %g/%g (%.1f/20) | plan : %d compétence(s)",
         copy_id,
         grade.final_score or 0, grade.total_possible,
         grade.final_score_on_20 or 0,
-        n_exercises,
+        n_sections,
     )
     return result
 

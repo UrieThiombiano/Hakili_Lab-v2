@@ -28,6 +28,7 @@ from app.models import Correction, Evaluation, Probleme
 from app.models.correction import ETATS_EN_COURS
 from app.services import diagnostic_referentiel as diag_ref
 from app.services import diagnostic_suivi as diag_suivi
+from app.services import plan_eleve
 from app.services.contexte import contexte_diagnostic, lacunes_competences
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,7 @@ _LIBELLES_ETAPE = {
     "rag": "Recherche dans le programme officiel",
     "diagnostic": "Diagnostic pédagogique",
     "remediation": "Plan de remédiation",
+    "plan": "Rédaction du plan de remédiation",
     "export": "Génération du rapport",
 }
 
@@ -291,19 +293,22 @@ def _executer_diagnostic(correction_id: int) -> None:
     db = SessionLocal()
     try:
         correction = db.get(Correction, correction_id)
+        resultat_a = deserialiser(correction.resultat)
+        diagnostic, demande = _preparer_plan(db, correction, resultat_a)
         _liberer_connexion(db)
         try:
             resultat = run_phase_b(
-                result=deserialiser(correction.resultat),
+                result=resultat_a,
                 on_progress=_rapporteur(correction_id),
                 ancrage=_ancrage_referentiel(db, _niveau_test(correction.bareme_id)),
+                demande_plan=demande,
             )
         except Exception as exc:  # noqa: BLE001
             logger.exception("[%s] Diagnostic interrompu : %s", correction.copy_id, exc)
             _echouer(db, correction, f"Diagnostic interrompu : {exc}")
             return
 
-        _ecrire_hypotheses_module4(db, correction, resultat)
+        _ecrire_hypotheses_module4(db, correction, resultat, diagnostic)
 
         correction.resultat = serialiser(resultat)
         correction.erreurs = list(resultat.errors or [])
@@ -328,11 +333,56 @@ def _client_diagnostic_module4():
         return None
 
 
-def _ecrire_hypotheses_module4(db: SQLASession, correction: Correction, resultat) -> None:
+def _preparer_plan(db: SQLASession, correction: Correction, resultat):
+    """Diagnostic contraint (module 4) d'une copie T0 au référentiel, et le
+    squelette de son plan de remédiation tiré de ce diagnostic. Calculé avant
+    la Phase B, qui fait rédiger le plan, et réutilisé ensuite pour écrire les
+    hypothèses — un seul appel de diagnostic par copie.
+
+    Rend `(None, None)` hors référentiel (mode libre) ou pour une copie
+    T1/T3…, et en cas d'échec : la correction se termine alors sans plan, avec
+    son motif (`PipelineResult.plan_erreur`). Lecture seule."""
+    if correction.type_evaluation != "T0" or not correction.bareme_id.startswith("socle_"):
+        return None, None
+    if resultat.grade is None or resultat.rubric is None:
+        return None, None
+
+    niveau = _niveau_test(correction.bareme_id)
+    try:
+        from src.knowledge.test_registry import get_registry
+
+        test = get_registry().get_test(correction.bareme_id)
+        reponses = diag_ref.reponses_depuis_correction(resultat.grade, resultat.rubric)
+        diagnostic = diag_ref.diagnostiquer(db, niveau_test=niveau, reponses=reponses, client=_client_diagnostic_module4(), copy_id=correction.copy_id)
+        demande = plan_eleve.demande_plan(
+            db,
+            copy_id=correction.copy_id,
+            nom=correction.eleve_nom,
+            prenom=correction.eleve_prenom,
+            titre_test=test.label if test else "",
+            niveau_test=niveau,
+            grade=resultat.grade,
+            rubric=resultat.rubric,
+            diagnostic=diagnostic,
+        )
+    except Exception as exc:  # noqa: BLE001
+        db.rollback()
+        logger.warning("[%s] Squelette du plan non calculé (%s)", correction.copy_id, exc)
+        return None, None
+
+    logger.info("[%s] Plan — %d compétence(s) à reprendre, %.1f h.", correction.copy_id,
+                len(demande.sections), sum(s.duree_h for s in demande.sections))
+    return diagnostic, demande
+
+
+def _ecrire_hypotheses_module4(db: SQLASession, correction: Correction, resultat, diagnostic=None) -> None:
     """Point d'injection module 4 : écrit les lacunes de cette copie comme
     hypothèses, ou pour une copie T1, tranche automatiquement les hypothèses
     déjà ouvertes. Best-effort : un échec ici ne fait jamais échouer une
-    correction déjà terminée."""
+    correction déjà terminée.
+
+    `diagnostic` : celui déjà calculé pour le plan (`_preparer_plan`) ; refait
+    ici seulement s'il manque."""
     if correction.type_evaluation == "T1":
         _confirmer_hypotheses_module4(db, correction, resultat)
         return
@@ -348,8 +398,9 @@ def _ecrire_hypotheses_module4(db: SQLASession, correction: Correction, resultat
 
     niveau = _niveau_test(correction.bareme_id)
     try:
-        reponses = diag_ref.reponses_depuis_correction(resultat.grade, resultat.rubric)
-        diagnostic = diag_ref.diagnostiquer(db, niveau_test=niveau, reponses=reponses, client=_client_diagnostic_module4(), copy_id=correction.copy_id)
+        if diagnostic is None:
+            reponses = diag_ref.reponses_depuis_correction(resultat.grade, resultat.rubric)
+            diagnostic = diag_ref.diagnostiquer(db, niveau_test=niveau, reponses=reponses, client=_client_diagnostic_module4(), copy_id=correction.copy_id)
         evaluation = diag_suivi.preparer_evaluation(db, identifiant_hakili=correction.identifiant_hakili, type_evaluation=correction.type_evaluation, copy_id=correction.copy_id)
         ecriture = diag_suivi.enregistrer(db, evaluation, diagnostic)
         db.commit()

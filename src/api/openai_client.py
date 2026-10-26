@@ -8,7 +8,7 @@ remédiation…) — remplace Claude comme fallback partout où un fallback exis
 
 Claude reste seul utilisé là où il n'y a pas d'alternative (pas de "fallback"
 à proprement parler) : extraction sujet/barème uploadé, barème virtuel,
-enrichissement 20/20 — voir claude_client.py et docs/decision_register.md D-CEO-03.
+plan de remédiation — voir claude_client.py et docs/decision_register.md D-CEO-03.
 
 Utilise le SDK openai standard (même librairie que DeepSeekClient, mais sans
 base_url personnalisée — véritable API OpenAI).

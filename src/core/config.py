@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     # OpenAI (filet de secours GPT-5 — remplace Claude comme fallback partout
     # où un fallback existe : transcription, nom élève, correction, diagnostic,
     # remédiation. Claude reste seul utilisé là où il n'y a pas d'alternative :
-    # extraction sujet/barème, barème virtuel, enrichissement 20/20.)
+    # extraction sujet/barème, barème virtuel, plan de remédiation.)
     openai_api_key: str = ""
     openai_model: str = "gpt-5"
 

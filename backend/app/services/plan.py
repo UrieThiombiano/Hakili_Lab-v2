@@ -48,13 +48,47 @@ def _niveau(competence: Competence) -> int:
         return len(_ORDRE_NIVEAUX)
 
 
+def dependances_entre(db: SQLASession, codes: set[str]) -> dict[str, set[str]]:
+    """Pour chaque compétence de `codes`, ses prérequis qui sont aussi dans
+    `codes` (les seuls qui contraignent l'ordre)."""
+    dependances: dict[str, set[str]] = {code: set() for code in codes}
+    if not codes:
+        return dependances
+    for lien in db.query(Prerequis).filter(Prerequis.competence_id.in_(codes)).all():
+        if lien.prerequis_id in codes:
+            dependances[lien.competence_id].add(lien.prerequis_id)
+    return dependances
+
+
+def ordonner_competences(db: SQLASession, competences: list[Competence]) -> list[Competence]:
+    """Tri topologique par couches : à chaque tour on sort les compétences
+    dont aucun prérequis n'est encore à traiter ; à égalité, la plus
+    fondamentale d'abord. Un cycle (la base l'interdit, mais un import mal
+    formé pourrait en créer un) verse le reste tel quel plutôt que de boucler
+    indéfiniment."""
+    restants = {c.code: c for c in competences}
+    dependances = dependances_entre(db, set(restants))
+    ordonnees: list[Competence] = []
+    traites: set[str] = set()
+
+    while restants:
+        prets = [code for code in restants if not (dependances[code] - traites)]
+        if not prets:
+            # Cycle : on verse le reste par niveau plutôt que de boucler.
+            prets = list(restants)
+
+        prets.sort(key=lambda c: (_niveau(restants[c]), c))
+        for code in prets:
+            ordonnees.append(restants.pop(code))
+            traites.add(code)
+
+    return ordonnees
+
+
 def ordonner(db: SQLASession, problemes: list[Probleme]) -> list[Probleme]:
     """Trie les problèmes pour que chaque prérequis en difficulté vienne
-    avant. Tri topologique par couches, au niveau de la **compétence** (les
-    prérequis lient des compétences entre elles, pas des problèmes) : à
-    chaque tour on sort les compétences dont aucun prérequis n'est encore à
-    traiter. Un cycle (la base l'interdit, mais un import mal formé pourrait
-    en créer un) verse le reste tel quel plutôt que de boucler indéfiniment.
+    avant — tri fait au niveau de la **compétence** (les prérequis lient des
+    compétences entre elles, pas des problèmes), voir `ordonner_competences`.
 
     Une même compétence peut porter **plusieurs** problèmes (deux types
     d'erreur différents sur la même compétence — la contrainte d'unicité en
@@ -66,36 +100,12 @@ def ordonner(db: SQLASession, problemes: list[Probleme]) -> list[Probleme]:
     par_code: dict[str, list[Probleme]] = {}
     for p in problemes:
         par_code.setdefault(p.competence.code, []).append(p)
-    restants = dict(par_code)
-
-    liens = (
-        db.query(Prerequis)
-        .filter(Prerequis.competence_id.in_(par_code.keys()))
-        .all()
-        if par_code
-        else []
-    )
-    dependances: dict[str, set[str]] = {code: set() for code in par_code}
-    for lien in liens:
-        if lien.prerequis_id in par_code:
-            dependances[lien.competence_id].add(lien.prerequis_id)
 
     ordonnes: list[Probleme] = []
-    traites: set[str] = set()
-
-    while restants:
-        prets = [code for code in restants if not (dependances[code] - traites)]
-        if not prets:
-            # Cycle : on verse le reste par niveau plutôt que de boucler.
-            prets = list(restants)
-
-        prets.sort(key=lambda c: (_niveau(restants[c][0].competence), c))
-        for code in prets:
-            groupe = restants.pop(code)
-            groupe.sort(key=lambda p: p.type_erreur_id)  # ordre stable entre les problèmes d'une même compétence
-            ordonnes.extend(groupe)
-            traites.add(code)
-
+    for competence in ordonner_competences(db, [groupe[0].competence for groupe in par_code.values()]):
+        groupe = par_code[competence.code]
+        groupe.sort(key=lambda p: p.type_erreur_id)  # ordre stable entre les problèmes d'une même compétence
+        ordonnes.extend(groupe)
     return ordonnes
 
 

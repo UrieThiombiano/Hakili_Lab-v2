@@ -376,6 +376,75 @@ class PlanRemediation(BaseModel):
         return bornes
 
 
+# Génération du plan : le squelette (quelles compétences, dans quel ordre,
+# combien d'heures, quelles questions) est déterministe — diagnostic contraint,
+# référentiel, formule de coût. Le modèle ne rédige que le contenu de chaque
+# section ; il ne choisit ni les compétences ni les durées.
+
+class QuestionPlan(BaseModel):
+    """Une question de la copie, telle que la correction l'a relevée."""
+    code: str                     # "N1", "P4.1"
+    intitule: str = ""            # libellé de la question dans le barème
+    reponse_eleve: str = ""       # "—" si rien n'est écrit
+    reponse_attendue: str = ""
+    reussie: bool = False
+    commentaire: str = ""         # commentaire de la correction
+    citation: str = ""            # ce que le diagnostic a lu sur la copie
+
+
+class TypeErreurPlan(BaseModel):
+    code: str                     # "CPT", "PRC"…
+    libelle: str
+    definition: str = ""
+
+
+class SectionPlanDemande(BaseModel):
+    """Squelette d'une section : tout ce que le modèle ne doit pas décider."""
+    ordre: int
+    code_competence: str
+    libelle_competence: str
+    description_competence: str = ""
+    niveau_intro: str = ""
+    types_erreur: list[TypeErreurPlan] = Field(default_factory=list)
+    questions: list[QuestionPlan] = Field(min_length=1)
+    #: « ce que l'élève a probablement écrit → ce que ça révèle » (référentiel).
+    signatures: list[str] = Field(default_factory=list)
+    duree_h: float = Field(gt=0)
+    prerequis: list[int] = Field(default_factory=list)
+    #: Libellés des sections prérequises, pour que la rédaction s'y réfère.
+    libelles_prerequis: list[str] = Field(default_factory=list)
+
+
+class DemandePlan(BaseModel):
+    copy_id: str
+    eleve_nom: str
+    prenom: str
+    classe: str                   # "1ère D"
+    test_libelle: str             # "test diagnostique d'entrée en 1ère D"
+    date: str
+    sections: list[SectionPlanDemande]
+    questions_reussies: list[QuestionPlan] = Field(default_factory=list)
+
+
+class ContenuSection(BaseModel):
+    """Ce que le modèle rédige pour une section — rien d'autre."""
+    titre: str
+    titre_tableau: str | None = None
+    titre_court: str
+    ecrits: list[LigneEcrit] = Field(min_length=1)
+    ce_qui_ne_va_pas: str
+    causes: list[str] = Field(min_length=1)
+    a_retenir: list[str] = Field(min_length=1)
+    methode_titre: str = "Méthode"
+    methode: list[str] = Field(default_factory=list)
+    consigne_exercices: str | None = None
+    exercices: list[ExercicePlan] = Field(min_length=5, max_length=5)
+
+
+class ContenuAcquis(BaseModel):
+    acquis: list[str] = Field(default_factory=list)
+
+
 # ── Sujet de confirmation (T1, module 5) ────────────────────────────────────────
 # À ne pas confondre avec `RemediationSubject` : T1 ne cherche pas à faire
 # progresser l'élève, il départage une hypothèse de lacune (`suivi.Probleme`,

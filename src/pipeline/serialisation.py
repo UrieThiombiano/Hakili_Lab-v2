@@ -50,11 +50,12 @@ def serialiser(resultat) -> dict:
         "transcription": resultat.transcription.model_dump() if resultat.transcription else None,
         "grade": grade.model_dump() if grade else None,
         "diagnostic": resultat.diagnostic.model_dump() if resultat.diagnostic else None,
-        "remediation_subject": (
-            resultat.remediation_subject.model_dump()
-            if resultat.remediation_subject
+        "plan_remediation": (
+            resultat.plan_remediation.model_dump()
+            if resultat.plan_remediation
             else None
         ),
+        "plan_erreur": resultat.plan_erreur,
         "rubric": resultat.rubric.model_dump() if resultat.rubric else None,
         "pdf_path": _chemin(resultat.pdf_path),
         "remediation_pdf_path": _chemin(resultat.remediation_pdf_path),
@@ -80,7 +81,7 @@ def deserialiser(donnees: dict):
         CopyGrade,
         DiagnosticResult,
         IngestionResult,
-        RemediationSubject,
+        PlanRemediation,
         Rubric,
         TranscriptionResult,
     )
@@ -105,7 +106,10 @@ def deserialiser(donnees: dict):
         transcription=_modele(TranscriptionResult, "transcription"),
         grade=_modele(CopyGrade, "grade"),
         diagnostic=_modele(DiagnosticResult, "diagnostic"),
-        remediation_subject=_modele(RemediationSubject, "remediation_subject"),
+        # Les résultats d'avant le plan unique portent `remediation_subject` :
+        # ignoré, ces corrections sont terminées et leur PDF déjà produit.
+        plan_remediation=_modele(PlanRemediation, "plan_remediation"),
+        plan_erreur=donnees.get("plan_erreur", ""),
         rubric=_modele(Rubric, "rubric"),
         pdf_path=Path(donnees["pdf_path"]) if donnees.get("pdf_path") else None,
         remediation_pdf_path=(
