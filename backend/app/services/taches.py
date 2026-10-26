@@ -384,6 +384,65 @@ def _executer_reprise_plan(correction_id: int) -> None:
         db.close()
 
 
+# ── Sujet T1 : généré seulement à la demande de l'enseignant ────────────────
+
+
+def _evaluation_t0(db: SQLASession, correction: Correction):
+    return (
+        db.query(Evaluation)
+        .filter(Evaluation.copy_id == correction.copy_id, Evaluation.type == "T0")
+        .order_by(Evaluation.id.desc())
+        .first()
+    )
+
+
+def t1_a_generer(db: SQLASession, correction: Correction) -> bool:
+    """Bouton « Générer le T1 » proposé : T0 au référentiel, analyse terminée
+    et sauvegardée, note au-dessus du seuil de dispense (D-CEO-46), hypothèses
+    ouvertes et aucun sujet déjà attaché au parcours."""
+    if not (correction.terminee and correction.type_evaluation == "T0" and (correction.bareme_id or "").startswith("socle_")):
+        return False
+    if db.get(Copie, correction.copy_id) is None:
+        return False
+    note = ((correction.resultat or {}).get("grade") or {}).get("final_score_on_20")
+    if diag_suivi.t1_dispense(note):
+        return False
+    evaluation = _evaluation_t0(db, correction)
+    if evaluation is None or _session_a_un_sujet_t1(db, evaluation.session_id):
+        return False
+    return db.query(Probleme.id).filter(Probleme.session_id == evaluation.session_id, Probleme.etat == "hypothese").first() is not None
+
+
+def lancer_t1(db: SQLASession, correction: Correction) -> None:
+    correction.etat = "diagnostic"
+    correction.etape = "Génération du sujet T1"
+    correction.progression = 90
+    db.add(correction)
+    db.commit()
+    _dans_un_thread(_executer_t1, correction.id)
+
+
+def _executer_t1(correction_id: int) -> None:
+    db = SessionLocal()
+    try:
+        correction = db.get(Correction, correction_id)
+        motif = "Évaluation T0 introuvable."
+        evaluation = _evaluation_t0(db, correction)
+        if evaluation is not None:
+            motif = _generer_sujet_confirmation(db, correction, evaluation)
+        # Le motif d'un échec reste lisible à l'écran ; un succès l'efface.
+        resultat = dict(correction.resultat or {})
+        resultat["t1_erreur"] = motif or ""
+        correction.resultat = resultat
+        correction.etat = "terminee"
+        correction.etape = "Terminée"
+        correction.progression = 100
+        db.add(correction)
+        db.commit()
+    finally:
+        db.close()
+
+
 def _client_diagnostic_module4():
     """Absent plutôt qu'en échec : une clé d'API absente ne doit pas
     empêcher la part mécanique (QCM) de tourner."""
@@ -514,7 +573,7 @@ def sauvegarder(db: SQLASession, correction: Correction) -> None:
     _ecrire_hypotheses_module4(db, correction, resultat, resultat.diagnostic_module4)
 
 
-def _ecrire_hypotheses_module4(db: SQLASession, correction: Correction, resultat, diagnostic=None, generer_t1: bool = False) -> None:
+def _ecrire_hypotheses_module4(db: SQLASession, correction: Correction, resultat, diagnostic=None) -> None:
     """Point d'injection module 4 : écrit les lacunes de cette copie comme
     hypothèses, ou pour une copie T1, tranche automatiquement les hypothèses
     déjà ouvertes. Best-effort : un échec ici ne fait jamais échouer une
@@ -559,15 +618,7 @@ def _ecrire_hypotheses_module4(db: SQLASession, correction: Correction, resultat
     if correction.type_evaluation == "T0" and diag_suivi.t1_dispense(note):
         _confirmer_sans_t1(db, correction, evaluation, note)
         return
-
-    # Sujet T1 : on le génère dès qu'un T0 laisse des hypothèses ouvertes non
-    # encore couvertes par un sujet — pas seulement quand ce T0 a créé des
-    # problèmes. Réanalyser la copie d'un élève qui a déjà une session ouverte
-    # (cas courant en test, et en production quand un collègue a déjà lancé un
-    # T0) ne crée rien de neuf (`ecriture.crees` vide, tout est « déjà suivi »)
-    # mais doit quand même produire le sujet si aucun n'existe.
-    if generer_t1 and correction.type_evaluation == "T0" and (ecriture.crees or not _session_a_un_sujet_t1(db, evaluation.session_id)):
-        _generer_sujet_confirmation(db, correction, evaluation)
+    # Le sujet T1 n'est jamais généré ici : bouton « Générer le T1 » (`lancer_t1`).
 
 
 def _session_a_un_sujet_t1(db: SQLASession, session_id: int) -> bool:
@@ -670,15 +721,16 @@ def _libelles_questions(bareme_id: str) -> dict[str, str]:
     return {item.id: item.label for item in test.rubric.items} if test else {}
 
 
-def _generer_sujet_confirmation(db: SQLASession, correction: Correction, evaluation) -> None:
+def _generer_sujet_confirmation(db: SQLASession, correction: Correction, evaluation) -> str | None:
     """Point d'injection module 5 : génère le sujet T1 à partir des
     hypothèses encore ouvertes, et l'attache à la copie T0 qui les a
-    révélées. Best-effort — ne tourne qu'à la suite d'un T0."""
+    révélées. Lancé à la demande de l'enseignant (`lancer_t1`). Rend le motif
+    de l'échec, ou None si le sujet est attaché."""
     hypotheses = [
         p for p in db.query(Probleme).filter(Probleme.session_id == evaluation.session_id, Probleme.etat == "hypothese").all()
     ]
     if not hypotheses:
-        return
+        return "Aucune hypothèse ouverte : rien à confirmer."
 
     try:
         from src.core.config import settings
@@ -691,7 +743,7 @@ def _generer_sujet_confirmation(db: SQLASession, correction: Correction, evaluat
         client = _client_diagnostic_module4()
         if client is None:
             logger.warning("[%s] Module 5 : aucun client disponible, sujet T1 non généré.", correction.copy_id)
-            return
+            return "Aucun modèle d'IA disponible pour générer le sujet."
 
         niveau = _niveau_test(correction.bareme_id)
         retriever = get_remediation_retriever()
@@ -719,15 +771,13 @@ def _generer_sujet_confirmation(db: SQLASession, correction: Correction, evaluat
         reponse = client.generate_confirmation_subject(request)
         if not reponse.success or reponse.data is None:
             logger.warning("[%s] Module 5 : génération T1 échouée (%s)", correction.copy_id, reponse.error)
-            return
+            return f"Génération du sujet échouée : {reponse.error}"
 
         validation = validate_confirmation(reponse.data, request)
         if not validation.valid:
-            logger.warning(
-                "[%s] Module 5 : sujet T1 invalide, non attaché (%s)",
-                correction.copy_id, [i.message for i in validation.issues if i.severity == "error"],
-            )
-            return
+            erreurs = [i.message for i in validation.issues if i.severity == "error"]
+            logger.warning("[%s] Module 5 : sujet T1 invalide, non attaché (%s)", correction.copy_id, erreurs)
+            return f"Sujet invalide, non attaché : {'; '.join(erreurs)}"
 
         pdf_path = Path(settings.runs_dir) / correction.copy_id / "sujet_confirmation.pdf"
         generate_remediation_pdf(
@@ -742,7 +792,8 @@ def _generer_sujet_confirmation(db: SQLASession, correction: Correction, evaluat
     except Exception as exc:  # noqa: BLE001
         db.rollback()
         logger.warning("[%s] Module 5 : sujet T1 non généré (%s)", correction.copy_id, exc)
-        return
+        return f"Sujet non généré : {exc}"
+    return None
 
     logger.info("[%s] Module 5 — sujet T1 généré et attaché (%d hypothèse(s)).", correction.copy_id, len(hypotheses))
 

@@ -272,6 +272,8 @@ export interface ResultatPipeline {
   remediation_pdf_path: string | null
   /** Motif d'absence du plan de remédiation alors qu'il est dû — vide sinon. */
   plan_erreur?: string
+  /** Motif de l'échec de la dernière génération du sujet T1, vide si elle a abouti. */
+  t1_erreur?: string
   errors: string[]
 }
 
@@ -295,6 +297,8 @@ export interface CorrectionStatut {
   plan_a_reprendre: boolean
   /** Analyse conservée en base (« Sauvegarder ») — sinon elle n'existe que dans l'espace de travail. */
   sauvegardee: boolean
+  /** Bouton « Générer le T1 » proposé (`POST /corrections/{jeton}/t1`). */
+  t1_a_generer: boolean
 }
 
 export interface CorrectionResume {

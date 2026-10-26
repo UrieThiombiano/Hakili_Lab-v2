@@ -17,6 +17,7 @@ const { correctionsApiMock, elevesApiMock, sessionsApiMock } = vi.hoisted(() => 
     supprimer: vi.fn(),
     reprendrePlan: vi.fn(),
     sauvegarder: vi.fn(),
+    genererT1: vi.fn(),
     validerTranscription: vi.fn(),
     validerNotes: vi.fn(),
     pageImageUrl: (_jeton: string, page: number) => `#page-${page}`,
@@ -68,6 +69,7 @@ function statutBase(overrides: Partial<CorrectionStatut> = {}): CorrectionStatut
     seuil_sans_t1: null,
     plan_a_reprendre: false,
     sauvegardee: false,
+    t1_a_generer: false,
     ...overrides,
   }
 }
@@ -327,6 +329,29 @@ describe("Suivre — Sauvegarde", () => {
     await waitFor(() => expect(correctionsApiMock.sauvegarder).toHaveBeenCalled())
     expect(await screen.findByText(/Analyse sauvegardée :/)).toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "Sauvegarder" })).not.toBeInTheDocument()
+  })
+})
+
+describe("Suivre — Sujet T1 à la demande", () => {
+  it("bouton Générer le T1 proposé quand l'API l'indique, et lancement au clic", async () => {
+    const user = userEvent.setup()
+    correctionsApiMock.statut.mockResolvedValue(statutBase({ sauvegardee: true, t1_a_generer: true }))
+    correctionsApiMock.genererT1.mockResolvedValue(statutBase({ sauvegardee: true, t1_a_generer: false }))
+
+    rendre()
+
+    await user.click(await screen.findByRole("button", { name: "Générer le T1" }))
+    await waitFor(() => expect(correctionsApiMock.genererT1).toHaveBeenCalled())
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Générer le T1" })).not.toBeInTheDocument())
+  })
+
+  it("pas de bouton sans t1_a_generer ; le motif d'un échec est affiché", async () => {
+    correctionsApiMock.statut.mockResolvedValue(statutBase({ resultat: { ...resultatBase(), t1_erreur: "Sujet invalide" } }))
+
+    rendre()
+
+    expect(await screen.findByText(/Sujet invalide/)).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Générer le T1" })).not.toBeInTheDocument()
   })
 })
 

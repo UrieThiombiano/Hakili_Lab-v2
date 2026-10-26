@@ -89,6 +89,12 @@ export default function Suivre() {
     onError: () => notifier("La sauvegarde n'a pas pu être faite.", "erreur"),
   })
 
+  const genererT1 = useMutation({
+    mutationFn: () => correctionsApi.genererT1(jeton),
+    onSuccess: (statut) => queryClient.setQueryData(["correction", jeton], statut),
+    onError: () => notifier("La génération du sujet T1 n'a pas pu être lancée.", "erreur"),
+  })
+
   if (!data) return <AppShell><Spinner label="Chargement…" /></AppShell>
 
   const eleve = data.resultat?.student_name ?? ""
@@ -110,6 +116,12 @@ export default function Suivre() {
         )}
         {data.terminee && (
           <Sauvegarde sauvegardee={data.sauvegardee} enCours={sauvegarder.isPending} onSauvegarder={() => sauvegarder.mutate()} />
+        )}
+        {data.terminee && data.t1_a_generer && (
+          <GenererT1 enCours={genererT1.isPending} onGenerer={() => genererT1.mutate()} />
+        )}
+        {data.terminee && data.resultat?.t1_erreur && (
+          <p className="text-petit text-rouge">Le sujet T1 n'a pas pu être généré : {data.resultat.t1_erreur}</p>
         )}
         {data.etat === "echec" && <Echec erreurs={data.erreurs} onSupprimer={() => supprimer.mutate()} />}
         {data.etat === "relecture" && data.resultat && <Relecture jeton={jeton} resultat={data.resultat} onValide={() => queryClient.invalidateQueries({ queryKey: ["correction", jeton] })} />}
@@ -151,6 +163,23 @@ function Sauvegarde({ sauvegardee, enCours, onSauvegarder }: { sauvegardee: bool
             {enCours ? "Sauvegarde…" : "Sauvegarder"}
           </Button>
         )}
+      </div>
+    </Card>
+  )
+}
+
+/** Le sujet du test de confirmation ne se génère que sur demande : l'enseignant
+ * décide si l'élève passe le T1 une fois l'analyse sauvegardée. */
+function GenererT1({ enCours, onGenerer }: { enCours: boolean; onGenerer: () => void }) {
+  return (
+    <Card className="border-bleu/30">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <p className="min-w-0 flex-1 text-petit text-texte">
+          Des hypothèses de lacunes restent à confirmer. Générez le sujet du test de confirmation (T1) à faire passer à l'élève.
+        </p>
+        <Button onClick={onGenerer} disabled={enCours}>
+          {enCours ? "Lancement…" : "Générer le T1"}
+        </Button>
       </div>
     </Card>
   )

@@ -1,10 +1,6 @@
-"""Point d'injection module 5 dans `app/services/taches.py` — la décision de
-générer (ou non) le sujet de confirmation T1 au retour d'une copie T0.
-
-Régression corrigée : réanalyser la copie d'un élève qui a déjà une session
-ouverte ne crée aucune hypothèse neuve (`ecriture.crees` vide, tout est « déjà
-suivi ») et le sujet T1 n'était alors jamais généré, même quand aucun n'existait.
-"""
+"""Module 5 dans `app/services/taches.py` — quand le sujet de confirmation T1
+est proposé (`t1_a_generer`). Il n'est plus jamais généré automatiquement :
+seul le bouton « Générer le T1 » de l'enseignant le lance."""
 from __future__ import annotations
 
 from datetime import date
@@ -71,32 +67,52 @@ def test_session_a_un_sujet_t1(db):
     assert _session_a_un_sujet_t1(db, session.id) is True
 
 
-def test_genere_le_sujet_t1_meme_sans_hypothese_neuve(db, _module4_mocke):
-    """`ecriture.crees` vide + aucun sujet existant → on génère quand même."""
-    from app.services import taches
+def _preparer_t1(db, *, note=12.0, sujet=None, hypothese=True, sauvegardee=True):
+    """Un T0 terminé, avec (ou sans) sa copie sauvegardée, ses hypothèses et un sujet."""
+    from app.models import Copie, Probleme
 
     correction = _correction(db)
-    taches._ecrire_hypotheses_module4(db, correction, _resultat_correction(), generer_t1=True)
-
-    assert len(_module4_mocke) == 1
-
-
-def test_ne_regenere_pas_si_un_sujet_t1_existe_deja(db, _module4_mocke):
-    """`ecriture.crees` vide + un T0 de la session porte déjà un sujet → on
-    n'appelle pas le modèle une seconde fois."""
-    from app.services import taches
-
+    correction.etat = "terminee"
+    correction.resultat = {"grade": {"final_score_on_20": note}}
     session = Session(identifiant_hakili="eleve-x")
     db.add(session)
     db.commit()
-    db.refresh(session)
-    db.add(Evaluation(session_id=session.id, type="T0", numero=1, sujet_confirmation=[{"numero": 1}]))
+    # `sujet_confirmation=None` écrirait un JSON `null`, pas un NULL SQL : on l'omet.
+    champs = {"sujet_confirmation": sujet} if sujet else {}
+    db.add(Evaluation(session_id=session.id, type="T0", numero=1, copy_id=correction.copy_id, **champs))
+    if sauvegardee:
+        db.add(Copie(copy_id=correction.copy_id, identifiant_hakili="eleve-x", classe="6eme", annee_scolaire="2026"))
     db.commit()
+    return correction, session
 
-    correction = _correction(db)
-    taches._ecrire_hypotheses_module4(db, correction, _resultat_correction(), generer_t1=True)
 
-    assert _module4_mocke == []
+def test_t1_propose_quand_t0_sauvegarde_avec_hypotheses_ouvertes(db, referentiel_minimal):
+    from tests.conftest import creer_probleme
+
+    correction, session = _preparer_t1(db)
+    creer_probleme(db, session, competence_id="B", type_erreur_id="CPT")
+
+    assert taches.t1_a_generer(db, correction) is True
+
+
+@pytest.mark.parametrize(
+    "options",
+    [{"note": 9.5}, {"sujet": [{"numero": 1}]}, {"sauvegardee": False}],
+    ids=["note sous le seuil", "sujet déjà attaché", "analyse non sauvegardée"],
+)
+def test_t1_non_propose(db, referentiel_minimal, options):
+    from tests.conftest import creer_probleme
+
+    correction, session = _preparer_t1(db, **options)
+    creer_probleme(db, session, competence_id="B", type_erreur_id="CPT")
+
+    assert taches.t1_a_generer(db, correction) is False
+
+
+def test_t1_non_propose_sans_hypothese_ouverte(db):
+    correction, _ = _preparer_t1(db)
+
+    assert taches.t1_a_generer(db, correction) is False
 
 
 def test_libelles_questions_du_test_t0():
@@ -137,20 +153,10 @@ def test_sous_10_pas_de_sujet_t1_mais_confirmation_d_office(db, _module4_mocke, 
     assert confirmations == [9.5]
 
 
-def test_a_10_et_plus_le_sujet_t1_est_genere(db, _module4_mocke, monkeypatch):
-    from app.services import taches
-
+def test_a_10_et_plus_aucun_sujet_t1_n_est_genere_automatiquement(db, _module4_mocke, monkeypatch):
+    """Le T1 ne se génère qu'au bouton de l'enseignant (plan unique)."""
     monkeypatch.setattr(taches.diag_suivi, "confirmer_sans_t1", lambda *a: pytest.fail("pas de confirmation d'office à 10/20"))
 
-    taches._ecrire_hypotheses_module4(db, _correction(db), _resultat_note(10.0), generer_t1=True)
-
-    assert len(_module4_mocke) == 1
-
-
-def test_sans_demande_expresse_aucun_sujet_t1_n_est_genere(db, _module4_mocke):
-    """Le T1 ne se génère qu'à la demande de l'enseignant (plan unique)."""
-    from app.services import taches
-
-    taches._ecrire_hypotheses_module4(db, _correction(db), _resultat_correction())
+    taches._ecrire_hypotheses_module4(db, _correction(db), _resultat_note(10.0))
 
     assert _module4_mocke == []

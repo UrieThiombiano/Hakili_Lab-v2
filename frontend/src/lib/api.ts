@@ -172,6 +172,7 @@ export const correctionsApi = {
     postJson<CorrectionStatut>(`/corrections/${jetonCopie}/notes`, { decisions }),
   supprimer: (jetonCopie: string) => del<{ ok: boolean }>(`/corrections/${jetonCopie}`),
   sauvegarder: (jetonCopie: string) => postJson<CorrectionStatut>(`/corrections/${jetonCopie}/sauvegarder`, {}),
+  genererT1: (jetonCopie: string) => postJson<CorrectionStatut>(`/corrections/${jetonCopie}/t1`, {}),
   reprendrePlan: (jetonCopie: string) => postJson<CorrectionStatut>(`/corrections/${jetonCopie}/plan`, {}),
 }
 

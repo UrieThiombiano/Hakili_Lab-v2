@@ -90,6 +90,7 @@ def _statut(db: SQLASession, correction: Correction) -> CorrectionStatut:
         documents=documents,
         plan_a_reprendre=taches.plan_a_reprendre(correction),
         sauvegardee=db.get(Copie, correction.copy_id) is not None,
+        t1_a_generer=taches.t1_a_generer(db, correction),
         jeton_session=jeton(str(session.id)) if session else None,
         seuil_sans_t1=(
             SEUIL_CONFIRMATION_T1
@@ -598,6 +599,26 @@ def sauvegarder(
     if not correction.terminee:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="L'analyse n'est pas terminée : rien à sauvegarder.")
     taches.sauvegarder(db, correction)
+    return _statut(db, correction)
+
+
+@router.post("/{jeton_copie}/t1", response_model=CorrectionStatut)
+def generer_t1(
+    jeton_copie: str,
+    db: SQLASession = Depends(get_session),
+    utilisateur: dict = Depends(utilisateur_requis),
+) -> CorrectionStatut:
+    """Génère le sujet du test de confirmation (T1) — seulement à la demande
+    de l'enseignant, une fois l'analyse sauvegardée."""
+    copy_id = valeur_depuis_jeton(jeton_copie)
+    if copy_id is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lien invalide")
+    correction = correction_autorisee(db, utilisateur, copy_id)
+    if correction.en_cours:
+        return _statut(db, correction)
+    if not taches.t1_a_generer(db, correction):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Aucun sujet T1 à générer pour cette copie (sauvegardez d'abord l'analyse).")
+    taches.lancer_t1(db, correction)
     return _statut(db, correction)
 
 

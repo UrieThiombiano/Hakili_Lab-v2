@@ -222,6 +222,8 @@ class CorrectionStatut(BaseModel):
     #: L'enseignant a sauvegardé l'analyse (copie, rapport, plan et hypothèses
     #: en base) — avant cela, rien n'est conservé hors de l'espace de travail.
     sauvegardee: bool = False
+    #: Le bouton « Générer le T1 » est proposé (`POST /{jeton}/t1`).
+    t1_a_generer: bool = False
     #: Jeton du parcours (session) de l'élève, si un existe déjà — permet
     #: d'afficher le plan provisoire et le rapport diagnostique sans
     #: attendre que l'enseignant aille chercher l'écran « Parcours ».
