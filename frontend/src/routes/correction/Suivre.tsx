@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react"
+import { useRef, useState, type ReactNode } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { AppShell } from "@/components/layout/AppShell"
@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/useToast"
 import { useConfirm } from "@/hooks/useConfirm"
 import { useSupprimerDocument } from "@/hooks/useSupprimerDocument"
 import { cn } from "@/lib/utils"
+import { GardeSauvegarde } from "./GardeSauvegarde"
 import {
   ArrowUpRight,
   CheckCheck,
@@ -64,9 +65,13 @@ export default function Suivre() {
     refetchInterval: (query) => (query.state.data && (query.state.data.en_cours || query.state.data.etat === "creee") ? 2000 : false),
   })
 
+  // Copie supprimée : il n'y a plus rien à sauvegarder, la garde laisse partir.
+  const sortieLibre = useRef(false)
+
   const supprimer = useMutation({
     mutationFn: () => correctionsApi.supprimer(jeton),
     onSuccess: () => {
+      sortieLibre.current = true
       notifier("Copie supprimée.")
       navigate("/analyse-de-copie")
     },
@@ -93,7 +98,20 @@ export default function Suivre() {
     onError: () => notifier("La génération du sujet T1 n'a pas pu être lancée.", "erreur"),
   })
 
-  if (!data) return <AppShell><Spinner label="Chargement…" /></AppShell>
+  const gardeActive = !!data?.terminee && !data.sauvegardee
+
+  const garde = (
+    <GardeSauvegarde
+      actif={gardeActive}
+      eleve={data?.resultat?.student_name ?? ""}
+      sortieLibre={sortieLibre}
+      enCours={sauvegarder.isPending}
+      erreur={sauvegarder.isError}
+      onSauvegarder={(apres) => sauvegarder.mutate(undefined, { onSuccess: apres })}
+    />
+  )
+
+  if (!data) return <AppShell><Spinner label="Chargement…" />{garde}</AppShell>
 
   const eleve = data.resultat?.student_name ?? ""
   const large = data.etat === "relecture" || data.etat === "validation"
@@ -141,6 +159,7 @@ export default function Suivre() {
           />
         )}
       </div>
+      {garde}
     </AppShell>
   )
 }

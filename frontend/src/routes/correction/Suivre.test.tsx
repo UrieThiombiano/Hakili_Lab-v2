@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest"
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { MemoryRouter, Route, Routes } from "react-router-dom"
+import { createMemoryRouter, RouterProvider } from "react-router-dom"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ToastProvider } from "@/hooks/useToast"
 import { ConfirmProvider } from "@/hooks/useConfirm"
@@ -103,16 +103,22 @@ function sessionBase(overrides: Partial<SessionDetailReponse> = {}): SessionDeta
 }
 
 function rendre() {
+  // Routeur de données, comme en production : `useBlocker` (garde de
+  // sauvegarde) n'existe pas sous un <MemoryRouter> simple.
+  const router = createMemoryRouter(
+    [
+      { path: "/corrections/:jeton", element: <Suivre /> },
+      { path: "/corrections/nouvelle", element: <p>Page nouvelle correction</p> },
+      { path: "/analyse-de-copie", element: <p>Page analyse de copie</p> },
+    ],
+    { initialEntries: ["/corrections/jeton-copie"] },
+  )
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={client}>
       <ToastProvider>
         <ConfirmProvider>
-          <MemoryRouter initialEntries={["/corrections/jeton-copie"]}>
-            <Routes>
-              <Route path="/corrections/:jeton" element={<Suivre />} />
-            </Routes>
-          </MemoryRouter>
+          <RouterProvider router={router} />
         </ConfirmProvider>
       </ToastProvider>
     </QueryClientProvider>,
@@ -325,6 +331,99 @@ describe("Suivre — Sauvegarde", () => {
     await waitFor(() => expect(correctionsApiMock.sauvegarder).toHaveBeenCalled())
     expect(await screen.findByText(/Analyse sauvegardée :/)).toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "Sauvegarder" })).not.toBeInTheDocument()
+  })
+})
+
+describe("Suivre — garde de sauvegarde en quittant la page", () => {
+  it("quitter une analyse non sauvegardée → toast d'alerte, « Rester » garde la page", async () => {
+    const user = userEvent.setup()
+    correctionsApiMock.statut.mockResolvedValue(statutBase())
+
+    rendre()
+
+    await user.click(await screen.findByRole("button", { name: "Corriger une autre copie" }))
+    expect(await screen.findByRole("alertdialog")).toHaveTextContent("Attention : analyse non sauvegardée")
+    expect(screen.getByRole("alertdialog")).toHaveTextContent("Feryel Sanou")
+
+    await user.click(screen.getByRole("button", { name: "Rester sur la page" }))
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument()
+    expect(screen.getByText("Correction terminée")).toBeInTheDocument()
+    expect(screen.queryByText("Page nouvelle correction")).not.toBeInTheDocument()
+  })
+
+  it("Échap équivaut à « Rester sur la page »", async () => {
+    const user = userEvent.setup()
+    correctionsApiMock.statut.mockResolvedValue(statutBase())
+
+    rendre()
+
+    await user.click(await screen.findByRole("button", { name: "Corriger une autre copie" }))
+    await screen.findByRole("alertdialog")
+    await user.keyboard("{Escape}")
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument()
+    expect(screen.getByText("Correction terminée")).toBeInTheDocument()
+  })
+
+  it("« Quitter sans sauvegarder » part sans rien enregistrer", async () => {
+    const user = userEvent.setup()
+    correctionsApiMock.statut.mockResolvedValue(statutBase())
+
+    rendre()
+
+    await user.click(await screen.findByRole("button", { name: "Corriger une autre copie" }))
+    await user.click(await screen.findByRole("button", { name: "Quitter sans sauvegarder" }))
+    expect(await screen.findByText("Page nouvelle correction")).toBeInTheDocument()
+    expect(correctionsApiMock.sauvegarder).not.toHaveBeenCalled()
+  })
+
+  it("« Sauvegarder et quitter » sauvegarde puis part", async () => {
+    const user = userEvent.setup()
+    correctionsApiMock.statut.mockResolvedValue(statutBase())
+    correctionsApiMock.sauvegarder.mockResolvedValue(statutBase({ sauvegardee: true }))
+
+    rendre()
+
+    await user.click(await screen.findByRole("button", { name: "Corriger une autre copie" }))
+    await user.click(await screen.findByRole("button", { name: /Sauvegarder et quitter/ }))
+    expect(await screen.findByText("Page nouvelle correction")).toBeInTheDocument()
+    expect(correctionsApiMock.sauvegarder).toHaveBeenCalledWith("jeton-copie")
+  })
+
+  it("sauvegarde en échec : on reste sur la page, le toast le dit", async () => {
+    const user = userEvent.setup()
+    correctionsApiMock.statut.mockResolvedValue(statutBase())
+    correctionsApiMock.sauvegarder.mockRejectedValue(new Error("réseau"))
+
+    rendre()
+
+    await user.click(await screen.findByRole("button", { name: "Corriger une autre copie" }))
+    await user.click(await screen.findByRole("button", { name: /Sauvegarder et quitter/ }))
+    expect(await screen.findByText(/La sauvegarde a échoué/)).toBeInTheDocument()
+    expect(screen.queryByText("Page nouvelle correction")).not.toBeInTheDocument()
+  })
+
+  it("analyse déjà sauvegardée : on part sans être arrêté", async () => {
+    const user = userEvent.setup()
+    correctionsApiMock.statut.mockResolvedValue(statutBase({ sauvegardee: true }))
+
+    rendre()
+
+    await user.click(await screen.findByRole("button", { name: "Corriger une autre copie" }))
+    expect(await screen.findByText("Page nouvelle correction")).toBeInTheDocument()
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument()
+  })
+
+  it("copie supprimée : la garde laisse partir", async () => {
+    const user = userEvent.setup()
+    correctionsApiMock.statut.mockResolvedValue(statutBase())
+    correctionsApiMock.supprimer.mockResolvedValue({ ok: true })
+
+    rendre()
+
+    await user.click(await screen.findByTitle("Supprimer cette copie"))
+    await user.click(screen.getByRole("button", { name: "Supprimer" }))
+    expect(await screen.findByText("Page analyse de copie")).toBeInTheDocument()
+    expect(screen.queryByText("Attention : analyse non sauvegardée")).not.toBeInTheDocument()
   })
 })
 
