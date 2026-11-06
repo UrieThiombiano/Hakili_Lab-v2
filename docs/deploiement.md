@@ -1,12 +1,12 @@
-# Mise en service — Railway ou Render
+# Mise en service — Railway ou Render *(document historique)*
 **2026-07-30** · décisions : [architecture_cible.md](architecture_cible.md), D-CEO-28
 
-⚠ **Cible de déploiement changée le 2026-08-17 : VPS Hetzner**, voir
-[deploiement_vps_hetzner.md](deploiement_vps_hetzner.md). Ce document reste la
-source de vérité pour tout ce qui est indépendant de l'hébergeur (variables
-d'environnement, étape `migrate suivi 0007 --fake`, données personnelles) —
-seule la partie "Déploiement" plus bas (Procfile, `$PORT`, stockage éphémère)
-ne s'applique plus telle quelle sur un VPS.
+⚠ **Obsolète pour la procédure.** La mise en service se fait désormais sur le
+**VPS Hetzner partagé**, tout est dans **[`../deploy/README.md`](../deploy/README.md)**
+(D-CEO-45). Ce document est conservé pour la valeur historique de ce qui est
+indépendant de l'hébergeur (raisonnement sur les variables d'environnement, les
+données personnelles / CIL Burkina Faso) ; les parties Procfile, `$PORT`,
+`manage.py`, stockage éphémère ne s'appliquent plus.
 
 L'application tournait jusqu'ici **en local**, sur le poste de l'utilisateur. Elle
 devient multi-utilisateurs : tuteurs sur téléphone, responsables, administrateur.

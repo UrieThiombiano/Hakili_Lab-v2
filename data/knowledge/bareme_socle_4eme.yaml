@@ -1,34 +1,22 @@
-# Reconstruit manuellement le 2026-08-12 depuis le sujet et le corrige PDF recomposes
-# (data/Documents/, livraison data/New-docs/ du 2026-08-12) — PAS depuis Referentiel_Socle_v0.xlsx,
-# qui n'a pas ete mis a jour (voir docs/harmonisation_donnees.md, arbitrage H).
-# Ne pas relancer scripts/generer_baremes_socle.py sur ce fichier sans avoir d'abord
-# reporte la nouvelle composition (structure a 3 parties) dans le classeur, sous peine
-# d'ecraser ce travail et de revenir a l'ancienne composition a 2 parties.
+# Généré par scripts/generer_baremes_socle.py — ne pas éditer à la main.
+# Source : data/referentiel/Referentiel_Urie_v1.xlsx + data/knowledge/corriges_socle.yaml.
+# Pour corriger une réponse attendue, éditer corriges_socle.yaml puis
+# relancer le script ; pour la structure du test, mettre à jour le classeur.
 
 meta:
   test_id: socle_4eme
   titre: Test diagnostique d'entrée en 4ème
   niveau_test: 4eme
   classe: 4e
-  total_questions: 48
+  total_questions: 36
   total_possible: 20
-  somme_baremes_reelle: 19.99999
+  somme_baremes_reelle: 20.0
   bareme_classeur_total: 60.0
-  structure: 'Partie A 16 pts (16 x 1) - Partie B 22 pts (12 items : 10 x 2 + G5 decompose en 2 x 1) -
-    Partie C 22 pts (2x5 + 2x6, 4 problemes decomposes en 4 a 6 sous-items chacun selon le nombre de termes
-    du bareme imprime)'
-  source: data/Documents/Test_diagnostique_entree_4eme.pdf et data/Documents/corriges/Corrige_test_diagnostique_entree_4eme.pdf
-    (livraison 2026-08-12, corrige valide par un enseignant de mathematiques)
-  genere_par: 'reconstruction manuelle assistee (2026-08-12) — voir docs/harmonisation_donnees.md, arbitrage
-    H. Referentiel_Socle_v0.xlsx n''a PAS ete mis a jour : ce fichier est temporairement la source de
-    verite du bareme socle_4eme, en avance sur le classeur.'
-  note_corriges: 'Reponses et demarches extraites en lisant les pages du corrige PDF (rendues en image,
-    les valeurs numeriques y sont en vectoriel et invisibles a l''extraction texte). Ce corrige donne
-    explicitement la repartition des points de partie C par domaine et par probleme (ex. ''P1 donne 2
-    points a M et 3 a N''), recoupee EXACTEMENT avec le tableau officiel ''profil par domaine'' (aucun
-    ecart). G5 (partie B) decompose en construction + deduction, meme motif qu''en 5e (G7/G9). Un seul
-    point d''incertitude : N6 (PPCM) rattache a N.PGCD, faute de code canonique distinct pour le PPCM
-    dans le referentiel actuel — a confirmer.'
+  source: 'Referentiel_Urie_v1.xlsx (batterie allégée du 2026-10-06) — onglets 04_Questions, 06_Distracteurs,
+    02_Competences ; corrigés : data/knowledge/corriges_socle.yaml'
+  genere_par: scripts/generer_baremes_socle.py
+  note_corriges: 6 QCM avec bonne réponse (classeur) ; 30 questions corrigées depuis le corrigé PDF enseignant
+    ; 0 sans corrigé.
 questions:
 - code: N1
   partie: A
@@ -38,10 +26,10 @@ questions:
   competence: N.DIVIS
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Identifier, parmi trois nombres, celui divisible a la fois par 2 et par 3
+  objet: Choisir parmi 2 352 ; 4 725 ; 6 138 le nombre divisible à la fois par 2 et par 9
   reponse_attendue: 6 138
   solution: ''
-  si_echoue: 'Critere de divisibilite par 9 : la somme des chiffres, confondue avec celui par 3.'
+  si_echoue: 'Critère de divisibilité par 9 : la somme des chiffres, distinguée de celui par 3.'
 - code: N2
   partie: A
   format: qcm
@@ -50,9 +38,29 @@ questions:
   competence: N.RELOP
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Calculer une somme de nombres relatifs de signes contraires (QCM)
-  reponse_attendue: c) -4
+  objet: Calculer (-8) + (+15) + (-11) et choisir le résultat parmi quatre propositions
+  reponse_attendue: c
   solution: ''
+  options:
+  - lettre: a
+    texte: '-34'
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Tous les termes sont traités comme négatifs : -8 - 15 - 11 = -34.'
+  - lettre: b
+    texte: '+4'
+    correcte: false
+    type_erreur: PRC
+    erreur: Le calcul -8 + 15 = 7 est juste, puis 7 + (-11) est fait comme 11 - 7 = 4 en gardant le signe
+      +.
+  - lettre: c
+    texte: '-4'
+    correcte: true
+  - lettre: d
+    texte: '+34'
+    correcte: false
+    type_erreur: CNS
+    erreur: 'Les signes sont ignorés : 8 + 15 + 11 = 34.'
   si_echoue: Somme de nombres relatifs de signes contraires.
 - code: N3
   partie: A
@@ -62,10 +70,10 @@ questions:
   competence: N.FRA2
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Calculer une soustraction de deux fractions, resultat sous forme irreductible
+  objet: Calculer 5/6 - 3/8 et donner le résultat sous forme de fraction irréductible
   reponse_attendue: 11/24
-  solution: ''
-  si_echoue: Reduction au meme denominateur avant la soustraction de deux fractions.
+  solution: 'Barème : 1 pt, tout ou rien. La fraction 11/24 est déjà irréductible.'
+  si_echoue: Réduction au même dénominateur avant la soustraction de deux fractions.
 - code: N4
   partie: A
   format: court
@@ -74,10 +82,11 @@ questions:
   competence: N.PUI
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Ecrire un produit de deux puissances de meme base sous la forme d'une seule puissance
+  objet: Ecrire 3⁷ × 3² / 3⁵ sous la forme d'une seule puissance de 3
   reponse_attendue: 3⁴
-  solution: ''
-  si_echoue: Regles du produit et du quotient de puissances de meme base.
+  solution: 'Barème : 1 pt, tout ou rien. La réponse 81 seule ne vaut pas le point : l''écriture demandée
+    est une puissance de 3.'
+  si_echoue: Règles du produit et du quotient de puissances de même base.
 - code: N5
   partie: A
   format: court
@@ -86,9 +95,9 @@ questions:
   competence: N.VAB
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Ranger quatre nombres impliquant des valeurs absolues dans l'ordre croissant
+  objet: Ranger dans l'ordre croissant -7,2 ; |-8| ; -|-3| ; 6,5
   reponse_attendue: -7,2 ; -|-3| ; 6,5 ; |-8|
-  solution: ''
+  solution: 'Barème : 1 pt, tout ou rien. Accepter le rangement des valeurs : -7,2 ; -3 ; 6,5 ; 8.'
   si_echoue: Valeur absolue d'un nombre relatif et comparaison des relatifs.
 - code: N6
   partie: A
@@ -98,7 +107,7 @@ questions:
   competence: N.PGCD
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Calculer le PPCM de deux nombres
+  objet: Calculer le PPCM de 15 et de 18
   reponse_attendue: '90'
   solution: ''
   si_echoue: Confusion entre PPCM et PGCD, ou recherche des multiples communs.
@@ -107,13 +116,13 @@ questions:
   format: court
   bareme: 0.333333
   bareme_classeur: 1.0
-  competence: N.MULD
+  competence: L.DEV1
   competence_secondaire: null
-  domaine: Activites numeriques
-  objet: Factoriser une expression numerique
+  domaine: Calcul litteral et algebre
+  objet: Factoriser l'expression 14x + 21
   reponse_attendue: 7(2x + 3)
   solution: ''
-  si_echoue: Reconnaissance du facteur commun numerique dans une somme.
+  si_echoue: Reconnaissance du facteur commun numérique dans une somme.
 - code: L1
   partie: A
   format: qcm
@@ -121,11 +130,32 @@ questions:
   bareme_classeur: 1.0
   competence: L.EGA
   competence_secondaire: null
-  domaine: Calcul litteral et equations
-  objet: Choisir l'operation qui transforme une egalite en une autre (QCM)
-  reponse_attendue: b) ajouter 2
+  domaine: Calcul litteral et algebre
+  objet: Choisir l'opération appliquée aux deux membres pour passer de x/5 = 8 à x = 40
+  reponse_attendue: d
   solution: ''
-  si_echoue: Lecture de la transformation qui fait passer d'une egalite a une autre.
+  options:
+  - lettre: a
+    texte: ajouter 5
+    correcte: false
+    type_erreur: CPT
+    erreur: 'x/5 est lu comme x - 5 : la division est confondue avec une soustraction, que l''on compense
+      en ajoutant 5.'
+  - lettre: b
+    texte: soustraire 5
+    correcte: false
+    type_erreur: CNS
+    erreur: 'Aucun calcul ne mène de 8 à 40 en soustrayant 5 : choix sans règle de transformation disponible.'
+  - lettre: c
+    texte: diviser par 5
+    correcte: false
+    type_erreur: CPT
+    erreur: L'élève reproduit l'opération qui porte déjà sur x au lieu d'appliquer l'opération inverse.
+  - lettre: d
+    texte: multiplier par 5
+    correcte: true
+  si_echoue: 'Lecture de la transformation qui fait passer d''une égalité à une autre : l''inconnue est
+    divisée par 5, c''est donc la multiplication par 5 qui l''isole.'
 - code: L2
   partie: A
   format: court
@@ -133,11 +163,12 @@ questions:
   bareme_classeur: 1.0
   competence: L.EQD
   competence_secondaire: null
-  domaine: Calcul litteral et equations
-  objet: Resoudre une equation du premier degre dans D
-  reponse_attendue: x = 5
+  domaine: Calcul litteral et algebre
+  objet: Résoudre dans D l'équation 4x - 9 = 15
+  reponse_attendue: x = 6
   solution: ''
-  si_echoue: Regroupement des termes en x dans un membre et des termes constants dans l'autre.
+  si_echoue: 'Résolution d''une équation à deux transformations : ajouter 9 aux deux membres, puis diviser
+    les deux membres par 4.'
 - code: G1
   partie: A
   format: court
@@ -146,10 +177,11 @@ questions:
   competence: G.ANG3
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Donner la mesure d'un angle alterne-interne connaissant l'autre
+  objet: Donner l'angle v correspondant à u = 116°, droites (d) et (d') parallèles coupées par une sécante
   reponse_attendue: 116°
   solution: ''
-  si_echoue: Angles alternes-internes determines par deux droites paralleles et une secante.
+  si_echoue: 'Angles correspondants déterminés par deux droites parallèles et une sécante : ils ont la
+    même mesure.'
 - code: G2
   partie: A
   format: qcm
@@ -158,10 +190,31 @@ questions:
   competence: G.TRIP
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer la mesure d'un angle dans un triangle isocele (QCM)
-  reponse_attendue: d) 68°
+  objet: Choisir la mesure de l'angle N d'un triangle MNP isocèle en M où l'angle M mesure 44°
+  reponse_attendue: d
   solution: ''
-  si_echoue: Somme des angles d'un triangle, associee a la propriete du triangle isocele.
+  options:
+  - lettre: a
+    texte: 44°
+    correcte: false
+    type_erreur: CNS
+    erreur: 'La mesure de l''angle M est reportée sur N : ni la somme des angles ni la propriété des angles
+      à la base ne sont mobilisées.'
+  - lettre: b
+    texte: 136°
+    correcte: false
+    type_erreur: PRC
+    erreur: 180° - 44° = 136° est juste mais la division par 2 entre les deux angles à la base est omise.
+  - lettre: c
+    texte: 92°
+    correcte: false
+    type_erreur: CPT
+    erreur: '180° - 2 × 44° = 92° : l''angle de 44° est placé à la base, le sommet principal M est confondu
+      avec un angle à la base.'
+  - lettre: d
+    texte: 68°
+    correcte: true
+  si_echoue: Somme des angles d'un triangle, associée à la propriété du triangle isocèle.
 - code: G3
   partie: A
   format: court
@@ -170,22 +223,42 @@ questions:
   competence: G.SYMC
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Donner la longueur et l'angle images par une symetrie centrale
+  objet: Donner A'B' et l'angle A'B'C' par la symétrie de centre O (AB = 5,4 cm ; angle ABC = 63°)
   reponse_attendue: A'B' = 5,4 cm et A'B'C' = 63°
-  solution: ''
-  si_echoue: Conservation des longueurs et des angles par une symetrie centrale.
+  solution: 'Barème : 1 pt, tout ou rien — les deux réponses sont exigées.'
+  si_echoue: Conservation des longueurs et des angles par une symétrie centrale.
 - code: G4
   partie: A
   format: qcm
   bareme: 0.333333
   bareme_classeur: 1.0
-  competence: G.SOL1
+  competence: M.VOL
   competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Calculer le volume d'un cone de revolution (QCM)
-  reponse_attendue: a) 21π cm³
+  domaine: Mesures et grandeurs
+  objet: Choisir le volume d'un cône de révolution de rayon 3 cm et de hauteur 7 cm
+  reponse_attendue: a
   solution: ''
-  si_echoue: Formule du volume d'un cone, en particulier le facteur 1/3.
+  options:
+  - lettre: a
+    texte: 21π cm³
+    correcte: true
+  - lettre: b
+    texte: 63π cm³
+    correcte: false
+    type_erreur: CNS
+    erreur: 'La formule du cylindre π × 3² × 7 = 63π est appliquée : le facteur 1/3 du cône n''est pas
+      disponible.'
+  - lettre: c
+    texte: 49π cm³
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Rayon et hauteur sont échangés : 1/3 × π × 7² × 3 = 49π.'
+  - lettre: d
+    texte: 7π cm³
+    correcte: false
+    type_erreur: PRC
+    erreur: 'Le rayon n''est pas élevé au carré : 1/3 × π × 3 × 7 = 7π.'
+  si_echoue: Formule du volume d'un cône, en particulier le facteur 1/3.
 - code: M1
   partie: A
   format: qcm
@@ -194,10 +267,29 @@ questions:
   competence: M.MVD
   competence_secondaire: null
   domaine: Mesures et grandeurs
-  objet: Calculer une vitesse moyenne en km/h (QCM)
-  reponse_attendue: c) 24 km/h
+  objet: Choisir la vitesse moyenne d'un cycliste qui parcourt 36 km en 1 h 30 min
+  reponse_attendue: c
   solution: ''
-  si_echoue: Conversion d'une duree en heures decimales avant le calcul de la vitesse moyenne.
+  options:
+  - lettre: a
+    texte: 54 km/h
+    correcte: false
+    type_erreur: CPT
+    erreur: 'La distance est multipliée par la durée : 36 × 1,5 = 54.'
+  - lettre: b
+    texte: 36 km/h
+    correcte: false
+    type_erreur: CNS
+    erreur: 'La distance parcourue est donnée comme vitesse : la relation v = d / t n''est pas mobilisée.'
+  - lettre: c
+    texte: 24 km/h
+    correcte: true
+  - lettre: d
+    texte: 18 km/h
+    correcte: false
+    type_erreur: PRC
+    erreur: 'La durée de 1 h 30 min est arrondie à 2 h : 36 / 2 = 18.'
+  si_echoue: Conversion de 1 h 30 min en 1,5 h avant le calcul de la vitesse moyenne.
 - code: M2
   partie: A
   format: court
@@ -206,10 +298,10 @@ questions:
   competence: M.ECH
   competence_secondaire: null
   domaine: Mesures et grandeurs
-  objet: Calculer une distance reelle a partir d'une echelle
+  objet: Calculer en km la distance réelle de 8 cm mesurée sur une carte à l'échelle 1/250 000
   reponse_attendue: 20 km
   solution: ''
-  si_echoue: Emploi de l'echelle, puis conversion des centimetres en kilometres.
+  si_echoue: Emploi de l'échelle, puis conversion des centimètres en kilomètres.
 - code: D1
   partie: A
   format: qcm
@@ -217,10 +309,30 @@ questions:
   bareme_classeur: 1.0
   competence: D.POUR
   competence_secondaire: null
-  domaine: Organisation de donnees et proportionnalite
-  objet: Calculer un nouveau prix apres une augmentation en pourcentage (QCM)
-  reponse_attendue: b) 18 400 FCFA
+  domaine: Donnees, proportionnalite, statistique
+  objet: Choisir le nouveau prix d'un sac de mil de 16 000 FCFA après une augmentation de 15 %
+  reponse_attendue: b
   solution: ''
+  options:
+  - lettre: a
+    texte: 2 400 FCFA
+    correcte: false
+    type_erreur: MOD
+    erreur: 'Seule l''augmentation 15 % de 16 000 = 2 400 est calculée : elle n''est pas ajoutée au prix
+      initial.'
+  - lettre: b
+    texte: 18 400 FCFA
+    correcte: true
+  - lettre: c
+    texte: 13 600 FCFA
+    correcte: false
+    type_erreur: PRC
+    erreur: 'L''augmentation 2 400 est juste mais elle est retranchée : 16 000 - 2 400 = 13 600.'
+  - lettre: d
+    texte: 24 000 FCFA
+    correcte: false
+    type_erreur: CPT
+    erreur: '15 % est traduit par le coefficient 1,5 : 16 000 × 1,5 = 24 000.'
   si_echoue: Calcul d'un pourcentage d'augmentation et ajout au prix initial.
 - code: N8
   partie: B
@@ -230,12 +342,15 @@ questions:
   competence: N.DIVIS
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Determiner toutes les valeurs d'un chiffre inconnu pour qu'un nombre soit divisible a la fois
-    par 2 et par 3
-  reponse_attendue: a = 0 et a = 6 (nombres 240 et 246)
-  solution: 'Divisible par 2 si le chiffre des unites est pair : a=0,2,4,6,8. Divisible par 3 si la somme
-    des chiffres est multiple de 3 : a=0,3,6,9. Les deux conditions reunies : a=0 et a=6.'
-  si_echoue: Recherche de toutes les solutions d'une double condition de divisibilite, a=0 souvent oubliee.
+  objet: Trouver tous les chiffres a tels que 24a soit divisible par 2 et par 3, en justifiant
+  reponse_attendue: a = 0 ou a = 6 (240 et 246)
+  solution: 'Divisible par 2 : chiffre des unités pair, a ∈ {0 ; 2 ; 4 ; 6 ; 8}. Divisible par 3 : 2 +
+    4 + a = 6 + a multiple de 3, a ∈ {0 ; 3 ; 6 ; 9}. Les deux : a = 0 et a = 6. Barème : 1 pt pour avoir
+    traduit les deux critères de divisibilité (chiffre des unités pair, somme des chiffres multiple de
+    3) ; 1 pt pour les deux valeurs a = 0 et a = 6. Ce second point n''est pas acquis si une seule des
+    deux valeurs est donnée.'
+  si_echoue: Recherche de toutes les solutions d'une double condition de divisibilité, la valeur a = 0
+    étant la plus souvent oubliée.
 - code: N9
   partie: B
   format: redige
@@ -244,11 +359,15 @@ questions:
   competence: N.FRA2
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Calculer une fraction restante apres deux depenses successives, puis la somme de depart
-  reponse_attendue: fraction restante 9/20, somme de depart 4 000 FCFA
-  solution: 'Reste 3/5 apres le marche ; le transport prend 1/4 de ce reste donc 3/4 restent : 3/4x3/5=9/20
-    ; 9/20 valent 1800 FCFA donc la somme de depart est 1800x20/9=4000 FCFA.'
-  si_echoue: 'Fraction d''une fraction : l''eleve additionne les deux fractions au lieu de composer.'
+  objet: Retrouver la somme dont les 9/20 valent 1 800 FCFA, puis juger si plus de la moitié est dépensée
+  reponse_attendue: somme de départ 4 000 FCFA ; Moussa a raison (11/20 > 1/2, ou 2 200 FCFA > 2 000 FCFA)
+  solution: 'Somme de départ : 1 800 : 9/20 = 1 800 × 20/9 = 4 000 FCFA. Part dépensée : 1 - 9/20 = 11/20
+    > 10/20 = 1/2, soit 4 000 - 1 800 = 2 200 FCFA. Barème : 1 pt pour la somme de départ 4 000 FCFA,
+    retrouvée en remontant la fraction ; 1 pt pour le jugement « Moussa a raison » justifié par la comparaison
+    de 11/20 et 1/2, ou de 2 200 FCFA et 2 000 FCFA. Le jugement seul ne vaut pas ce point. Erreur propagée
+    : une somme de départ fausse suivie d''une comparaison correcte garde le second point.'
+  si_echoue: 'Raisonnement inverse sur une fraction d''une quantité : l''élève multiplie par 9/20 au lieu
+    de diviser.'
 - code: N10
   partie: B
   format: redige
@@ -257,11 +376,14 @@ questions:
   competence: N.PUI
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Calculer un produit de puissances de meme base et juger une affirmation
-  reponse_attendue: 2⁷ = 128, l'affirmation est fausse
-  solution: 2³x2⁴=2³⁺⁴=2⁷=128, alors que 4⁷=16384. La base ne change pas et les exposants s'ajoutent.
-  si_echoue: 'Produit de puissances de meme base : l''eleve multiplie les bases en plus d''ajouter les
-    exposants.'
+  objet: Trouver n tel que 2ⁿ = 64, puis justifier qu'aucun entier p ne vérifie 2ᵖ = 100
+  reponse_attendue: n = 6 ; aucun p car 2⁶ = 64 < 100 < 128 = 2⁷
+  solution: 'Puissances de 2 : 2 ; 4 ; 8 ; 16 ; 32 ; 64, donc n = 6. 2⁶ < 100 < 2⁷ : 100 est entre deux
+    puissances consécutives de 2. Barème : 1 pt pour n = 6 ; 1 pt pour la non-existence de p justifiée
+    par l''encadrement 64 < 100 < 128. La seule réponse « cela n''existe pas », sans encadrement ni liste
+    des puissances de 2, ne vaut pas ce point.'
+  si_echoue: Recherche d'un exposant quand le résultat est donné, et encadrement d'un nombre par deux
+    puissances consécutives de même base.
 - code: N11
   partie: B
   format: redige
@@ -270,63 +392,60 @@ questions:
   competence: N.RELOP
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Calculer un solde initial par raisonnement inverse, puis un solde alternatif
-  reponse_attendue: solde initial -43 500 FCFA ; avec un retrait, -55 500 FCFA
-  solution: 's+35000=-8500 donc s=-43500 FCFA ; avec un retrait de 12000 a la place du versement : -43500-12000=-55500
-    FCFA.'
-  si_echoue: 'Raisonnement inverse sur les nombres relatifs : retrancher un versement au lieu de l''ajouter.'
+  objet: Retrouver le solde avant un versement de 35 000 FCFA qui le porte à -8 500 FCFA, puis juger Drissa
+  reponse_attendue: solde avant versement -43 500 FCFA ; Drissa a raison (-8 500 + 35 000 = 26 500 > 0)
+  solution: 's + 35 000 = -8 500, donc s = -8 500 - 35 000 = -43 500 FCFA. Second versement : -8 500 +
+    35 000 = 26 500 FCFA, positif. Barème : 1 pt pour le solde -43 500 FCFA, obtenu en remontant le versement
+    ; 1 pt pour « Drissa a raison » appuyé sur le calcul -8 500 + 35 000 = 26 500. Le jugement seul ne
+    vaut pas ce point.'
+  si_echoue: 'Raisonnement inverse sur les nombres relatifs : retrancher un versement au lieu de l''ajouter,
+    ou conclure sur le signe d''une somme sans la calculer.'
 - code: N12
   partie: B
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
-  competence: N.MULD
+  competence: L.DEV1
   competence_secondaire: null
-  domaine: Activites numeriques
-  objet: Developper une expression litterale representant une aire, puis l'evaluer pour une valeur donnee
-  reponse_attendue: aire = 7x + 28, soit 70 m² pour x=6
-  solution: 'Aire=7x(x+4)=7x+28 ; pour x=6 : aire=7x6+28=70 m².'
-  si_echoue: Developpement d'un produit de la forme k(x+a) et substitution d'une valeur a la lettre.
+  domaine: Calcul litteral et algebre
+  objet: Développer l'aire 7(x + 4) m² d'une parcelle de Sapone et juger la réponse 7x + 4 de Safiatou
+  reponse_attendue: 7(x + 4) = 7x + 28 m² ; Safiatou a tort
+  solution: '7 × (x + 4) = 7 × x + 7 × 4 = 7x + 28 : le facteur 7 multiplie les deux termes, le second
+    terme est 28 et non 4. Barème : 1 pt pour la forme développée 7x + 28 ; 1 pt pour « elle a tort »
+    justifié par la distributivité (le terme 7 × 4 = 28 oublié). Le jugement seul ne vaut pas ce point.'
+  si_echoue: 'Développement d''un produit de la forme k(x + a) : le facteur n''est appliqué qu''au premier
+    terme.'
 - code: L3
   partie: B
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
-  competence: L.MISE
+  competence: L.EQD
   competence_secondaire: null
-  domaine: Calcul litteral et equations
-  objet: Traduire une situation par une equation, puis la resoudre
-  reponse_attendue: x = 17 (Kadidiatou), Awa en eleve 44
-  solution: x+3x-7=61, soit 4x-7=61, puis 4x=68 et x=17 ; Awa=3x17-7=44.
-  si_echoue: 'Passage de la langue courante a l''ecriture mathematique : le triple diminue de 7 traduit
-    en 3(x-7).'
-- code: G5a
+  domaine: Calcul litteral et algebre
+  objet: Mettre en équation (x pintades, Awa le triple diminué de 7, total 61) puis résoudre dans D
+  reponse_attendue: x + 3x - 7 = 61 ; x = 17 (Kadidiatou 17 pintades, Awa 44)
+  solution: 'Kadidiatou x pintades, Awa 3x - 7 : x + 3x - 7 = 61, 4x = 68, x = 17 ; Awa 3 × 17 - 7 = 44.
+    Barème : 1 pt pour l''équation x + 3x - 7 = 61 ; 1 pt pour la résolution aboutissant à x = 17. Erreur
+    propagée : une équation fausse mais correctement résolue garde le second point.'
+  si_echoue: 'Passage de la langue courante à l''écriture mathématique : « le triple diminué de 7 » traduit
+    par 3(x - 7).'
+- code: G5
   partie: B
   format: construction
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 0.666667
+  bareme_classeur: 2.0
   competence: G.SYMC
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: '[G5, construction] Construire le symetrique d''un point par rapport a un point donne'
-  reponse_attendue: ''
-  solution: '[AB]=6 cm, I milieu de [AB] ; C a l''intersection du cercle de centre I rayon 4cm et du cercle
-    de centre A rayon 4,5cm ; D sur la demi-droite opposee a [IC) avec ID=IC=4cm.'
-  si_echoue: Construction au compas du symetrique d'un point par rapport a un point.
-- code: G5b
-  partie: B
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.SYMC
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[G5, deduction] Determiner la nature d''un quadrilatere construit par symetrie centrale'
-  reponse_attendue: ACBD est un parallelogramme (ni rectangle, ni losange)
-  solution: 'I est le milieu de [AB] et, par construction, le milieu de [CD] : un quadrilatere dont les
-    diagonales se coupent en leur milieu est un parallelogramme. Diagonales 6cm et 8cm, non perpendiculaires
-    : ni rectangle, ni losange.'
-  si_echoue: Reconnaissance d'un parallelogramme par ses diagonales, propriete de la symetrie centrale.
+  objet: Calculer OA si B est le symétrique de A par rapport à O et AB = 9 cm, puis construire la figure
+  reponse_attendue: OA = 9/2 = 4,5 cm (O milieu de [AB]) ; figure en vraie grandeur
+  solution: 'B symétrique de A par rapport à O : O est le milieu de [AB], OA = AB/2 = 4,5 cm. Figure :
+    segment [AB] de 9 cm, O placé à 4,5 cm de A, trois points nommés. Barème : 1 pt pour OA = 4,5 cm appuyée
+    sur O milieu de [AB] ; 1 pt pour la figure en vraie grandeur (AB = 9 cm, O à 4,5 cm de A, points nommés),
+    tolérance 2 mm. Erreur propagée : une longueur OA fausse reportée fidèlement garde le second point.'
+  si_echoue: 'Propriété caractéristique de la symétrie centrale : le centre de symétrie est le milieu
+    du segment qui joint un point et son symétrique.'
 - code: G6
   partie: B
   format: redige
@@ -335,12 +454,17 @@ questions:
   competence: G.ANG3
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Juger si deux droites sont paralleles a partir d'angles alternes-internes, et corriger
-  reponse_attendue: Boukary a tort ; il faudrait un angle de 68°
-  solution: 'Si (d) et (d'') etaient paralleles, les angles alternes-internes auraient la meme mesure.
-    Or 68°≠112° : les droites ne sont pas paralleles. Il faudrait EFy=68°.'
-  si_echoue: 'Reciproque de la propriete des angles alternes-internes : angles egaux confondus avec angles
-    supplementaires.'
+  objet: Trouver l'angle EFy alterne-interne de xEF = 73° qui rend (d) et (d') parallèles, puis discuter
+    107°
+  reponse_attendue: EFy = 73° (alternes-internes égaux) ; avec 107° les droites ne sont pas parallèles
+    (107° ≠ 73°)
+  solution: 'Deux droites coupées par une sécante sont parallèles lorsque deux angles alternes-internes
+    ont la même mesure : EFy = xEF = 73°. 107° est le supplémentaire de 73° : des alternes-internes supplémentaires
+    ne caractérisent pas le parallélisme. Barème : 1 pt pour 73° appuyé sur l''égalité des alternes-internes
+    ; 1 pt pour le cas 107° écarté par la comparaison 107° ≠ 73°. La seule réponse « non », sans comparaison,
+    ne vaut pas ce point.'
+  si_echoue: 'Réciproque de la propriété des angles alternes-internes : l''élève confond angles égaux
+    et angles supplémentaires.'
 - code: G7
   partie: B
   format: redige
@@ -349,26 +473,32 @@ questions:
   competence: G.TRIP
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer des angles successifs dans un triangle avec une bissectrice
-  reponse_attendue: BAD = 25°, ADB = 105°
-  solution: 'BAC=180-50-80=50° ; la bissectrice donne BAD=25° ; dans le triangle ABD : ADB=180-50-25=105°.'
-  si_echoue: Emploi repete de la somme des angles d'un triangle, avec changement de triangle en cours
-    de calcul.
+  objet: Calculer l'angle BAD (bissectrice) dans ABC où B = 50°, C = 80°, juger si (AD) est la médiatrice
+  reponse_attendue: BAC = 50°, BAD = 25° ; Sibiri a tort, (AD) n'est pas la médiatrice de [BC] (triangle
+    non isocèle en A)
+  solution: 'BAC = 180° - 50° - 80° = 50° ; bissectrice : BAD = 25°. La bissectrice issue de A n''est
+    la médiatrice de [BC] que si ABC est isocèle en A ; ici 50° ≠ 80°. Barème : 1 pt pour BAC = 50° puis
+    BAD = 25° ; 1 pt pour « il a tort » justifié par le triangle non isocèle en A (accepter AB ≠ AC, ou
+    (AD) non perpendiculaire à [BC]). Le jugement seul ne vaut pas ce point.'
+  si_echoue: Somme des angles d'un triangle, ou confusion entre bissectrice, médiane et médiatrice dans
+    un triangle quelconque.
 - code: G8
   partie: B
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
-  competence: G.SOL1
+  competence: M.VOL
   competence_secondaire: null
-  domaine: Activites geometriques
-  objet: Calculer la hauteur d'un cylindre a partir de son volume, puis juger l'effet d'un doublement
-    du rayon
-  reponse_attendue: hauteur 4 m ; Talato a tort (le volume est multiplie par 4)
-  solution: 'V=πr²h donc h=50,24/(3,14x2²)=4 m. Si le rayon double, r² est multiplie par 4, donc le volume
-    aussi (verifie : 3,14x4²x4=200,96=4x50,24).'
+  domaine: Mesures et grandeurs
+  objet: Calculer la hauteur d'un cylindre (r = 2 m, V = 50,24 m³, π = 3,14) et juger le doublement du
+    rayon
+  reponse_attendue: h = 4 m ; Talato a tort, le volume est multiplié par 4 (200,96 m³)
+  solution: 'V = π × r² × h : 50,24 = 3,14 × 2² × h = 12,56 × h, h = 4 m. Rayon doublé : r² est multiplié
+    par 4, donc le volume aussi : 3,14 × 4² × 4 = 200,96 m³. Barème : 1 pt pour h = 4 m retrouvée à partir
+    du volume ; 1 pt pour « elle a tort » justifié par le facteur 4, calculé ou expliqué par le carré
+    du rayon.'
   si_echoue: Effet sur le volume de la multiplication d'une longueur par un nombre, quand cette longueur
-    intervient au carre.
+    intervient au carré.
 - code: D2
   partie: B
   format: redige
@@ -376,143 +506,114 @@ questions:
   bareme_classeur: 2.0
   competence: D.POUR
   competence_secondaire: null
-  domaine: Organisation de donnees et proportionnalite
-  objet: Calculer un prix initial a partir d'un prix apres remise, puis juger une affirmation sur remise
-    et hausse
-  reponse_attendue: prix initial 60 000 FCFA ; le vendeur a tort
-  solution: 'Prix paye=85% du prix initial : 51000x100/85=60000 FCFA. 60000 diminue de 15%=51000 FCFA,
-    mais 51000 augmente de 15%=58650 FCFA, different de 60000 FCFA.'
-  si_echoue: 'Retour au prix initial apres une remise : l''eleve calcule 15% de 51000 FCFA et les ajoute.'
-- code: P1a
+  domaine: Donnees, proportionnalite, statistique
+  objet: Retrouver le prix d'un vélo avant une remise de 15 % (payé 51 000 FCFA) et juger le vendeur
+  reponse_attendue: prix avant remise 60 000 FCFA ; le vendeur a tort, la remise vaut 9 000 FCFA
+  solution: 'Prix payé = 85 % du prix initial : 51 000 × 100 / 85 = 60 000 FCFA. La remise porte sur le
+    prix avant remise : 15 × 60 000 / 100 = 9 000 FCFA (vérification 60 000 - 51 000 = 9 000). Barème
+    : 1 pt pour le prix avant remise 60 000 FCFA retrouvé à partir des 85 % ; 1 pt pour « il a tort »
+    justifié par la remise de 9 000 FCFA et la base du pourcentage. Accepter la vérification par soustraction.
+    Erreur propagée : un prix faux suivi d''une remise obtenue par soustraction garde le second point.'
+  si_echoue: 'Retour au prix initial après une remise : l''élève applique le pourcentage au prix réduit
+    au lieu du prix initial.'
+- code: P1.1
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 0.666667
+  bareme_classeur: 2.0
   competence: M.MVD
   competence_secondaire: null
   domaine: Mesures et grandeurs
-  objet: '[P1, sous-question 1/4] Calculer la duree d''un trajet a partir d''une distance et d''une vitesse'
-  reponse_attendue: 4 h 30
-  solution: ''
-  si_echoue: Calcul d'une duree a partir d'une distance et d'une vitesse, ou ecart de deux nombres relatifs
-    pris en valeur absolue.
+  objet: Calculer la durée d'un trajet de 360 km à 80 km/h et l'heure d'arrivée (départ à 6 h)
+  reponse_attendue: durée 360/80 = 4,5 h = 4 h 30 min ; arrivée à 10 h 30
+  solution: 'Barème (2 pts) : 1 pt pour la durée de 4 h 30 min ; 1 pt pour l''heure d''arrivée 10 h 30.
+    Une durée écrite 4,5 h sans conversion garde son point. La consommation de 22 L aux 100 km est une
+    donnée inutile (ne rien retirer ni ajouter à ce sujet).'
+  si_echoue: Calcul d'une durée à partir d'une distance et d'une vitesse.
   probleme_parent: P1
-- code: P1b
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: M.MVD
-  competence_secondaire: null
-  domaine: Mesures et grandeurs
-  objet: '[P1, sous-question 2/4] Donner l''heure d''arrivee a partir de l''heure de depart et de la duree'
-  reponse_attendue: 10 h 30
-  solution: ''
-  si_echoue: Calcul d'une duree a partir d'une distance et d'une vitesse, ou ecart de deux nombres relatifs
-    pris en valeur absolue.
-  probleme_parent: P1
-- code: P1c
+- code: P1.2
   partie: C
   format: redige
   bareme: 0.666667
   bareme_classeur: 2.0
   competence: N.VAB
-  competence_secondaire: null
+  competence_secondaire: N.RELOP
   domaine: Activites numeriques
-  objet: '[P1, sous-question 3/4] Calculer l''ecart en valeur absolue entre plusieurs releves et une temperature
-    de reference'
-  reponse_attendue: ecarts de 1°, 2°, 4° et 2,5°
-  solution: ''
-  si_echoue: Calcul d'une duree a partir d'une distance et d'une vitesse, ou ecart de deux nombres relatifs
-    pris en valeur absolue.
+  objet: Calculer l'écart à -15 degrés des relevés -16 ; -13 et -19 degrés
+  reponse_attendue: écarts de 1 degré (-16), 2 degrés (-13) et 4 degrés (-19)
+  solution: '|-16 - (-15)| = 1 ; |-13 - (-15)| = 2 ; |-19 - (-15)| = 4. Barème (2 pts) : 2 pts pour les
+    trois écarts 1 ; 2 et 4 ; 1 pt seulement si deux des trois sont justes. Ne rien retirer pour un écart
+    écrit en relatif (-1 au lieu de 1) si la comparaison de la question 3 est menée sur la valeur absolue.'
+  si_echoue: Ecart de deux nombres relatifs pris en valeur absolue.
   probleme_parent: P1
-- code: P1d
+- code: P1.3
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 1.0
+  bareme_classeur: 3.0
   competence: N.VAB
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: '[P1, sous-question 4/4] Identifier le releve non conforme a une tolerance donnee et conclure'
-  reponse_attendue: seul le releve de -19° est non conforme (ecart de 4° > 3°) ; la temperature imposee
-    n'a pas ete respectee
-  solution: ''
-  si_echoue: Calcul d'une duree a partir d'une distance et d'une vitesse, ou ecart de deux nombres relatifs
-    pris en valeur absolue.
+  objet: Désigner le relevé dont l'écart à -15 dépasse 3 degrés et conclure sur la température imposée
+  reponse_attendue: le relevé de -19 degrés (écart 4 > 3) ; la température imposée n'a pas été respectée
+  solution: 'Conclusion attendue : « La température imposée n''a pas été respectée pendant tout le trajet,
+    car le relevé de -19 degrés s''écarte de 4 degrés de -15 degrés, ce qui dépasse la limite de 3 degrés.
+    » Barème (3 pts) : 1 pt pour la comparaison explicite de l''écart le plus grand à la limite (4 > 3)
+    ; 1 pt pour l''identification du relevé de -19 degrés comme seul non conforme ; 1 pt pour la phrase
+    de conclusion. Erreur propagée : des écarts faux à la question 2, comparés correctement à 3 degrés,
+    gardent les deux premiers points.'
+  si_echoue: Ecart de deux nombres relatifs pris en valeur absolue, et comparaison à une limite.
   probleme_parent: P1
-- code: P2a
+- code: P2.1
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: L.MISE
-  competence_secondaire: null
-  domaine: Calcul litteral et equations
-  objet: '[P2, sous-question 1/5] Ecrire l''equation traduisant une situation de recette avec frais fixe'
-  reponse_attendue: 5 000x - 3 000 = 30 000
-  solution: ''
-  si_echoue: 'Retour au contexte apres resolution : accepter une solution decimale la ou seul un nombre
-    entier a un sens.'
-  probleme_parent: P2
-- code: P2b
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: L.EGA
-  competence_secondaire: null
-  domaine: Calcul litteral et equations
-  objet: '[P2, sous-question 2/5] Indiquer l''operation a appliquer aux deux membres d''une equation'
-  reponse_attendue: ajouter 3 000
-  solution: ''
-  si_echoue: 'Retour au contexte apres resolution : accepter une solution decimale la ou seul un nombre
-    entier a un sens.'
-  probleme_parent: P2
-- code: P2c
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 0.666667
+  bareme_classeur: 2.0
   competence: L.EQD
   competence_secondaire: null
-  domaine: Calcul litteral et equations
-  objet: '[P2, sous-question 3/5] Resoudre l''equation obtenue'
-  reponse_attendue: x = 6,6
-  solution: ''
-  si_echoue: 'Retour au contexte apres resolution : accepter une solution decimale la ou seul un nombre
-    entier a un sens.'
+  domaine: Calcul litteral et algebre
+  objet: 'Mettre en équation : x sacs à 5 000 FCFA, transport de 3 000 FCFA, recette visée 32 000 FCFA'
+  reponse_attendue: 5 000x - 3 000 = 32 000
+  solution: 'Recette des ventes 5 000x FCFA, transport de 3 000 FCFA retiré. Barème (2 pts) : 1 pt pour
+    l''expression 5 000x - 3 000 ; 1 pt pour l''égalité à 32 000. Une équation équivalente (5 000x = 32
+    000 + 3 000) vaut les 2 pts.'
+  si_echoue: Traduction d'une situation par une équation.
   probleme_parent: P2
-- code: P2d
+- code: P2.2
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 0.666667
+  bareme_classeur: 2.0
+  competence: L.EGA
+  competence_secondaire: L.EQD
+  domaine: Calcul litteral et algebre
+  objet: Nommer l'opération menant à 5 000x = 35 000, puis résoudre 5 000x - 3 000 = 32 000 dans D
+  reponse_attendue: ajouter 3 000 aux deux membres (5 000x = 35 000) ; x = 7 sacs
+  solution: '5 000x = 32 000 + 3 000 = 35 000 ; x = 35 000 / 5 000 = 7. Barème (2 pts) : 1 pt pour l''opération
+    nommée « ajouter 3 000 aux deux membres » ; 1 pt pour la solution x = 7. L''opération simplement effectuée
+    sans être nommée garde son point (sur la solution).'
+  si_echoue: Transformation d'une égalité.
+  probleme_parent: P2
+- code: P2.3
+  partie: C
+  format: redige
+  bareme: 1.0
+  bareme_classeur: 3.0
   competence: D.POUR
   competence_secondaire: null
-  domaine: Organisation de donnees et proportionnalite
-  objet: '[P2, sous-question 4/5] Calculer un nouveau prix apres une hausse en pourcentage'
-  reponse_attendue: 5 500 FCFA
-  solution: ''
-  si_echoue: 'Retour au contexte apres resolution : accepter une solution decimale la ou seul un nombre
-    entier a un sens.'
+  domaine: Donnees, proportionnalite, statistique
+  objet: Juger si 6 sacs vendus 20 % plus cher que 5 000 FCFA donnent 32 000 FCFA, transport payé
+  reponse_attendue: nouveau prix 6 000 FCFA ; recette transport payé 33 000 FCFA > 32 000 ; Zenabou a
+    raison
+  solution: '20 % de 5 000 = 1 000 FCFA, nouveau prix 6 000 FCFA ; 6 × 6 000 = 36 000 ; 36 000 - 3 000
+    = 33 000 > 32 000. Conclusion : « Zenabou a raison : sa recette transport payé est de 33 000 FCFA,
+    soit 1 000 FCFA de plus que l''objectif. » Barème (3 pts) : 1 pt pour le nouveau prix 6 000 FCFA ;
+    1 pt pour la recette transport payé 33 000 FCFA ; 1 pt pour « elle a raison » et la conclusion appuyée
+    sur 33 000 vs 32 000. Erreur propagée : un nouveau prix faux exploité correctement garde les deux
+    derniers points. Le coefficient 1,2 vaut le premier point.'
+  si_echoue: Augmentation d'un prix d'un pourcentage donné suivie d'un retour au contexte pour décider.
   probleme_parent: P2
-- code: P2e
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: L.MISE
-  competence_secondaire: null
-  domaine: Calcul litteral et equations
-  objet: '[P2, sous-question 5/5] Conclure sur la possibilite d''une recette donnee, compte tenu du caractere
-    entier du nombre de sacs'
-  reponse_attendue: 'impossible : 6,6 n''est pas un nombre entier'
-  solution: ''
-  si_echoue: 'Retour au contexte apres resolution : accepter une solution decimale la ou seul un nombre
-    entier a un sens.'
-  probleme_parent: P2
-- code: P3a
+- code: P3.1
   partie: C
   format: redige
   bareme: 0.666667
@@ -520,152 +621,44 @@ questions:
   competence: M.ECH
   competence_secondaire: null
   domaine: Mesures et grandeurs
-  objet: '[P3, sous-question 1/5] Calculer les trois longueurs reelles d''un triangle a partir d''un plan
-    a l''echelle'
-  reponse_attendue: AB=45 m, BC=35 m, CA=25 m
-  solution: ''
-  si_echoue: Emploi d'une echelle sur des longueurs, ou distinction entre ce qu'une reduction transforme
-    (les longueurs) et ce qu'elle conserve (les angles).
+  objet: Calculer en mètres les dimensions réelles d'un champ de 9 cm sur 6 cm sur un plan au 1/500
+  reponse_attendue: longueur 45 m, largeur 30 m
+  solution: 'Au 1/500, 1 cm sur le plan = 500 cm = 5 m : 9 × 5 = 45 m et 6 × 5 = 30 m. Barème (2 pts)
+    : 1 pt pour l''emploi de l''échelle (1 cm pour 5 m, ou × 500 puis conversion) ; 1 pt pour les deux
+    dimensions 45 m et 30 m (non acquis si une seule est juste).'
+  si_echoue: Emploi d'une échelle sur des longueurs.
   probleme_parent: P3
-- code: P3b
+- code: P3.2
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.TRIP
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P3, sous-question 2/5] Calculer un angle d''un triangle par la somme des angles'
-  reponse_attendue: BAC = 50°
-  solution: ''
-  si_echoue: Emploi d'une echelle sur des longueurs, ou distinction entre ce qu'une reduction transforme
-    (les longueurs) et ce qu'elle conserve (les angles).
-  probleme_parent: P3
-- code: P3c
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.TRIP
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P3, sous-question 3/5] Donner la mesure du meme angle sur le terrain reel, en justifiant par
-    la conservation des angles'
-  reponse_attendue: 50°, une reduction conserve les angles
-  solution: ''
-  si_echoue: Emploi d'une echelle sur des longueurs, ou distinction entre ce qu'une reduction transforme
-    (les longueurs) et ce qu'elle conserve (les angles).
-  probleme_parent: P3
-- code: P3d
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: G.TRIP
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P3, sous-question 4/5] Verifier l''inegalite triangulaire pour juger si un triangle donne peut
-    exister'
-  reponse_attendue: le triangle propose n'existe pas (25+12=37 < 45)
-  solution: ''
-  si_echoue: Emploi d'une echelle sur des longueurs, ou distinction entre ce qu'une reduction transforme
-    (les longueurs) et ce qu'elle conserve (les angles).
-  probleme_parent: P3
-- code: P3e
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: D.POUR
-  competence_secondaire: null
-  domaine: Organisation de donnees et proportionnalite
-  objet: '[P3, sous-question 5/5] Calculer un cout total et conclure sur un budget disponible'
-  reponse_attendue: 126 000 FCFA, le budget de 130 000 FCFA suffit
-  solution: ''
-  si_echoue: Emploi d'une echelle sur des longueurs, ou distinction entre ce qu'une reduction transforme
-    (les longueurs) et ce qu'elle conserve (les angles).
-  probleme_parent: P3
-- code: P4a
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
+  bareme: 1.0
+  bareme_classeur: 3.0
   competence: N.PGCD
-  competence_secondaire: null
+  competence_secondaire: N.DIVIS
   domaine: Activites numeriques
-  objet: '[P4, sous-question 1/6] Determiner la masse maximale d''un lot par le PGCD de deux quantites'
-  reponse_attendue: 48 kg
-  solution: ''
-  si_echoue: Emploi du PGCD dans un probleme de partage, ou reperage d'une donnee manquante au lieu d'un
-    calcul mene avec un prix invente.
-  probleme_parent: P4
-- code: P4b
+  objet: 'Partager un champ de 45 m sur 30 m en carrés les plus grands possibles : côté puis nombre de
+    carrés'
+  reponse_attendue: côté = PGCD(45 ; 30) = 15 m ; 6 parcelles
+  solution: '45 = 3² × 5 et 30 = 2 × 3 × 5, PGCD = 15. Nombre de parcelles : (45/15) × (30/15) = 3 × 2
+    = 6. Barème (3 pts) : 1 pt pour avoir reconnu le PGCD de 45 et 30 ; 1 pt pour 15 m ; 1 pt pour les
+    6 parcelles. Accepter la liste des diviseurs communs. Erreur propagée : un côté faux mais divisant
+    les deux dimensions, suivi d''un nombre de parcelles correct, garde le troisième point.'
+  si_echoue: PGCD comme outil d'un partage optimal.
+  probleme_parent: P3
+- code: P3.3
   partie: C
   format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.PGCD
+  bareme: 1.0
+  bareme_classeur: 3.0
+  competence: D.PROP
   competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P4, sous-question 2/6] Determiner le nombre total de lots obtenus'
-  reponse_attendue: 5 lots
-  solution: ''
-  si_echoue: Emploi du PGCD dans un probleme de partage, ou reperage d'une donnee manquante au lieu d'un
-    calcul mene avec un prix invente.
-  probleme_parent: P4
-- code: P4c
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.FRA2
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P4, sous-question 3/6] Calculer une fraction vendue apres deux ventes successives'
-  reponse_attendue: 5/8
-  solution: ''
-  si_echoue: Emploi du PGCD dans un probleme de partage, ou reperage d'une donnee manquante au lieu d'un
-    calcul mene avec un prix invente.
-  probleme_parent: P4
-- code: P4d
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: N.FRA2
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P4, sous-question 4/6] Calculer la masse restante a partir de la fraction vendue'
-  reponse_attendue: 54 kg
-  solution: ''
-  si_echoue: Emploi du PGCD dans un probleme de partage, ou reperage d'une donnee manquante au lieu d'un
-    calcul mene avec un prix invente.
-  probleme_parent: P4
-- code: P4e
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: D.POUR
-  competence_secondaire: null
-  domaine: Organisation de donnees et proportionnalite
-  objet: '[P4, sous-question 5/6] Calculer un cout de transport proportionnel a un nombre de lots'
-  reponse_attendue: 3 500 FCFA
-  solution: ''
-  si_echoue: Emploi du PGCD dans un probleme de partage, ou reperage d'une donnee manquante au lieu d'un
-    calcul mene avec un prix invente.
-  probleme_parent: P4
-- code: P4f
-  partie: C
-  format: redige
-  bareme: 0.333333
-  bareme_classeur: 1.0
-  competence: D.POUR
-  competence_secondaire: null
-  domaine: Organisation de donnees et proportionnalite
-  objet: '[P4, sous-question 6/6] Identifier une donnee manquante empechant un calcul, et conclure'
-  reponse_attendue: le prix de vente du mil manque, la recette ne peut pas etre calculee
-  solution: ''
-  si_echoue: Emploi du PGCD dans un probleme de partage, ou reperage d'une donnee manquante au lieu d'un
-    calcul mene avec un prix invente.
-  probleme_parent: P4
+  domaine: Donnees, proportionnalite, statistique
+  objet: Calculer le coût du grillage (1 200 FCFA/m) d'un champ de 45 m sur 30 m, juger un budget de 200
+    000
+  reponse_attendue: périmètre 150 m ; coût 180 000 FCFA < 200 000, le budget suffit (reste 20 000 FCFA)
+  solution: '2 × (45 + 30) = 150 m ; 150 × 1 200 = 180 000 FCFA < 200 000 ; reste 20 000 FCFA. Barème
+    (3 pts) : 1 pt pour le périmètre 150 m ; 1 pt pour le coût 180 000 FCFA ; 1 pt pour la conclusion
+    que le budget suffit, appuyée sur 180 000 vs 200 000. Un périmètre calculé comme 45 + 30 perd le premier
+    point mais garde les deux autres si le coût et la conclusion en découlent correctement.'
+  si_echoue: Périmètre d'un rectangle confondu avec la somme de deux côtés.
+  probleme_parent: P3

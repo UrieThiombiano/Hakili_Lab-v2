@@ -246,25 +246,40 @@ def _build_context(
     pct = (final_score / _denom) if _denom else 0.0
 
     rubric_pts: dict[str, float] = {}
+    points_corrige: dict[str, float] = {}
     if rubric:
         rubric_pts = {item.id: item.max_score for item in (rubric.items or [])}
+        points_corrige = {
+            item.id: item.points_corrige for item in (rubric.items or []) if getattr(item, "points_corrige", None)
+        }
+    # Tests du référentiel : points affichés comme sur le corrigé papier
+    # (« 1 / 2 »), et non sur l'échelle /20 (« 0,333333 / 0,666667 »).
+    en_points_corrige = bool(points_corrige)
 
     good_qs: list[dict] = []
+    partial_qs: list[dict] = []
     bad_qs:  list[dict] = []
     for q in questions:
         ms  = rubric_pts.get(q.rubric_item_id, 1.0)
         eff = _effective_score(q)
+        pts = points_corrige.get(q.rubric_item_id)
+        affiche, maximum = (eff / ms * pts, pts) if pts and ms else (eff, ms)
         entry = {
             "id":        _display_id(q.rubric_item_id),
-            "score_fmt": _fmt(eff),
-            "max_fmt":   _fmt(ms),
+            "score_fmt": _fmt(round(affiche, 2)),
+            "max_fmt":   _fmt(round(maximum, 2)),
             "conf_pct":  round(q.confidence * 100),
             "comment":   _cm(q.comment or ""),
             "observed":  _cm(q.observed_answer or "--"),
             "correct":   _cm(q.correct_answer  or "--"),
             "review":    q.requires_review,
         }
-        (good_qs if eff > 0 else bad_qs).append(entry)
+        if eff <= 0:
+            bad_qs.append(entry)
+        elif eff >= ms - 1e-6:
+            good_qs.append(entry)
+        else:
+            partial_qs.append(entry)
 
     skills: list[dict] = []
     if diagnostic and diagnostic.skills:
@@ -306,7 +321,10 @@ def _build_context(
         "REVIEW_COUNT":      n_review,
         "SCORE_PCT":         pct,
         "good_questions":    good_qs,
+        "partial_questions": partial_qs,
         "bad_questions":     bad_qs,
+        "POINTS_CORRIGE":    en_points_corrige,
+        "TOTAL_CORRIGE":     _fmt(round(sum(points_corrige.values()), 2)) if en_points_corrige else "",
         "strengths":         [_cm(s) for s in (diagnostic.strengths  if diagnostic else [])],
         "weaknesses":        [_cm(s) for s in (diagnostic.weaknesses if diagnostic else [])],
         "skills":            skills,

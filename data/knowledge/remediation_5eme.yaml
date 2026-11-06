@@ -179,14 +179,7 @@
 
       [SVG: figures/m01_f4.svg]
 
-      *Figure 1.4 : le nombre exact est enfermé entre valeur par défaut et valeur par excès.*
-
-      > #### DÉCLIC : Couper n''est pas arrondir
-
-      >
-
-      > Répondre $8{,}7$ à la fois « par défaut » et « par excès » au dixième de $8{,}74$, c''est n''avoir
-      qu''un nombre sous les yeux. Écris d''abord $8{,}7 < 8{,}74 < 8{,}8$ : deux bornes, tu choisis ensuite.'
+      *Figure 1.4 : le nombre exact est enfermé entre valeur par défaut et valeur par excès.*'
     erreurs_frequentes:
     - erreur: donner $8{,}7$ comme valeur **par excès** au dixième de $8{,}74$.
       correction: $8{,}7$ est la valeur par défaut ; par excès, c'est $8{,}8$.
@@ -194,11 +187,7 @@
       correction: au centième, on garde exactement deux chiffres après la virgule.
     declic: 'Couper n''est pas arrondir — Répondre $8{,}7$ à la fois « par défaut » et « par excès » au
       dixième de $8{,}74$, c''est n''avoir qu''un nombre sous les yeux. Écris d''abord $8{,}7 < 8{,}74
-      < 8{,}8$ : deux bornes, tu choisis ensuite. #### ⚠ ATTENTION ! - **Erreur fréquente :** donner $8{,}7$
-      comme valeur **par excès** au dixième de $8{,}74$. **Correction :** $8{,}7$ est la valeur par défaut
-      ; par excès, c''est $8{,}8$. - **Erreur fréquente :** rendre une troncature au centième avec trois
-      décimales, comme $1{,}034$. **Correction :** au centième, on garde exactement deux chiffres après
-      la virgule.'
+      < 8{,}8$ : deux bornes, tu choisis ensuite.'
     figures:
     - figures/m01_f4.svg
   exercices:
@@ -575,10 +564,7 @@
       correction: cette ligne vaut 700. Ce qu'on retire en bloc s'écrit entre parenthèses.
     declic: '$7 + 3 \times 6$ te semble faire 60 ? — Le blocage n''est pas dans les tables, il est dans
       la **lecture** : tu lis la ligne comme une phrase. Une expression est un empilement de **blocs**.
-      Entoure chaque multiplication au crayon avant d''écrire. #### MÉTHODE : Calculer une expression
-      avec priorités 1. Calcule la parenthèse la plus intérieure, puis le crochet. 2. Effectue les multiplications
-      et divisions, de gauche à droite. 3. Effectue les additions et soustractions, de gauche à droite.
-      4. Recopie **chaque étape sur une nouvelle ligne**.'
+      Entoure chaque multiplication au crayon avant d''écrire.'
     figures:
     - figures/m02_f3.svg
   - id: 5eme_M02_L4
@@ -1134,10 +1120,7 @@
       correction: écris $1 = \frac{4}{4}$, puis $\frac{4}{4} - \frac{3}{4} = \frac{1}{4}$.
     declic: 'Si tu additionnes encore les dénominateurs — Écrire $\frac{2}{7} + \frac{3}{7} = \frac{5}{14}$,
       c''est prétendre que le champ a été recoupé. Le dénominateur dit **comment le tout est découpé**
-      : le $7$ ne bouge pas. #### MÉTHODE : Additionner ou soustraire deux fractions 1. Compare les dénominateurs
-      ; s''ils sont identiques, passe à l''étape 3. 2. Si l''un est multiple de l''autre, réécris la fraction
-      au petit dénominateur. 3. Opère sur les **numérateurs** seulement, garde le dénominateur. 4. Simplifie,
-      puis compare le résultat à $1$.'
+      : le $7$ ne bouge pas.'
     figures: []
   exercices:
   - numero: 1
@@ -1485,16 +1468,7 @@
 
       | On défait. | ☐ $= 72 - 43 = 29$ |
 
-      | **Vérification :** $72 - 29 = 43$, et $29 + 43 = 72$. ✓ | |
-
-
-      > #### DÉCLIC : Le trou n''est pas toujours plus petit
-
-      >
-
-      > Si ☐ $- 51 = 18$ te fait écrire $51 - 18 = 33$, le blocage n''est pas la soustraction : c''est
-      la lecture de la place du trou. Ici le trou est le nombre de départ, donc le **tout**, donc plus
-      grand que 18 : ☐ $= 18 + 51 = 69$.'
+      | **Vérification :** $72 - 29 = 43$, et $29 + 43 = 72$. ✓ | |'
     erreurs_frequentes:
     - erreur: recopier l'opération de l'énoncé au lieu de la défaire.
       correction: c'est la place du trou qui décide, pas le signe écrit.
@@ -1502,11 +1476,7 @@
       correction: remplace toujours le trou par ta valeur et calcule les deux membres.
     declic: 'Le trou n''est pas toujours plus petit — Si ☐ $- 51 = 18$ te fait écrire $51 - 18 = 33$,
       le blocage n''est pas la soustraction : c''est la lecture de la place du trou. Ici le trou est le
-      nombre de départ, donc le **tout**, donc plus grand que 18 : ☐ $= 18 + 51 = 69$. #### ⚠ ATTENTION
-      ! - **Erreur fréquente :** recopier l''opération de l''énoncé au lieu de la défaire. **Correction
-      :** c''est la place du trou qui décide, pas le signe écrit. - **Erreur fréquente :** trouver un
-      nombre et passer à la suite. **Correction :** remplace toujours le trou par ta valeur et calcule
-      les deux membres.'
+      nombre de départ, donc le **tout**, donc plus grand que 18 : ☐ $= 18 + 51 = 69$.'
     figures: []
   - id: 5eme_M04_L3
     numero: '4.3'
@@ -1925,16 +1895,7 @@
 
       [SVG: figures/m05_f5.svg]
 
-      *Figure 5.3 : Ajouter un positif, c''est avancer ; ajouter un négatif, c''est reculer.*
-
-
-      > #### DÉCLIC : Le signe du résultat n''est jamais choisi au hasard
-
-      >
-
-      > Si tu écris $\left(+8\right) + \left(-3\right) = +11$, tu as lu $-3$ comme « $3$ avec une décoration
-      devant ». Or $-3$ tire vers la gauche pendant que $+8$ tire vers la droite : ils ne s''additionnent
-      pas, ils se compensent. Le résultat est toujours du côté du plus fort.'
+      *Figure 5.3 : Ajouter un positif, c''est avancer ; ajouter un négatif, c''est reculer.*'
     erreurs_frequentes:
     - erreur: $\left(-6\right) + \left(-9\right) = -3$.
       correction: 'signes identiques, deux pertes se cumulent : $6 + 9 = 15$, donc $-15$.'
@@ -1943,10 +1904,7 @@
     declic: 'Le signe du résultat n''est jamais choisi au hasard — Si tu écris $\left(+8\right) + \left(-3\right)
       = +11$, tu as lu $-3$ comme « $3$ avec une décoration devant ». Or $-3$ tire vers la gauche pendant
       que $+8$ tire vers la droite : ils ne s''additionnent pas, ils se compensent. Le résultat est toujours
-      du côté du plus fort. #### ⚠ ATTENTION ! - **Erreur fréquente :** $\left(-6\right) + \left(-9\right)
-      = -3$. **Correction :** signes identiques, deux pertes se cumulent : $6 + 9 = 15$, donc $-15$. -
-      **Erreur fréquente :** $\left(+8\right) + \left(-3\right) = +11$. **Correction :** signes différents,
-      écart $8 - 3 = 5$, signe de $+8$, donc $+5$.'
+      du côté du plus fort.'
     figures:
     - figures/m05_f5.svg
   - id: 5eme_M05_L4
@@ -2356,15 +2314,7 @@
 
       | On écrit la bonne grandeur. | 15 kg |
 
-      | **Vérification :** $15 \times 600 = 9\,000$ FCFA. ✓ | |
-
-
-      > #### DÉCLIC : Le produit en croix n''est pas le problème
-
-      >
-
-      > S''il te trahit une fois sur deux, ce n''est pas la proportionnalité : c''est la division qui
-      coince. $9\,000 \div 600$ suppose une division posée sûre. Reprends le module 2, puis reviens.'
+      | **Vérification :** $15 \times 600 = 9\,000$ FCFA. ✓ | |'
     erreurs_frequentes:
     - erreur: croiser à l'envers, $\left(8 \times 600\right) \div 12 = 400$.
       correction: 'on multiplie **en diagonale** du nombre cherché : $\left(12 \times 600\right) \div
@@ -2373,11 +2323,7 @@
       correction: 'on multiplie : $4 \times 75 = 300$ FCFA de plus.'
     declic: 'Le produit en croix n''est pas le problème — S''il te trahit une fois sur deux, ce n''est
       pas la proportionnalité : c''est la division qui coince. $9\,000 \div 600$ suppose une division
-      posée sûre. Reprends le module 2, puis reviens. #### ⚠ ATTENTION ! - **Erreur fréquente :** croiser
-      à l''envers, $\left(8 \times 600\right) \div 12 = 400$. **Correction :** on multiplie **en diagonale**
-      du nombre cherché : $\left(12 \times 600\right) \div 8 = 900$ FCFA. - **Erreur fréquente :** « 4
-      cahiers de plus, donc $4$ FCFA de plus ». **Correction :** on multiplie : $4 \times 75 = 300$ FCFA
-      de plus.'
+      posée sûre. Reprends le module 2, puis reviens.'
     figures: []
   - id: 5eme_M06_L3
     numero: '6.3'
@@ -2831,16 +2777,7 @@
       | Arcs de centre M, puis de centre N ; on relie P et Q. | $\left(PQ\right)$ est la médiatrice |
 
       | **Vérification :** elle coupe $\left[MN\right]$ en I avec $MI = IN = 3{,}5$ cm, et $3{,}5 + 3{,}5
-      = 7$. ✓ | |
-
-
-      > #### DÉCLIC : Tes deux arcs ne se coupent jamais
-
-      >
-
-      > Le blocage n''est pas dans la médiatrice, il est dans le compas. Trois causes, trois secondes
-      : ouverture inférieure à la moitié de $AB$ ; écartement modifié entre les arcs de A et ceux de B
-      ; pointe sèche qui glisse. Appuie sur la pointe, jamais sur la mine, et trace des arcs larges.'
+      = 7$. ✓ | |'
     erreurs_frequentes:
     - erreur: « elle passe par le milieu, donc c'est la médiatrice ».
       correction: il faut **en plus** l'angle droit ; une infinité de droites passent par le milieu.
@@ -2849,10 +2786,7 @@
     declic: 'Tes deux arcs ne se coupent jamais — Le blocage n''est pas dans la médiatrice, il est dans
       le compas. Trois causes, trois secondes : ouverture inférieure à la moitié de $AB$ ; écartement
       modifié entre les arcs de A et ceux de B ; pointe sèche qui glisse. Appuie sur la pointe, jamais
-      sur la mine, et trace des arcs larges. #### ⚠ ATTENTION ! - **Erreur fréquente :** « elle passe
-      par le milieu, donc c''est la médiatrice ». **Correction :** il faut **en plus** l''angle droit
-      ; une infinité de droites passent par le milieu. - **Erreur fréquente :** « M est sur la médiatrice,
-      donc $MA = 5$ cm et $MB = 7$ cm ». **Correction :** impossible, sur la médiatrice $MA = MB$.'
+      sur la mine, et trace des arcs larges.'
     figures:
     - figures/m07_f4.svg
   - id: 5eme_M07_L4
@@ -3324,25 +3258,11 @@
 
       | La plus longue corde est le diamètre. | $15 > 14$ : **impossible** |
 
-      | **Vérification :** $7 + 7 = 14$ cm ✓ | |
-
-
-      > #### DÉCLIC : le mot manquant est presque toujours « distance »
-
-      >
-
-      > Si corde, diamètre et arc se mélangent, le blocage n''est pas le vocabulaire : c''est la **distance
-      entre deux points**.
-
-      > Chaque définition ne parle que des extrémités et de la distance au centre. Le compas, lui, garde
-      une distance constante.'
+      | **Vérification :** $7 + 7 = 14$ cm ✓ | |'
     erreurs_frequentes: []
     declic: 'le mot manquant est presque toujours « distance » — Si corde, diamètre et arc se mélangent,
       le blocage n''est pas le vocabulaire : c''est la **distance entre deux points**. Chaque définition
-      ne parle que des extrémités et de la distance au centre. Le compas, lui, garde une distance constante.
-      #### ⚠ ATTENTION ! - **Erreur :** appeler « cercle » la surface ronde. **Correction :** le cercle
-      est la **ligne**, la surface est le **disque**. - **Erreur :** ne retenir que dedans et dehors.
-      **Correction :** il y a **trois** positions ; à la distance exacte r, le point est **sur** le cercle.'
+      ne parle que des extrémités et de la distance au centre. Le compas, lui, garde une distance constante.'
     figures:
     - figures/m08_f6.svg
   exercices:
@@ -3742,16 +3662,7 @@
 
       | Second cas : la signature change. | $(AC) \perp (BD)$, donc **losange** |
 
-      | **Vérification :** les deux données ensemble donneraient un carré. ✓ | |
-
-
-      > #### DÉCLIC : quatre côtés égaux ne fait pas un carré
-
-      >
-
-      > Quatre côtés égaux, c''est un **losange**, et rien de plus : un losange aplati n''a aucun angle
-      droit. Pour le carré, il faut **ajouter** un angle droit ou l''égalité des diagonales. Une signature
-      ne se remplace jamais par une impression visuelle.'
+      | **Vérification :** les deux données ensemble donneraient un carré. ✓ | |'
     erreurs_frequentes:
     - erreur: « un carré n'est pas un rectangle ».
       correction: il a quatre angles droits, donc il **est** un rectangle, et aussi un losange. L'inverse
@@ -3760,11 +3671,7 @@
       correction: les bases sont les côtés **parallèles**.
     declic: 'quatre côtés égaux ne fait pas un carré — Quatre côtés égaux, c''est un **losange**, et rien
       de plus : un losange aplati n''a aucun angle droit. Pour le carré, il faut **ajouter** un angle
-      droit ou l''égalité des diagonales. Une signature ne se remplace jamais par une impression visuelle.
-      #### ⚠ ATTENTION ! - **Erreur fréquente :** « un carré n''est pas un rectangle ». **Correction :**
-      il a quatre angles droits, donc il **est** un rectangle, et aussi un losange. L''inverse est faux.
-      - **Erreur fréquente :** appeler « bases » les côtés obliques d''un trapèze. **Correction :** les
-      bases sont les côtés **parallèles**.'
+      droit ou l''égalité des diagonales. Une signature ne se remplace jamais par une impression visuelle.'
     figures:
     - figures/m09_f5.svg
     - figures/m09_f6.svg
@@ -4131,40 +4038,7 @@
 
       [SVG: figures/m10_f3.svg]
 
-      *Figure 10.2 : Perpendiculaire à (d), pied H, report de la distance de l''autre côté.*
-
-
-      > #### MÉTHODE : Construire le symétrique d''une figure
-
-      >
-
-      > 1. Repère les points-clés : sommets, extrémités, centre d''un cercle.
-
-      > 2. Construis le symétrique de chacun ; un point sur (D) ne bouge pas.
-
-      > 3. Relie les images **dans le même ordre**.
-
-      > 4. Vérifie : chaque longueur est conservée.
-
-
-      > #### 📖 CE QU''IL FAUT RETENIR
-
-      >
-
-      > **Ce que la symétrie conserve**
-
-      >
-
-      > - Segment $\to$ segment de **même longueur** ; droite $\to$ droite ; cercle $\to$ cercle de **même
-      rayon**.
-
-      > - Figure usuelle $\to$ figure de **même nature** (rectangle $\to$ rectangle).
-
-      > - Sont conservés : **longueurs, angles, alignement, parallélisme, aires, périmètres**.
-
-      > - N''est pas conservé : le **sens de lecture**.
-
-      > - Une longueur ou une aire sur la figure image **se recopie**, elle ne se recalcule pas.'
+      *Figure 10.2 : Perpendiculaire à (d), pied H, report de la distance de l''autre côté.*'
     erreurs_frequentes:
     - erreur: reporter A « tout droit en face », sans perpendiculaire.
       correction: $A'$ est toujours sur la perpendiculaire à (D) issue de A.
@@ -4172,11 +4046,7 @@
       correction: la distance à reporter est $HA$ ; $AA'$ en est le double.
     declic: 'Tout repose sur la médiatrice — Si « (D) est la médiatrice de $\left[AA''\right]$ » ne te
       dit rien de précis, inutile d''aller plus loin. Deux mots, deux exigences : **perpendiculaire**
-      et **milieu**. Reprends le module 7, puis reviens : la suite devient une simple application. ####
-      MÉTHODE : Construire le symétrique d''un point 1. Trace à l''équerre la perpendiculaire à (D) passant
-      par A ; elle coupe (D) en H. 2. Mesure $HA$. 3. Reporte $HA$ à partir de H, de **l''autre côté**
-      de (D), sur cette perpendiculaire : c''est $A''$. 4. Contrôle : H est le milieu de $\left[AA''\right]$
-      ; le pliage pose A sur $A''$.'
+      et **milieu**. Reprends le module 7, puis reviens : la suite devient une simple application.'
     figures:
     - figures/m10_f3.svg
   - id: 5eme_M10_L3
@@ -4695,16 +4565,7 @@
 
       | On compare au besoin quotidien. | $30\,000 > 25\,000$ |
 
-      | **Conclusion :** un remplissage suffit, avec $5\,000$ L de marge. ✓ | |
-
-
-      > #### DÉCLIC : Pourquoi $1\,000$ et non $10$ ?
-
-      >
-
-      > Un mètre cube est un cube de $1$ m d''arête : $10$ dm de long, $10$ de large, $10$ de haut, soit
-      $1\,000$ petits cubes. Le facteur $10$ agit **trois** fois pour un volume, **deux** fois pour une
-      aire (d''où $100$), **une** fois pour une longueur.'
+      | **Conclusion :** un remplissage suffit, avec $5\,000$ L de marge. ✓ | |'
     erreurs_frequentes:
     - erreur: multiplier $2$ m $\times 50$ cm $\times 40$ cm.
       correction: 'convertis : $20 \times 5 \times 4 = 400$ dm$^{3} = 400$ L.'
@@ -4712,10 +4573,7 @@
       correction: 'on divise par $1\,000$ : $5$ L.'
     declic: 'Pourquoi $1\,000$ et non $10$ ? — Un mètre cube est un cube de $1$ m d''arête : $10$ dm de
       long, $10$ de large, $10$ de haut, soit $1\,000$ petits cubes. Le facteur $10$ agit **trois** fois
-      pour un volume, **deux** fois pour une aire (d''où $100$), **une** fois pour une longueur. ####
-      ⚠ ATTENTION ! - **Erreur fréquente :** multiplier $2$ m $\times 50$ cm $\times 40$ cm. **Correction
-      :** convertis : $20 \times 5 \times 4 = 400$ dm$^{3} = 400$ L. - **Erreur fréquente :** $5\,000$
-      cm$^{3} = 500$ L. **Correction :** on divise par $1\,000$ : $5$ L.'
+      pour un volume, **deux** fois pour une aire (d''où $100$), **une** fois pour une longueur.'
     figures: []
   exercices:
   - numero: 1

@@ -3,26 +3,22 @@ TestRegistry — Catalogue des tests standards Hakili Lab.
 
 Pour chaque test pré-défini, charge automatiquement :
   - L'énoncé (texte extrait du fichier DOCX dans data/Documents/)
-  - Le barème Rubric (construit depuis le YAML data/knowledge/bareme_test_*.yaml)
+  - Le barème Rubric (construit depuis le YAML data/knowledge/bareme_socle_*.yaml)
   - Le bareme_id RAG correspondant
 
 Utilisation dans le pipeline :
     registry = get_registry()
-    test = registry.get_test("hakili_3e_v1")
+    test = registry.get_test("socle_6eme")
     rubric      = test.rubric        # Rubric Pydantic prêt à l'emploi
     subject_text = test.subject_text  # Texte de l'énoncé
     bareme_id    = test.bareme_id
 
-Tests archivés
---------------
-Les 6 tests construits avant le référentiel v2 sont marqués `archive: True`
-(arbitrage A du 2026-07-30, voir docs/harmonisation_donnees.md) : leurs sujets ont
-été refaits et ils ne doivent plus être proposés pour une nouvelle correction.
-
-Ils restent chargés, et c'est délibéré : `get_test()` doit continuer à les résoudre
-pour les copies déjà corrigées — le pipeline s'en sert pour retrouver les niveaux
-déclarés d'un test lors de la détermination de la classe (`_apply_extracted_classe`).
-Les retirer du catalogue casserait la relecture de l'historique.
+Tests retirés
+-------------
+Les tests antérieurs à la batterie du 2026-10-16 (6 tests v1 et sujets longs
+d'août) ne sont plus au catalogue ; leurs fichiers restent dans l'historique git.
+Le mécanisme `archive: True` (chargé, résolu par get_test(), mais non proposé)
+reste disponible pour retirer un test dont des copies corrigées dépendent.
 
     available_tests()  -> tests proposables pour une NOUVELLE correction
     all_tests()        -> tous les tests, archivés compris (historique)
@@ -51,38 +47,31 @@ _KB_DIR = _ROOT / "data" / "knowledge"
 
 # ── Catalogue des tests Hakili ────────────────────────────────────────────────
 #
-# `archive: True` = test d'avant le référentiel v2, remplacé par les nouveaux
-# sujets à cadres ancrés. Chargé mais plus proposé — voir le docstring du module.
+# Seuls les 7 tests diagnostiques livrés le 2026-10-16 (batterie allégée) sont
+# au catalogue. Les tests antérieurs (v1 de juin-juillet, sujets longs d'août)
+# ont été retirés à la demande du commanditaire : aucune correction en base ne
+# s'y rapportait. `archive: True` reste supporté pour un retrait futur.
 
 _TEST_CATALOG: dict[str, dict] = {
     # ── Tests v2 — actifs ─────────────────────────────────────────────────────
-    # Barèmes générés depuis Referentiel_Socle_v0.xlsx par
-    # scripts/generer_baremes_socle.py. `label` et `niveaux` sont laissés vides :
-    # ils sont lus dans le `meta` du YAML (titre, classe) pour éviter de dupliquer
-    # la même information à deux endroits qui divergeraient.
+    # Batterie allégée du 2026-10-06 (les sujets du 2026-08-12 étaient trop
+    # longs : les élèves ne finissaient pas). Barèmes générés par
+    # scripts/generer_baremes_socle.py depuis data/referentiel/Referentiel_Urie_v1.xlsx
+    # et les corrigés transcrits des PDF enseignant (data/knowledge/corriges_socle.yaml) :
+    # barème automatique et corrigé imprimé portent désormais les mêmes questions.
+    # `label` et `niveaux` sont laissés vides : ils sont lus dans le `meta` du
+    # YAML (titre, classe) pour éviter de dupliquer la même information.
     #
     # Pas de DOCX : les sujets sont des PDF dont les mathématiques sont dessinées
     # en vectoriel, donc non extractibles en texte. Ce n'est pas bloquant — dans
     # ce format l'élève compose SUR le sujet, donc la copie scannée porte déjà
     # l'énoncé imprimé que l'IA transcrit.
-    #
-    # Corrigé enseignant (2026-08-12) : les 7 sujets ont été recomposés (items
-    # déplacés/repondérés entre parties, ajout de problèmes de synthèse en partie C)
-    # et chaque niveau dispose maintenant d'un corrigé PDF complet, relu et validé
-    # par un enseignant de mathématiques — data/Documents/corriges/. C'est un
-    # document imprimable pour la correction papier, PAS la source du barème
-    # utilisé par le pipeline : `bareme_socle_*.yaml` reflète encore l'ancienne
-    # composition (générée le 2026-08-07 depuis Referentiel_Socle_v0.xlsx, non
-    # mis à jour). Tant que le classeur n'est pas aligné sur cette recomposition
-    # et que `scripts/generer_baremes_socle.py` n'a pas été relancé, la notation
-    # automatique et le corrigé imprimé peuvent diverger sur certaines questions.
-    # Voir docs/harmonisation_donnees.md, arbitrage B (mis à jour) et arbitrage H.
     **{
         f"socle_{niveau}": {
             "label": "",
             "description": (
-                "40 questions · partie A (30 courtes) + partie B (10 rédigées) · "
-                "corrigé disponible pour les QCM uniquement"
+                "Batterie allégée (oct. 2026) · automatismes, savoir-faire, "
+                "3 ou 4 problèmes · corrigé complet"
             ),
             "niveaux": "",
             "docx_filename": "",
@@ -92,66 +81,10 @@ _TEST_CATALOG: dict[str, dict] = {
             # mathématiques sont vectorielles (voir docs/harmonisation_donnees.md
             # §3bis). L'enseignant doit pouvoir l'imprimer depuis l'application.
             "sujet_pdf": f"Test_diagnostique_entree_{niveau}.pdf",
-            # Corrigé enseignant imprimable — voir note ci-dessus sur le
-            # désalignement encore ouvert avec bareme_socle_*.yaml.
+            # Corrigé enseignant imprimable, aligné sur bareme_socle_*.yaml.
             "corrige_pdf": f"corriges/Corrige_test_diagnostique_entree_{niveau}.pdf",
         }
         for niveau in ("6eme", "5eme", "4eme", "3eme", "2ndeC", "1ereD", "tleD")
-    },
-    # ── Tests d'avant le référentiel — archivés (D-CEO-26) ────────────────────
-    "hakili_3e_v1": {
-        "label": "Test diagnostique Hakili 3e v1",
-        "description": "Évalue les acquis de la 6e à la 4e (calcul et géométrie)",
-        "niveaux": "6e · 5e · 4e",
-        "docx_filename": "Hakilisso test de niveau 3e.docx",
-        "bareme_yaml": "bareme_test_3e.yaml",
-        "corrige_yaml": "corrige_test_3e.yaml",
-        "archive": True,
-    },
-    "hakili_3e_v2": {
-        "label": "Test diagnostique Hakili 3e v2",
-        "description": "Évalue les acquis de la 6e à la 4e (calcul et géométrie) — version 2",
-        "niveaux": "6e · 5e · 4e",
-        "docx_filename": "Test-niveau 3ieme v2.docx",
-        "bareme_yaml": "bareme_test_3e_v2.yaml",
-        "corrige_yaml": "corrige_test_3e_v2.yaml",
-        "archive": True,
-    },
-    "hakili_6e_v1": {
-        "label": "Test diagnostique Hakili 6e v1",
-        "description": "Évalue les acquis du CE1 au CM2 (calcul et géométrie)",
-        "niveaux": "CE1 · CE2 · CM1 · CM2",
-        "docx_filename": "TEST DE NIVEAU,6eme,GROUPE 1.docx",
-        "bareme_yaml": "bareme_test_6e.yaml",
-        "corrige_yaml": "corrige_test_6e.yaml",
-        "archive": True,
-    },
-    "hakili_2ndeC_v1": {
-        "label": "Test diagnostique Hakili 2nde C v1",
-        "description": "Évaluation diagnostique niveau 2nde C (numériques et géométriques)",
-        "niveaux": "6e · 5e · 4e · 3e · 2nde",
-        "docx_filename": "EVALUATION 2ndC.docx",
-        "bareme_yaml": "bareme_test_2ndeC.yaml",
-        "corrige_yaml": "corrige_test_2ndeC.yaml",
-        "archive": True,
-    },
-    "hakili_4e_v1": {
-        "label": "Évaluation de Mathématiques 4ème v1",
-        "description": "Évalue les compétences 6e → 4e (ensembles, calculs, équations, géométrie)",
-        "niveaux": "6e · 5e · 4e",
-        "docx_filename": "",   # Pas de DOCX — seul le corrigé PDF est disponible
-        "bareme_yaml": "bareme_test_4e.yaml",
-        "corrige_yaml": "corrige_test_4e.yaml",
-        "archive": True,
-    },
-    "hakili_tle_v1": {
-        "label": "Devoir de Mathématiques Terminale v1",
-        "description": "Évalue les compétences 4e → Tle (puissances, racines, factorisation, vecteurs, trigo)",
-        "niveaux": "4e · 3e · Tle",
-        "docx_filename": "",   # Pas de DOCX — seul le corrigé PDF est disponible
-        "bareme_yaml": "bareme_test_tle.yaml",
-        "corrige_yaml": "corrige_test_tle.yaml",
-        "archive": True,
     },
 }
 
@@ -233,11 +166,21 @@ def _build_rubric_from_yaml(bareme_yaml_path: Path) -> tuple["Rubric", int, dict
         for q in raw.get("questions", []):
             qid = q.get("code", "")
             if qid:
+                max_score = float(q.get("bareme", 0.0))
+                points = float(q.get("bareme_classeur") or 0.0)
+                # Partie A : tout ou rien (règle 2 des corrigés). Parties B et C :
+                # notées critère par critère, au demi-point près du corrigé.
+                if points <= 0 or q.get("partie") == "A":
+                    pas = max_score
+                else:
+                    pas = max_score / (2 * points)
                 items.append(
                     RubricItem(
                         id=qid,
                         label=q.get("objet", "") or qid,
-                        max_score=float(q.get("bareme", 0.0)),
+                        max_score=max_score,
+                        points_corrige=points or None,
+                        score_step=round(pas, 6),
                     )
                 )
     else:  # format ancien

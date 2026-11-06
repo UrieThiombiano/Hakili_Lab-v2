@@ -17,31 +17,38 @@ reportlab==4.2.2
 jinja2==3.1.4
 markupsafe>=3.0.0     # utilisé directement dans pdf_report_html.py (pas seulement transitif via jinja2)
 xhtml2pdf>=0.2.14
+# Plan de remédiation : Chromium headless (grilles CSS, polices web, MathJax).
+# Version épinglée : deploy/Dockerfile en lit le numéro pour installer le
+# Chromium qui lui correspond (`playwright install chromium`).
+playwright==1.64.1
 
-# --- Interface web Django (cible — voir docs/architecture_cible.md) ---
-django>=5.1,<6.0
-gunicorn>=22.0.0      # serveur WSGI de production (Railway / Render)
-whitenoise>=6.7.0     # sert les fichiers statiques sans serveur web séparé
+# --- Interface web FastAPI + React/Vite (D-CEO-42, Django retiré) ---
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+sqlalchemy>=2.0.0,<2.1   # 2.1 passe le pilote Postgres par défaut à psycopg 3 (absent) — panne de déploiement du 2026-10-16
+alembic>=1.13.0
+itsdangerous>=2.2.0    # jetons d'URL signés — remplace django.core.signing
+python-multipart>=0.0.9  # upload de fichiers (dépôt de copie, lot)
 
 # --- Interface Streamlit (sortante — retirée à la fin de la migration) ---
 openpyxl>=3.1.0        # Lecture .xlsx (import élèves en masse)
 
 # --- Fournisseurs IA ---
-anthropic>=0.40.0
+anthropic>=0.40.0,<1   # 1.x retire des paramètres (temperature…) : correction en échec en prod le 2026-10-16
 # Vérification TLS déléguée au magasin du système (manage.py). Sans lui, un
 # antivirus qui inspecte le HTTPS fait échouer tout appel de modèle sur
 # CERTIFICATE_VERIFY_FAILED : sa racine est dans le magasin de Windows, jamais
 # dans le bundle de certifi qu'embarquent les SDK.
 truststore>=0.9.0
-google-genai>=1.0.0    # SDK unifié — gemini_client.py utilise `from google import genai`
-openai>=1.30.0        # DeepSeek (API compatible OpenAI) + GPT-5 (fallback)
+google-genai>=1.0.0,<3    # SDK unifié — gemini_client.py utilise `from google import genai`
+openai>=1.30.0,<3        # DeepSeek (API compatible OpenAI) + GPT-5 (fallback)
 mistralai>=1.0.0,<2.0.0   # Mistral Small 3.1 — v2.x a changé l'API
 
 # --- Réseau & Robustesse ---
 tenacity==8.5.0
 
 # --- Base de données (portail de consultation Neon Postgres) ---
-psycopg2-binary>=2.9.9   # pilote Postgres de Django (Neon)
+psycopg2-binary>=2.9.9   # pilote Postgres de SQLAlchemy (Neon)
 
 # --- Google Sheets (source de vérité élèves/profs, compte de service) ---
 gspread>=6.1.0,<7.0.0

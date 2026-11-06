@@ -84,6 +84,22 @@ def test_copy_grade_totals():
     assert len(grade.questions) == 2
 
 
+def test_copy_grade_totaux_omis_par_le_modele():
+    # Sortie réelle de Claude Sonnet 5 (prod du 2026-10-21) : questions notées,
+    # total_score et total_possible absents — la copie ne doit pas être rejetée.
+    grade = CopyGrade(**{
+        "copy_id": "E-001",
+        "questions": [
+            {"rubric_item_id": "N1", "analyse": "—", "score": 0, "confidence": 0.9,
+             "comment": "Faux.", "observed_answer": "3/4", "requires_review": False},
+            {"rubric_item_id": "N2", "analyse": "—", "score": 0.25, "confidence": 0.95,
+             "comment": "Correct.", "observed_answer": "6√5", "requires_review": False},
+        ],
+    })
+    assert grade.total_score == 0.25
+    assert grade.total_possible == 0.0  # recalculé ensuite par validate_grading()
+
+
 # ── Rubric ─────────────────────────────────────────────────────────────────────
 
 def test_rubric_binary_max_score():

@@ -33,14 +33,22 @@ import re
 #   - à une frontière de phrase/ligne ([.!?;:] ou \n ou début de texte),
 #     jamais en pleine phrase ("mesure 40" ne doit pas matcher) ;
 #   - 1 ou 2 chiffres maximum (élimine les années : "En 2020. ") ;
-#   - suivi d'un blanc puis d'un non-chiffre (élimine "3. 5" décimal anglais) ;
+#   - suivi d'un blanc puis de tout sauf un nombre nu (élimine "3. 5" décimal
+#     anglais) — "1. 5/8" ou "1. -7" restent des marqueurs (liste de valeurs,
+#     sujet T1 du 2026-10-17) ;
 #   - "(1 m = 1000 mm)" ne matche pas : il faut ")" ou "." collé au nombre.
 _MARKER = re.compile(
     r"(?:\A|(?<=[.!?;:])|(?<=\n))"      # frontière
     r"[ \t]*"
     r"(?:\((\d{1,2})\)|(\d{1,2})[.)])"  # (n) | n. | n)
-    r"\s+(?![0-9])"
+    r"\s+(?![0-9]+(?:[.,][0-9]+)?(?:\s|$))"
 )
+
+# Marqueur collé en pleine ligne, sans frontière de phrase : "1. -7 2. 9/4".
+# Accepté seulement s'il porte le numéro qui suit immédiatement celui de
+# l'item courant, et pas juste après un opérateur ("3x + 2. 5 est-il…") —
+# garde contre une valeur numérique en pleine phrase.
+_INLINE_SUIVANT = r"(?<=[^\s+\-×÷=*/<>(]\s)(?:\({n}\)|{n}[.)])\s+(?=\S)"
 
 # Garde anti-référence : "Num. 4", "Geo. 7" (produits par _humanize_ids_in_text)
 # sont des RÉFÉRENCES à une question — leur point est intrinsèque à
@@ -61,8 +69,26 @@ def _marker_number(m: re.Match) -> int:
     return int(m.group(1) or m.group(2))
 
 
+def _eclater_inline(numero: int, seg: str) -> list[str]:
+    """Sépare "-7 2. 9/4" (item n°1) en ["-7", "9/4"] : chaque marqueur
+    inline doit porter le numéro suivant, sinon le segment reste entier."""
+    morceaux: list[str] = []
+    while True:
+        m = re.search(_INLINE_SUIVANT.format(n=numero + 1), seg)
+        if m is None or not seg[: m.start()].strip():
+            morceaux.append(seg)
+            return morceaux
+        morceaux.append(seg[: m.start()].strip())
+        numero, seg = numero + 1, seg[m.end():]
+
+
 def _is_reference(text: str, m: re.Match) -> bool:
-    return bool(_REF_BEFORE.search(text[: m.start()]))
+    avant = text[: m.start()]
+    # "P(-3 ; 1) et Q(2 ; -4)" : le "1)" ferme une parenthèse de coordonnées,
+    # ce n'est pas un marqueur (sujet T1 du 2026-10-17).
+    if m.group(2) and m.group(0).rstrip().endswith(")") and avant.count("(") > avant.count(")"):
+        return True
+    return bool(_REF_BEFORE.search(avant))
 
 
 def split_numbered_items(text: str) -> tuple[str, list[str]]:
@@ -89,15 +115,16 @@ def split_numbered_items(text: str) -> tuple[str, list[str]]:
     items: list[str] = []
     for i, m in enumerate(matches):
         end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        seg = text[m.end(): end].strip().rstrip(";").strip()
-        # Invariant n°2 : aucun marqueur résiduel en tête d'item
-        while True:
-            stripped = _LEADING_RESIDUAL.sub("", seg).strip()
-            if stripped == seg:
-                break
-            seg = stripped
-        if seg:
-            items.append(seg)
+        brut = text[m.end(): end].strip().rstrip(";").strip()
+        for seg in _eclater_inline(_marker_number(m), brut):
+            # Invariant n°2 : aucun marqueur résiduel en tête d'item
+            while True:
+                stripped = _LEADING_RESIDUAL.sub("", seg).strip()
+                if stripped == seg:
+                    break
+                seg = stripped
+            if seg:
+                items.append(seg)
 
     if not items:
         return text, []
@@ -184,6 +211,9 @@ def series_title(topic: str) -> str:
     de faiblesse diagnostic. Ne modifie jamais `topic` lui-même (clé de
     regroupement des séries et contrat de validation orchestrateur)."""
     t = _TRAILING_QREFS.sub("", topic.strip())
+    # Sujet T1 : topic "compétence × type d'erreur" — le type d'erreur est une
+    # hypothèse destinée à l'enseignant, pas un titre pour l'élève.
+    t = t.split(" × ", 1)[0]
     # L'intitulé de compétence est la proposition avant le premier " : "
     head = t.split(" : ", 1)[0].strip()
     if len(head) >= 8:

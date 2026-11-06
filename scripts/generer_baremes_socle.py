@@ -1,5 +1,7 @@
 """
-Génère les 7 barèmes des tests diagnostiques v2 depuis Referentiel_Socle_v0.xlsx.
+Génère les 7 barèmes des tests diagnostiques depuis Referentiel_Urie_v1.xlsx
+(batterie allégée du 2026-10-06, qui remplace les sujets du 2026-08-12 jugés
+trop longs) et les corrigés de data/knowledge/corriges_socle.yaml.
 
 Pourquoi ce script existe
 -------------------------
@@ -25,18 +27,18 @@ toute mise à jour du classeur.
 
 Ce que le script NE produit PAS
 -------------------------------
-Les corrigés des 209 questions non-QCM. Le classeur n'en contient aucun — c'est
-l'arbitrage B de docs/harmonisation_donnees.md, non tranché. Les champs
-`reponse_attendue` et `solution` sont émis vides pour ces questions, prêts à être
-remplis sans changement de schéma. Les 71 QCM, eux, ont leur bonne réponse.
+Les corrigés des questions non-QCM : le classeur n'en contient aucun. Ils sont
+transcrits à la main des corrigés PDF enseignant dans corriges_socle.yaml
+(réponse attendue, démarche + barème détaillé, « si l'élève échoue ») et
+fusionnés ici. Une question sans entrée y garde des champs vides.
 
 Usage :
     python scripts/generer_baremes_socle.py
 """
 from __future__ import annotations
 
-import re
 import sys
+import unicodedata
 from pathlib import Path
 
 import openpyxl
@@ -45,16 +47,22 @@ import yaml
 _ROOT = Path(__file__).resolve().parent.parent
 _KB_DIR = _ROOT / "data" / "knowledge"
 
-# Le classeur vit à la racine du dossier de travail, au-dessus du dépôt.
+# Référentiel v1 (12/10/2026), aligné sur la batterie allégée du 6/10/2026 :
+# versionné dans le dépôt (data/referentiel/) pour être embarqué dans l'image
+# Docker et importable en base sur le serveur. Les emplacements historiques
+# (au-dessus du dépôt) restent en repli.
+_CLASSEUR_NOM = "Referentiel_Urie_v1.xlsx"
 _CLASSEUR_CANDIDATS = [
-    _ROOT.parent / "Referentiel_Socle_v0.xlsx",
-    _ROOT / "Referentiel_Socle_v0.xlsx",
+    _ROOT / "data" / "referentiel" / _CLASSEUR_NOM,
+    _ROOT.parent / _CLASSEUR_NOM,
+    _ROOT / _CLASSEUR_NOM,
 ]
 
-# Barème : le classeur note sur 60 (30 questions de partie A à 1 pt,
-# 10 exercices de partie B à 3 pts). Les sujets notent sur 20.
-# Décision D-CEO-26 : le barème est stocké sur 20. Le rapport est exactement 3.
-_DIVISEUR_BAREME = 3
+# Barème : le classeur note sur 60 au collège (16 A × 1 + 11 B × 2 + 22 en C)
+# et sur 80 au lycée (20 A × 1 + 14 B × 2 + 32 en C). Les sujets notent sur 20
+# (décision D-CEO-26) : le diviseur est donc total_classeur / 20, soit 3 ou 4,
+# calculé par test plutôt que figé.
+_NOTE_SUR = 20
 
 # Niveaux du classeur → forme reconnue par src/core/classe_normalizer.py.
 # Attention : "2ndeC", "1ereD", "TleD" ne sont PAS reconnus par normalize_classe —
@@ -76,15 +84,15 @@ def _trouver_classeur() -> Path:
         if p.exists():
             return p
     raise SystemExit(
-        "Referentiel_Socle_v0.xlsx introuvable. Cherché dans :\n  "
+        f"{_CLASSEUR_NOM} introuvable. Cherché dans :\n  "
         + "\n  ".join(str(p) for p in _CLASSEUR_CANDIDATS)
     )
 
 
-def _tri_naturel(code: str) -> tuple[str, int]:
-    """N1, N2, ..., N10 — et non N1, N10, N2."""
-    m = re.match(r"([A-Z]+)(\d+)", code)
-    return (m.group(1), int(m.group(2))) if m else (code, 0)
+def _format(valeur) -> str:
+    """« rédigé » dans le classeur v1 → `redige`, la valeur des choices en base."""
+    texte = unicodedata.normalize("NFD", str(valeur).strip().lower())
+    return "".join(c for c in texte if unicodedata.category(c) != "Mn")
 
 
 def _lire_classeur(chemin: Path) -> tuple[list, list, dict]:
@@ -122,10 +130,11 @@ def _options_par_question(distracteurs: list) -> dict[tuple[str, str], list[dict
 def _charger_corriges_manuels() -> dict:
     """Corrigés saisis à la main, hors classeur source.
 
-    Le classeur ne fournit de bonne réponse que pour les QCM. Les 209 autres sont
-    produites par un relecteur pédagogique et vivent dans un fichier séparé
+    Le classeur ne fournit de bonne réponse que pour les QCM. Les autres
+    (réponse attendue, démarche et barème détaillé, « si l'élève échoue ») sont
+    transcrits des corrigés PDF enseignant et vivent dans un fichier séparé
     (`corriges_socle.yaml`), précisément pour que cette régénération ne les efface
-    pas. Voir scripts/integrer_corriges.py.
+    pas. Le `si_echoue` y est aussi porté pour les QCM.
     """
     chemin = _KB_DIR / "corriges_socle.yaml"
     if not chemin.exists():
@@ -140,21 +149,23 @@ def _construire_test(
 ) -> tuple[dict, dict]:
     meta_niveau = _NIVEAUX[niveau]
     manuels = (corriges_manuels or {}).get(niveau, {})
-    lignes = sorted(
-        (r for r in questions if r[0] == niveau), key=lambda r: _tri_naturel(str(r[1]))
-    )
+    # Ordre du classeur = ordre du sujet (partie A, puis B, puis C) : il n'est
+    # pas retrié, P1.1 doit suivre D3 et non s'intercaler entre N et M.
+    lignes = [r for r in questions if r[0] == niveau]
+    total_classeur = sum(float(r[3]) for r in lignes)
+    diviseur = total_classeur / _NOTE_SUR
 
     items: list[dict] = []
     stats = {"qcm": 0, "sans_corrige": 0, "bareme_classeur": 0.0, "bareme_20": 0.0}
 
     for r in lignes:
         code = str(r[1])
-        partie, bareme_classeur, fmt = str(r[2]), float(r[3]), str(r[4])
+        partie, bareme_classeur, fmt = str(r[2]), float(r[3]), _format(r[4])
         comp_principale = str(r[6])
         comp_secondaire = None if r[7] is None else str(r[7])
         objet = "" if r[8] is None else str(r[8])
 
-        bareme_20 = round(bareme_classeur / _DIVISEUR_BAREME, 6)
+        bareme_20 = round(bareme_classeur / diviseur, 6)
         comp = competences.get(comp_principale, {})
 
         item: dict = {
@@ -169,6 +180,7 @@ def _construire_test(
             "objet": objet,
         }
 
+        manuel = manuels.get(code, {})
         opts = options.get((niveau, code))
         if fmt == "qcm" and opts:
             correctes = [o["lettre"] for o in opts if o["correcte"]]
@@ -184,13 +196,17 @@ def _construire_test(
             stats["qcm"] += 1
         else:
             # Corrigé saisi à la main s'il existe ; sinon vide (arbitrage B).
-            manuel = manuels.get(code, {})
             item["reponse_attendue"] = manuel.get("reponse_attendue", "")
             item["solution"] = manuel.get("solution", "")
             if item["reponse_attendue"]:
                 stats["corriges_manuels"] = stats.get("corriges_manuels", 0) + 1
             else:
                 stats["sans_corrige"] += 1
+
+        item["si_echoue"] = manuel.get("si_echoue", "")
+        # Partie C : P2.3 est la 3e sous-question du problème P2.
+        if partie == "C" and "." in code:
+            item["probleme_parent"] = code.split(".", 1)[0]
 
         stats["bareme_classeur"] += bareme_classeur
         stats["bareme_20"] += bareme_20
@@ -206,15 +222,18 @@ def _construire_test(
         # 19.99999… car une question de partie A vaut 1/3 de point : la note doit
         # toujours se calculer contre la somme réelle des max_score, jamais contre
         # ce total déclaré — sinon une copie parfaite ne vaut pas 20/20.
-        "total_possible": 20,
+        "total_possible": _NOTE_SUR,
         "somme_baremes_reelle": round(stats["bareme_20"], 6),
         "bareme_classeur_total": stats["bareme_classeur"],
-        "source": "Referentiel_Socle_v0.xlsx — onglets 04_Questions, 06_Distracteurs, 02_Competences",
+        "source": (
+            f"{_CLASSEUR_NOM} (batterie allégée du 2026-10-06) — onglets 04_Questions, "
+            "06_Distracteurs, 02_Competences ; corrigés : data/knowledge/corriges_socle.yaml"
+        ),
         "genere_par": "scripts/generer_baremes_socle.py",
         "note_corriges": (
-            f"{stats['qcm']} QCM avec bonne réponse ; {stats['sans_corrige']} questions "
-            "sans corrigé (absent du classeur — arbitrage B de docs/harmonisation_donnees.md). "
-            "Les champs reponse_attendue et solution sont prêts à être remplis."
+            f"{stats['qcm']} QCM avec bonne réponse (classeur) ; "
+            f"{stats.get('corriges_manuels', 0)} questions corrigées depuis le corrigé PDF "
+            f"enseignant ; {stats['sans_corrige']} sans corrigé."
         ),
     }
     return {"meta": meta, "questions": items}, stats
@@ -247,10 +266,9 @@ def main() -> int:
         sortie = _KB_DIR / f"bareme_socle_{niveau}.yaml"
         sortie.write_text(
             "# Généré par scripts/generer_baremes_socle.py — ne pas éditer à la main.\n"
-            "# Source : Referentiel_Socle_v0.xlsx. Relancer le script après toute\n"
-            "# mise à jour du classeur. Exception : les champs reponse_attendue et\n"
-            "# solution peuvent être complétés à la main (arbitrage B) — dans ce cas,\n"
-            "# les sauvegarder avant de régénérer.\n\n"
+            f"# Source : data/referentiel/{_CLASSEUR_NOM} + data/knowledge/corriges_socle.yaml.\n"
+            "# Pour corriger une réponse attendue, éditer corriges_socle.yaml puis\n"
+            "# relancer le script ; pour la structure du test, mettre à jour le classeur.\n\n"
             + yaml.safe_dump(
                 data, allow_unicode=True, sort_keys=False, default_flow_style=False, width=100
             ),
@@ -260,7 +278,7 @@ def main() -> int:
         print(
             f"  {sortie.name:28s} {n:3d} questions | {stats['qcm']:3d} QCM corrigés | "
             f"{stats['sans_corrige']:3d} sans corrigé | "
-            f"barème {stats['bareme_classeur']:g}/60 → {stats['bareme_20']:.4f}/20"
+            f"barème {stats['bareme_classeur']:g} pts -> {stats['bareme_20']:.4f}/20"
         )
         total_q += n
         total_qcm += stats["qcm"]

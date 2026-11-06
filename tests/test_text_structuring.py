@@ -308,3 +308,42 @@ def test_series_title_id_brut_et_sans_deux_points():
 def test_series_title_libelle_court_inchange():
     from src.pipeline.pdf_remediation_html import _series_title
     assert _series_title("Division décimale") == "Division décimale"
+
+
+# ── Sujet T1 du 2026-10-17 : listes de valeurs mal numérotées ────────────────
+
+def test_liste_de_valeurs_numerotation_collee():
+    intro, items = _split_question(
+        "Pour chacun des nombres suivants, indique le plus petit ensemble.\n1. -7 2. 9/4\n2. sqrt(25)"
+    )
+    assert intro == "Pour chacun des nombres suivants, indique le plus petit ensemble."
+    assert items == ["-7", "9/4", "sqrt(25)"]
+
+
+def test_liste_de_valeurs_apres_fin_de_phrase():
+    intro, items = _split_question(
+        "Indique l'ensemble, en justifiant si nécessaire. 1. 5/8 2. 7/12\n1. sqrt(11)\n2. -3"
+    )
+    assert intro == "Indique l'ensemble, en justifiant si nécessaire."
+    assert items == ["5/8", "7/12", "sqrt(11)", "-3"]
+
+
+def test_nombre_nu_apres_point_et_operateur_ne_sont_pas_des_marqueurs():
+    assert _split_question("Calcule A = 3. 5 élèves sont là.")[1] == []
+    _, items = _split_question("On donne x = 2.\n1. Calcule 3x + 2. 5 est-il solution ?\n2. Conclus.")
+    assert items == ["Calcule 3x + 2. 5 est-il solution ?", "Conclus."]
+
+
+def test_series_title_sans_type_d_erreur():
+    from src.pipeline.pdf_remediation_html import _series_title
+    assert _series_title("Vecteurs : egalite et somme × Connaissance non disponible") == "Vecteurs"
+    assert _series_title("Pourcentages × Connaissance non disponible") == "Pourcentages"
+
+
+def test_coordonnees_entre_parentheses_ne_sont_pas_des_marqueurs():
+    intro, items = _split_question(
+        "On considère les points P(-3 ; 1) et Q(2 ; -4). Un point R a pour image S(-1 ; 2)."
+        "\n1. Détermine les coordonnées du point R."
+    )
+    assert intro == "On considère les points P(-3 ; 1) et Q(2 ; -4). Un point R a pour image S(-1 ; 2)."
+    assert items == ["Détermine les coordonnées du point R."]

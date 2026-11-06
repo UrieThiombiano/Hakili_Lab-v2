@@ -96,7 +96,7 @@ class CurriculumRetriever:
         retriever = CurriculumRetriever()
         context = retriever.get_diagnostic_context(
             failed_question_ids=["Q_NUM_07", "Q_NUM_10"],
-            bareme_id="hakili_3e_v1",
+            bareme_id="socle_6eme",
         )
     """
 
@@ -128,7 +128,7 @@ class CurriculumRetriever:
     def _load_baremes(self) -> None:
         bareme_files = list(_KB_DIR.glob("bareme_test_*.yaml"))
         if not bareme_files:
-            logger.warning("Aucun fichier bareme_test_*.yaml trouvé dans %s", _KB_DIR)
+            logger.debug("Aucun barème historique (bareme_test_*.yaml) — les tests du référentiel passent par l'ancrage du référentiel.")
             return
         for path in bareme_files:
             try:

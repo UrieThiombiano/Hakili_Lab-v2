@@ -43,7 +43,8 @@ _GRADING_SCHEMA = """
   "questions": [
     {
       "rubric_item_id": "<string — DOIT être l'id EXACT du RubricItem dans le barème, ex: Q_NUM_04, Q_GEO_01>",
-      "score": <0 si incorrect, ou valeur exacte du champ max_score du RubricItem si correct>,
+      "score": <0 si incorrect, ou valeur exacte de max_score si correct (items à barème détaillé : recalculé par le système depuis points_obtenus)>,
+      "points_obtenus": <UNIQUEMENT si le RubricItem porte points_corrige : points DU CORRIGÉ obtenus, critère par critère (ex. 1 sur 2, 2.5 sur 3), multiple de 0.5 ; sinon null>,
       "confidence": <float 0.0-1.0>,
       "comment": "<1 phrase bienveillante pour l'enseignant>",
       "observed_answer": "<ce que l'élève a écrit, résumé en 1 ligne — '—' si absent/illisible>",

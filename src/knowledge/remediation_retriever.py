@@ -31,6 +31,12 @@ dans `prompts/confirmation_subject_prompt.md` (« aucune indication qui
 donnerait la réponse »). Seuls le rappel de méthode, les erreurs fréquentes
 typées et **un** exemple résolu (le modèle travaillé, pas un item à recopier)
 sont injectés.
+
+`RemediationChunk.exercices_gradues()` est la seule exception délibérée à
+cette règle : il rend des exercices corrigés en clair, mais seulement pour le
+générateur de fiches de travail (module 7, `app/services/fiche_remediation.py`)
+qui assemble un document lu par un tuteur humain, jamais par un prompt LLM.
+Ne jamais faire transiter le résultat de cette méthode par un prompt.
 """
 from __future__ import annotations
 
@@ -69,6 +75,28 @@ class RemediationChunk:
         self.exemple_resolu: str | None = lecon.get("exemple_resolu")
         self.erreurs_frequentes: list[dict] = lecon.get("erreurs_frequentes") or []
         self.declic: str | None = lecon.get("declic")
+        #: Pool d'exercices du *module* (pas de la leçon seule — le YAML ne
+        #: tague pas un exercice par leçon, voir docstring de tête) : numero,
+        #: etoiles (1-3), enonce, correction. Réservé à `exercices_gradues()`.
+        self._exercices_module: list[dict] = module.get("exercices") or []
+
+    def exercices_gradues(self, repartition: dict[int, int]) -> list[dict]:
+        """Sélectionne, dans le pool d'exercices du module, jusqu'à
+        `repartition[etoiles]` exercices par niveau d'étoiles (1 à 3), triés
+        par numéro. Rend moins que demandé si le pool n'en contient pas assez
+        à un niveau donné — jamais d'erreur, jamais d'invention.
+
+        Ne fait jamais le lien exercice → leçon précise : le YAML ne le porte
+        pas (les exercices sont groupés par module, ~4 leçons). C'est la
+        meilleure granularité disponible aujourd'hui — voir D-CEO-41."""
+        par_etoile: dict[int, list[dict]] = {}
+        for exercice in sorted(self._exercices_module, key=lambda e: e["numero"]):
+            par_etoile.setdefault(exercice["etoiles"], []).append(exercice)
+
+        selection: list[dict] = []
+        for etoiles in sorted(repartition):
+            selection.extend(par_etoile.get(etoiles, [])[: repartition[etoiles]])
+        return selection
 
     def to_context_text(self) -> str:
         lignes = [

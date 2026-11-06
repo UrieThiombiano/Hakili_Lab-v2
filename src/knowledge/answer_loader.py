@@ -27,9 +27,13 @@ class OfficialAnswer:
         self.id: str = data["id"]
         self.reponse: str = data.get("reponse", "")
         self.solution: str = (data.get("solution") or "").strip()
+        # Points de la question au corrigé enseignant (barèmes socle) — le
+        # barème « 1 pt pour… ; 1 pt pour… » de `solution` s'y rapporte.
+        self.points: float | None = data.get("points")
 
     def to_text(self) -> str:
-        lines = [f"{self.id} → {self.reponse}"]
+        entete = f"{self.id} ({self.points:g} pt{'s' if self.points > 1 else ''} au corrigé)" if self.points else self.id
+        lines = [f"{entete} → {self.reponse}"]
         if self.solution:
             for line in self.solution.splitlines():
                 lines.append(f"   {line}")
@@ -42,7 +46,7 @@ class AnswerLoader:
 
     Utilisation :
         loader = get_answer_loader()
-        answers_text = loader.get_official_answers("hakili_3e_v1")
+        answers_text = loader.get_official_answers("socle_6eme")
     """
 
     def __init__(self) -> None:
@@ -52,7 +56,7 @@ class AnswerLoader:
     def _load_all(self) -> None:
         corrige_files = list(_KB_DIR.glob("corrige_test_*.yaml"))
         if not corrige_files:
-            logger.warning("Aucun fichier corrige_test_*.yaml trouvé dans %s", _KB_DIR)
+            logger.debug("Aucun corrigé au format historique (corrige_test_*.yaml) — normal depuis le retrait des anciens tests.")
         for path in corrige_files:
             try:
                 raw = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -98,6 +102,7 @@ class AnswerLoader:
                         "id": q.get("code", ""),
                         "reponse": reponse,
                         "solution": q.get("solution", ""),
+                        "points": q.get("bareme_classeur"),
                     }))
                 self._answers[test_id] = all_answers
                 logger.info(
@@ -127,6 +132,11 @@ class AnswerLoader:
             "une convention de rédaction, pas un gabarit à reproduire mot pour mot.",
             "Un élève qui écrit la bonne réponse en prose, avec une notation différente, ou dans un",
             "ordre différent, a QUAND MÊME trouvé — accorde le point.",
+            "",
+            "Quand une entrée contient « Barème : … », ce barème répartit les points de la question",
+            "entre plusieurs critères (démarche, résultat, conclusion) : note critère par critère,",
+            "selon la section « Barème détaillé par critère » des consignes. Un résultat juste sans",
+            "la démarche exigée n'obtient que les critères portant sur ce résultat.",
             "",
         ]
         for ans in answers:

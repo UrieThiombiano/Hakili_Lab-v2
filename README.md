@@ -171,7 +171,9 @@ data/knowledge/
 
 | Couche | Technologie |
 |---|---|
-| Interface | Django 5.2 (rendu serveur) |
+| API | FastAPI + Uvicorn · SQLAlchemy 2.0 + Alembic |
+| Interface | React 19 + Vite + Tailwind CSS 4 (`frontend/`) |
+| Base applicative | PostgreSQL (Neon) · SQLite pour dev/tests |
 | Base de connaissance | YAML + pyyaml |
 | IA — Vision | Google Gemini 2.5 Flash |
 | IA — Raisonnement math | DeepSeek V3 + R1 (API compatible OpenAI) |
@@ -189,96 +191,169 @@ data/knowledge/
 
 ## Prérequis
 
-- **Python 3.11 ou supérieur**
+- **Python 3.12** (voir `.python-version` ; 3.11+ fonctionne)
+- **Node.js 20+ et npm** — pour le frontend React (`frontend/`)
 - **Clé API Anthropic** (obligatoire — fallback + extraction) — [console.anthropic.com](https://console.anthropic.com)
 - **Clé API Google AI Studio** (recommandé — tier gratuit) — [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
 - **Clé API DeepSeek** (recommandé) — [platform.deepseek.com](https://platform.deepseek.com/api_keys)
 - **Clé API Mistral** (recommandé) — [console.mistral.ai](https://console.mistral.ai/api-keys)
+- **Clé API OpenAI** (optionnel — filet de secours GPT-5) — [platform.openai.com](https://platform.openai.com/api-keys)
+- **Compte de service Google** (`credentials/service_account.json`) — accès en lecture aux Sheets élèves/personnel (source de vérité de l'identité)
 
----
-
-## Démarrage rapide
-
-### Windows (PowerShell)
-
-```powershell
-# 1. Activer l'environnement virtuel
-.\.venv\Scripts\Activate.ps1
-
-# 2. Lancer l'interface
-$env:DEBUG="true"; python manage.py runserver
-```
-
-> Si PowerShell bloque : `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
-
-### Linux / Mac
-
-```bash
-source .venv/bin/activate
-DEBUG=true python manage.py runserver
-# ou
-make run
-```
-
-L'interface s'ouvre sur `http://localhost:8000` (admin sur `/admin/`).
+> Sans clé Google Sheets, l'app démarre mais l'authentification et la sélection d'élève ne fonctionnent pas. En dev, `DEBUG=true` + `HAKILI_ACCES_LIBRE=true` permet un accès libre.
 
 ---
 
 ## Installation
 
-### Windows (PowerShell)
+Le projet a **deux parties à lancer** : l'API FastAPI (`backend/`) et le frontend React (`frontend/`). Django a été retiré le 2026-08-21 (D-CEO-42) — il n'y a plus de `manage.py`.
+
+### 1. Backend (Python)
+
+**Windows (PowerShell)**
 
 ```powershell
 git clone <url-du-repo>
-cd hakili_ai_correction
+cd Hakili_Lab
 
 python -m venv .venv
-.\.venv\Scripts\pip install --upgrade pip
-.\.venv\Scripts\pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
 Copy-Item .env.example .env
-# Ouvrir .env et renseigner les clés API
-.\.venv\Scripts\python.exe manage.py runserver
+# Ouvrir .env et renseigner les clés API + DATABASE_URL
 ```
 
-### Linux / Mac
+**Linux / Mac**
 
 ```bash
 git clone <url-du-repo>
-cd hakili_ai_correction
-make setup
+cd Hakili_Lab
+make setup            # crée .venv + installe requirements.txt
 cp .env.example .env
 # Éditer .env avec les clés API
-make run
+```
+
+### 2. Frontend (Node)
+
+```bash
+cd frontend
+npm install
+```
+
+### 3. Base de données
+
+`DATABASE_URL` par défaut = `sqlite:///:memory:`. Au démarrage, l'API crée les tables
+automatiquement (`Base.metadata.create_all`, confort de dev). Pour une base
+persistante (SQLite fichier ou Postgres/Neon), appliquer les migrations :
+
+```bash
+.\.venv\Scripts\python.exe -m alembic -c backend/alembic.ini upgrade head
+```
+
+Puis importer le référentiel v2 (idempotent — `Referentiel_Socle_v0.xlsx` à la racine du dépôt de travail) :
+
+```bash
+.\.venv\Scripts\python.exe backend/scripts/importer_referentiel.py
+# ou : make importer
+```
+
+---
+
+## Démarrage rapide
+
+Deux terminaux.
+
+### Terminal 1 — API FastAPI (port 8000)
+
+**Windows (PowerShell)**
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+$env:DEBUG="true"
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --reload
+```
+
+**Linux / Mac**
+
+```bash
+source .venv/bin/activate
+DEBUG=true make run     # équivaut à : uvicorn app.main:app --app-dir backend --reload
+```
+
+- API sur `http://localhost:8000` · santé : `http://localhost:8000/api/sante`
+
+### Terminal 2 — Frontend React (port 5173)
+
+```bash
+cd frontend
+npm run dev
+```
+
+- Interface sur `http://localhost:5173` — le proxy Vite renvoie `/api/*` vers `http://127.0.0.1:8000`.
+
+> En production, un seul processus : `npm run build` génère `frontend/dist/`, servi
+> directement par FastAPI (`app/main.py`). Voir **[`deploy/README.md`](deploy/README.md)**.
+
+> PowerShell bloque l'activation du venv : `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+
+---
+
+## Déploiement
+
+Tout est regroupé dans **[`deploy/`](deploy/)** : `Dockerfile`, `entrypoint.sh`,
+`deploy.sh` (git pull → build frontend → image → conteneur), `caddy_snippet.txt`,
+`bascule_neon.md` (adoption du schéma Neon), et **[`deploy/README.md`](deploy/README.md)**
+comme guide de bout en bout.
+
+Cible : VPS Hetzner **partagé** (Docker + Caddy déjà en place). Un seul conteneur
+sert l'API **et** le frontend buildé sur un port interne, derrière un bloc Caddy.
+
+```bash
+# sur le serveur, dans le clone du dépôt
+cp .env.example .env      # puis renseigner : DEBUG=false, SECRET_KEY, DATABASE_URL (Neon), clés API
+bash deploy/deploy.sh
 ```
 
 ---
 
 ## Configuration (`.env`)
 
+Copier `.env.example` en `.env` et renseigner. Extrait des variables clés :
+
 ```env
-# ── Anthropic Claude (obligatoire — fallback + extraction + diagnostic) ───────
+# ── Anthropic Claude (obligatoire — fallback + extraction) ────────────────────
 ANTHROPIC_API_KEY=sk-ant-...
 CLAUDE_MODEL_HEAVY=claude-sonnet-4-6
-CLAUDE_MODEL_OPUS=claude-opus-4-7
+CLAUDE_MODEL_LIGHT=claude-haiku-4-5-20251001
 
-# ── Google Gemini — transcription vision (GRATUIT jusqu'à 1M tokens/jour) ────
-GOOGLE_API_KEY=AIza...
-GEMINI_MODEL=gemini-2.5-flash
+# ── Google Gemini — transcription vision (gratuit jusqu'à 1M tokens/jour) ─────
+GOOGLE_API_KEY=
+GEMINI_MODEL=gemini-3.1-flash-lite
 VISION_PROVIDER=gemini          # "gemini" | "claude"
 
-# ── DeepSeek — correction (V3) ───────────────────────────────────────────────
-DEEPSEEK_API_KEY=sk-...
+# ── DeepSeek / Mistral / OpenAI (filet de secours GPT-5) ─────────────────────
+DEEPSEEK_API_KEY=
+MISTRAL_API_KEY=
+OPENAI_API_KEY=
 GRADING_PROVIDER=deepseek       # "deepseek" | "claude"
-DIAGNOSTIC_PROVIDER=claude      # "claude" | "deepseek" | "mistral"
+DIAGNOSTIC_PROVIDER=deepseek    # "deepseek" | "mistral" | "claude"
 
-# ── Mistral — diagnostic français académique ──────────────────────────────────
-MISTRAL_API_KEY=...
+# ── API FastAPI ─────────────────────────────────────────────────────────────
+DEBUG=true                      # false en production
+HAKILI_ACCES_LIBRE=false        # true : bypass auth en dev
+SECRET_KEY=                     # OBLIGATOIRE si DEBUG=false (jetons d'URL signés)
+#   génération : python -c "import secrets; print(secrets.token_urlsafe(50))"
 
-# ── Seuils pipeline ───────────────────────────────────────────────────────────
-CONFIDENCE_REVIEW_THRESHOLD=0.75
+# ── Base de données (pipeline + backend, convention à trois barres) ──────────
+DATABASE_URL=                   # vide => sqlite:///:memory: ; prod => postgresql://...?sslmode=require
 
-# ── Stockage local ────────────────────────────────────────────────────────────
+# ── Google Sheets — source de vérité identité élèves/personnel ───────────────
+GOOGLE_SERVICE_ACCOUNT_FILE=credentials/service_account.json
+GOOGLE_SHEET_ELEVES_ID=
+GOOGLE_SHEET_PERSONNEL_ID=
+
+# ── Stockage local ──────────────────────────────────────────────────────────
 RUNS_DIR=./runs
 ```
 
@@ -398,17 +473,28 @@ hakili_ai_correction/
 
 | Commande | Description |
 |---|---|
-| `make setup` | Créer le venv et installer les dépendances |
-| `make run` | Lancer l'interface Django |
-| `make test` | Lancer les tests unitaires |
-| `make lint` | Vérifier qualité du code (ruff + mypy) |
+| `make setup` | Créer le venv et installer les dépendances Python |
+| `make run` | Lancer l'API FastAPI (uvicorn, `--reload`, port 8000) |
+| `make importer` | Importer `Referentiel_Socle_v0.xlsx` en base (idempotent) |
+| `make test` | Tests Python : `pytest tests/` + `pytest backend/tests/` |
+| `make lint` | Qualité du code (ruff + mypy) |
+
+**Frontend (`frontend/`) :**
+
+| Commande | Description |
+|---|---|
+| `npm run dev` | Serveur Vite (port 5173, proxy `/api` → 8000) |
+| `npm run build` | Build de production dans `frontend/dist/` |
+| `npm test` | Tests Vitest |
+| `npm run lint` | oxlint |
 
 **Sans make (Windows) :**
 
 ```powershell
-.\.venv\Scripts\pytest tests/ -v
-.\.venv\Scripts\ruff check src/
-.\.venv\Scripts\python.exe manage.py runserver
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --reload
+.\.venv\Scripts\python.exe -m pytest tests/ backend/tests/ -v
+.\.venv\Scripts\python.exe -m ruff check src/ backend/app/
+.\.venv\Scripts\python.exe -m alembic -c backend/alembic.ini upgrade head
 ```
 
 ---

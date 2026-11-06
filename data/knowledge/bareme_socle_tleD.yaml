@@ -1,46 +1,22 @@
-# Reconstruit manuellement le 2026-08-13 depuis le sujet et le corrige PDF recomposes
-# (data/Documents/, livraison data/New-docs/ du 2026-08-12) — PAS depuis Referentiel_Socle_v0.xlsx,
-# qui n'a pas ete mis a jour (voir docs/harmonisation_donnees.md, arbitrage H).
-# Ne pas relancer scripts/generer_baremes_socle.py sur ce fichier sans avoir d'abord
-# reporte la nouvelle composition (structure a 3 parties) dans le classeur, sous peine
-# d'ecraser ce travail et de revenir a l'ancienne composition a 2 parties.
-#
-# Dernier niveau reconstruit (arbitrage H clos) — les 7 niveaux (6eme a tleD) sont
-# maintenant sur la structure a 3 parties. Voir docs/v2_roadmap.md, journal du 2026-08-13.
+# Généré par scripts/generer_baremes_socle.py — ne pas éditer à la main.
+# Source : data/referentiel/Referentiel_Urie_v1.xlsx + data/knowledge/corriges_socle.yaml.
+# Pour corriger une réponse attendue, éditer corriges_socle.yaml puis
+# relancer le script ; pour la structure du test, mettre à jour le classeur.
 
 meta:
   test_id: socle_tleD
   titre: Test diagnostique d'entrée en Terminale D
   niveau_test: tleD
   classe: Tle
-  total_questions: 66
+  total_questions: 46
   total_possible: 20
   somme_baremes_reelle: 20.0
   bareme_classeur_total: 80.0
-  structure: Partie A 20 pts (20 x 1) - Partie B 28 pts (14 x 2) - Partie C 32 pts (4x5 + 2x6, 6 problemes
-    decomposes en 5 ou 6 sous-items chacun, un par terme du bareme imprime) — echelle lycee, bareme_classeur_total
-    80 converti /20 par division par 4
-  source: data/Documents/Test_diagnostique_entree_tleD.pdf et data/Documents/corriges/Corrige_test_diagnostique_entree_tleD.pdf
-    (livraison 2026-08-12, corrige valide par un enseignant de mathematiques)
-  genere_par: 'reconstruction manuelle assistee (2026-08-13) — voir docs/harmonisation_donnees.md, arbitrage
-    H. Referentiel_Socle_v0.xlsx n''a PAS ete mis a jour : ce fichier est temporairement la source de
-    verite du bareme socle_tleD, en avance sur le classeur.'
-  note_corriges: 'Reponses et demarches extraites en lisant les pages du corrige PDF (rendues en image,
-    les valeurs numeriques y sont en vectoriel et invisibles a l''extraction texte). Ce corrige donne,
-    en grille de fin, le bareme officiel par domaine (N 4 / L 11 / F 30 / S 11 / T 8 / D 4 / G 12 = 80
-    pts) ET la repartition exacte des points de chaque probleme de partie C entre domaines ("P1 donne
-    4 pts a S et 1 a D"...). Recoupement EXACT sur les 7 domaines, aucun ecart — le plus favorable des
-    7 niveaux reconstruits, la cle de repartition etant donnee sans qu''aucune lecture visuelle ne soit
-    necessaire pour la determiner (contrairement aux niveaux precedents ou seuls les totaux par domaine,
-    pas la cle par probleme, etaient parfois donnes). Ce corrige utilise ses propres codes locaux (N-a,
-    L-b, F-d...) dans sa grille de report — non stockes ici (CLAUDE.md, seuls les codes canoniques 02_Competences
-    sont stables), mais utilises comme indice pour choisir le code canonique le plus proche.
-    Point notable du classeur, les fonctions rationnelles (F3/L3/L5/F10/F11 selon le contexte) sont
-    parfois classees domaine L (calcul) et parfois domaine F (etude d''une fonction) par le corrige lui-meme
-    selon qu''il s''agit d''une resolution algebrique isolee ou d''une etude de variation — suivi ici a l''identique.
-    Quelques items de partie C (P4 termes 1/2, P6 terme 3) n''ont pas de code canonique dedie a leur
-    contenu tres precis (repartition entre calcul de distance et conversion d''echelle ; signalement d''une
-    donnee manquante) — affectes par approximation raisonnee, sans effet sur les totaux par domaine.'
+  source: 'Referentiel_Urie_v1.xlsx (batterie allégée du 2026-10-06) — onglets 04_Questions, 06_Distracteurs,
+    02_Competences ; corrigés : data/knowledge/corriges_socle.yaml'
+  genere_par: scripts/generer_baremes_socle.py
+  note_corriges: 7 QCM avec bonne réponse (classeur) ; 39 questions corrigées depuis le corrigé PDF enseignant
+    ; 0 sans corrigé.
 questions:
 - code: N1
   partie: A
@@ -50,10 +26,11 @@ questions:
   competence: N.RAC
   competence_secondaire: null
   domaine: Activites numeriques
-  objet: Simplifier un quotient de racines carrees et l'ecrire sous la forme d'un entier
+  objet: Ecrire (√50 - √18)/√2 sous la forme d'un entier
   reponse_attendue: A = 2
   solution: ''
-  si_echoue: 'Simplification d''un radical : √50=5√2 et √18=3√2.'
+  si_echoue: 'Simplification d''un radical : √50 = 5√2 et √18 = 3√2. Livret de remédiation 1ère D / Tle
+    D, module 1.'
 - code: L1
   partie: A
   format: court
@@ -62,23 +39,47 @@ questions:
   competence: L.POLY
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Factoriser un polynome de degre 3 par (x-a) a partir d'une racine connue
-  reponse_attendue: P(x) = (x+1)(x² - 5x + 6)
-  solution: ''
-  si_echoue: Factorisation d'un polynome par (x-a) lorsque a est une racine connue.
+  objet: Identifier b dans x³ - 4x² + x + 6 = (x + 1)(x² + bx + 6)
+  reponse_attendue: b = -5, soit P(x) = (x + 1)(x² - 5x + 6)
+  solution: 'Barème : 1 pt, tout ou rien. Seule la valeur b = -5 est exigée (coefficient de x² : 1 + b
+    = -4, ou valeur particulière P(1) = 4 = 2 × (7 + b)).'
+  si_echoue: Identification des coefficients dans une factorisation partiellement donnée, puis factorisation
+    d'un polynôme par (x - a) lorsque a est une racine connue. Livret de remédiation 1ère D / Tle D, module
+    7.
 - code: L2
   partie: A
   format: qcm
   bareme: 0.25
   bareme_classeur: 1.0
-  competence: L.TRI
-  competence_secondaire: null
+  competence: L.INEQ2
+  competence_secondaire: L.EQ2
   domaine: Calcul litteral et algebre
-  objet: Choisir l'ensemble des solutions d'une inequation du second degre (QCM)
-  reponse_attendue: c) ]1 ; 3[
+  objet: Résoudre dans ℝ l'inéquation -x² + 4x - 3 > 0 (QCM)
+  reponse_attendue: c
   solution: ''
-  si_echoue: 'Signe d''un trinome dont le coefficient de x² est negatif : l''expression est positive
-    entre les racines.'
+  options:
+  - lettre: a
+    texte: ']-∞ ; 1[ ∪ ]3 ; +∞['
+    correcte: false
+    type_erreur: CPT
+    erreur: Appliquer « positif à l'extérieur des racines 1 et 3 » sans tenir compte du coefficient -1
+      de x², qui inverse le signe.
+  - lettre: b
+    texte: '[1 ; 3]'
+    correcte: false
+    type_erreur: PRC
+    erreur: Racines 1 et 3 et signe justes, mais bornes incluses alors que l'inégalité > 0 est stricte.
+  - lettre: c
+    texte: ']1 ; 3['
+    correcte: true
+  - lettre: d
+    texte: ']-3 ; -1['
+    correcte: false
+    type_erreur: PRC
+    erreur: 'Racines de x² - 4x + 3 prises de signe opposé (-1 et -3, racines de x² + 4x + 3) : erreur
+      de signe dans la recherche des racines.'
+  si_echoue: 'Signe d''un trinôme dont le coefficient de x² est négatif : l''expression est positive entre
+    les racines. Livret de remédiation 1ère D / Tle D, module 7.'
 - code: L3
   partie: A
   format: court
@@ -87,10 +88,11 @@ questions:
   competence: L.RATF
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Resoudre une equation quotient nul
+  objet: Résoudre dans ℝ l'équation (x² - 1)/(x - 3) = 0
   reponse_attendue: x = -1 ou x = 1
-  solution: ''
-  si_echoue: Un quotient est nul quand son numerateur est nul et son denominateur non nul.
+  solution: 'Barème : 1 pt, tout ou rien. Les deux solutions sont exigées.'
+  si_echoue: Un quotient est nul quand son numérateur est nul et son dénominateur non nul. Livret de remédiation
+    1ère D / Tle D, module 7.
 - code: F1
   partie: A
   format: qcm
@@ -99,11 +101,32 @@ questions:
   competence: F.DEF
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Determiner l'ensemble de definition d'une fonction avec une racine au denominateur (QCM)
-  reponse_attendue: a) ]3 ; +∞[
+  objet: Déterminer l'ensemble de définition de f(x) = x/√(x - 3) (QCM)
+  reponse_attendue: a
   solution: ''
-  si_echoue: Condition d'existence d'un radical place au denominateur - la quantite sous le radical
-    doit etre strictement positive.
+  options:
+  - lettre: a
+    texte: ']3 ; +∞['
+    correcte: true
+  - lettre: b
+    texte: '[3 ; +∞['
+    correcte: false
+    type_erreur: CNS
+    erreur: 'Seule la condition x - 3 ≥ 0 du radical est écrite : la condition « dénominateur non nul
+      » n''est pas mobilisée, 3 est inclus.'
+  - lettre: c
+    texte: ']-∞ ; 3['
+    correcte: false
+    type_erreur: PRC
+    erreur: La condition x - 3 > 0 est bien posée mais résolue avec le sens de l'inégalité inversé.
+  - lettre: d
+    texte: ℝ privé de 3
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Le radical est ignoré : x - 3 est traité comme un simple dénominateur qui doit seulement
+      être non nul.'
+  si_echoue: 'Condition d''existence d''un radical placé au dénominateur : la quantité sous le radical
+    doit être strictement positive. Livret de remédiation 1ère D / Tle D, module 8.'
 - code: F2
   partie: A
   format: court
@@ -112,10 +135,11 @@ questions:
   competence: F.DER
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Calculer la derivee d'une fonction comportant un terme en 1/x
+  objet: Dériver f(x) = 2x³ - 5/x sur ]0 ; +∞[
   reponse_attendue: f'(x) = 6x² + 5/x²
   solution: ''
-  si_echoue: Derivee de 1/x et effet du signe moins qui la precede.
+  si_echoue: Dérivée de 1/x et effet du signe moins qui la précède. Livret de remédiation 1ère D / Tle
+    D, module 12.
 - code: F3
   partie: A
   format: qcm
@@ -124,10 +148,32 @@ questions:
   competence: F.LIM
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Determiner une limite en une valeur interdite, d'un cote donne (QCM)
-  reponse_attendue: b) +∞
+  objet: Calculer la limite de (x + 1)/(x - 2) quand x tend vers 2 avec x > 2 (QCM)
+  reponse_attendue: b
   solution: ''
-  si_echoue: Limite en une valeur interdite - etude du signe du denominateur du cote indique.
+  options:
+  - lettre: a
+    texte: '3'
+    correcte: false
+    type_erreur: CNS
+    erreur: 'Seul le numérateur est évalué en 2 (2 + 1 = 3) : la règle « limite non nulle sur limite nulle
+      donne une limite infinie » n''est pas mobilisée.'
+  - lettre: b
+    texte: +∞
+    correcte: true
+  - lettre: c
+    texte: -∞
+    correcte: false
+    type_erreur: PRC
+    erreur: Forme 3/0 bien reconnue, mais le signe de x - 2 pour x > 2 est mal étudié (pris négatif).
+  - lettre: d
+    texte: '0'
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Le quotient 3/0 est interprété comme valant 0 : un dénominateur qui tend vers 0 est confondu
+      avec un quotient nul.'
+  si_echoue: 'Limite en une valeur interdite : étude du signe du dénominateur du côté indiqué. Livret
+    de remédiation 1ère D / Tle D, module 12.'
 - code: F4
   partie: A
   format: court
@@ -136,10 +182,11 @@ questions:
   competence: F.VAR
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Determiner l'abscisse d'un extremum a partir de l'expression de la derivee
-  reponse_attendue: g admet un maximum en x = 5/2
+  objet: Donner l'abscisse du maximum de g sachant que g'(x) = 5 - 2x
+  reponse_attendue: maximum en x = 5/2
   solution: ''
-  si_echoue: Lien entre le changement de signe de la derivee et la nature de l'extremum.
+  si_echoue: Lien entre le changement de signe de la dérivée et la nature de l'extremum. Livret de remédiation
+    1ère D / Tle D, module 12.
 - code: F5
   partie: A
   format: qcm
@@ -148,11 +195,32 @@ questions:
   competence: F.ASY
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Choisir les equations des deux asymptotes d'une fonction homographique (QCM)
-  reponse_attendue: d) x = -1 et y = 4
+  objet: Identifier les deux asymptotes de f(x) = (4x + 5)/(x + 1) (QCM)
+  reponse_attendue: d
   solution: ''
-  si_echoue: Asymptotes d'une fonction homographique - la valeur interdite donne la verticale, la limite
-    en l'infini donne l'horizontale.
+  options:
+  - lettre: a
+    texte: x = 1 et y = 4
+    correcte: false
+    type_erreur: PRC
+    erreur: 'La valeur interdite est mal lue : x + 1 = 0 résolu en x = 1 au lieu de x = -1.'
+  - lettre: b
+    texte: x = -1 et y = 5
+    correcte: false
+    type_erreur: CNS
+    erreur: 'L''asymptote horizontale est lue sur le terme constant 5 du numérateur : la limite en l''infini
+      (rapport 4/1 des coefficients de x) n''est pas mobilisée.'
+  - lettre: c
+    texte: y = -1 et x = 4
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Les deux valeurs sont justes mais les rôles de x et y sont échangés : asymptote verticale
+      et horizontale confondues.'
+  - lettre: d
+    texte: x = -1 et y = 4
+    correcte: true
+  si_echoue: 'Asymptotes d''une fonction homographique : la valeur interdite donne la verticale, la limite
+    en l''infini donne l''horizontale. Livret de remédiation 1ère D / Tle D, module 12.'
 - code: F6
   partie: A
   format: court
@@ -161,34 +229,37 @@ questions:
   competence: F.DER
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Calculer la derivee d'une puissance de fonction sous forme de produit
+  objet: Dériver u(x) = (3x² - 1)⁴ et écrire u'(x) sous forme de produit
   reponse_attendue: u'(x) = 24x(3x² - 1)³
-  solution: ''
-  si_echoue: 'Derivee d''une puissance de fonction : (uⁿ)''=nu''uⁿ⁻¹.'
+  solution: 'Barème : 1 pt, tout ou rien. La forme factorisée est exigée.'
+  si_echoue: 'Dérivée d''une puissance de fonction : (uⁿ)'' = n·u''·uⁿ⁻¹. Livret de remédiation 1ère D
+    / Tle D, module 12.'
 - code: F7
   partie: A
   format: court
   bareme: 0.25
   bareme_classeur: 1.0
   competence: F.TAN
-  competence_secondaire: null
+  competence_secondaire: F.DER
   domaine: Fonctions et applications
-  objet: Determiner une equation de la tangente a une courbe en un point d'abscisse donnee
-  reponse_attendue: y = -1/4 x + 1
+  objet: Donner une équation de la tangente à la courbe de 1/x au point d'abscisse 2
+  reponse_attendue: y = -(1/4)x + 1
   solution: ''
-  si_echoue: 'Formule de la tangente y=f''(a)(x-a)+f(a), et calcul de f''(2).'
+  si_echoue: Formule de la tangente y = f'(a)(x - a) + f(a), et calcul de f'(2). Livret de remédiation
+    1ère D / Tle D, modules 10 et 12.
 - code: F8
   partie: A
   format: court
   bareme: 0.25
   bareme_classeur: 1.0
-  competence: F.VAR
+  competence: F.GRA
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Lire le minimum d'une fonction donnee par sa courbe et l'abscisse ou il est atteint
-  reponse_attendue: Le minimum de f est -2, atteint en x = 1
-  solution: ''
-  si_echoue: Confusion entre le minimum, qui est une ordonnee, et l'abscisse en laquelle il est atteint.
+  objet: 'Lire le minimum de f et son abscisse : courbe de (-3 ; 4) à (1 ; -2) puis à (5 ; 6)'
+  reponse_attendue: le minimum de f est -2, atteint en x = 1
+  solution: 'Barème : 1 pt, tout ou rien. La valeur -2 et l''abscisse 1 sont toutes deux exigées.'
+  si_echoue: Confusion entre le minimum, qui est une ordonnée, et l'abscisse en laquelle il est atteint.
+    Livret de remédiation 1ère D / Tle D, module 8.
 - code: S1
   partie: A
   format: qcm
@@ -197,11 +268,30 @@ questions:
   competence: S.SUI
   competence_secondaire: null
   domaine: Suites et raisonnement
-  objet: Identifier la raison d'une suite arithmetique ecrite sous la forme un=an+b (QCM)
-  reponse_attendue: b) -4
+  objet: Donner la raison de la suite arithmétique uₙ = 7 - 4n (QCM)
+  reponse_attendue: b
   solution: ''
-  si_echoue: 'Dans une suite arithmetique ecrite sous la forme un=an+b, la raison est le coefficient
-    a.'
+  options:
+  - lettre: a
+    texte: '7'
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Le terme constant 7, qui est u₀, est pris pour la raison : premier terme et raison sont confondus.'
+  - lettre: b
+    texte: '-4'
+    correcte: true
+  - lettre: c
+    texte: '4'
+    correcte: false
+    type_erreur: PRC
+    erreur: Le coefficient de n est bien identifié mais son signe moins est perdu.
+  - lettre: d
+    texte: '3'
+    correcte: false
+    type_erreur: CNS
+    erreur: 'L''élève calcule u₁ = 7 - 4 = 3 : la définition de la raison (uₙ₊₁ - uₙ) n''est pas mobilisée.'
+  si_echoue: Dans une suite arithmétique écrite sous la forme uₙ = an + b, la raison est le coefficient
+    a.
 - code: S2
   partie: A
   format: court
@@ -210,10 +300,10 @@ questions:
   competence: S.REC
   competence_secondaire: null
   domaine: Suites et raisonnement
-  objet: Ecrire une propriete au rang n+1 dans une demonstration par recurrence
-  reponse_attendue: 3^(n+1) ≥ 2n + 3
-  solution: ''
-  si_echoue: 'Ecriture de la propriete au rang n+1 : remplacer n par n+1 partout, dans les deux membres.'
+  objet: Ecrire au rang n + 1 l'inégalité 3ⁿ ≥ 2n + 1 d'une récurrence
+  reponse_attendue: 3ⁿ⁺¹ ≥ 2n + 3
+  solution: 'Barème : 1 pt, tout ou rien. La forme 3ⁿ⁺¹ ≥ 2(n + 1) + 1 est acceptée.'
+  si_echoue: 'Ecriture de la propriété au rang n + 1 : remplacer n par n + 1 partout, dans les deux membres.'
 - code: S3
   partie: A
   format: court
@@ -222,11 +312,11 @@ questions:
   competence: S.SUI
   competence_secondaire: null
   domaine: Suites et raisonnement
-  objet: Calculer la somme des termes consecutifs d'une suite arithmetique
+  objet: Calculer v₀ + ... + v₁₀ (suite arithmétique, v₀ = 2, raison 3, v₁₀ = 32)
   reponse_attendue: '187'
-  solution: ''
-  si_echoue: 'Somme des termes consecutifs d''une suite arithmetique, et comptage des termes : de v0
-    a v10 il y a 11 termes, non 10.'
+  solution: 'Barème : 1 pt, tout ou rien. Le dernier terme étant donné : 11 × (2 + 32)/2 = 11 × 17 = 187.'
+  si_echoue: 'Somme des termes consécutifs d''une suite arithmétique, et comptage des termes : de v₀ à
+    v₁₀ il y a 11 termes, non 10.'
 - code: T1
   partie: A
   format: court
@@ -235,22 +325,25 @@ questions:
   competence: T.TRIG
   competence_secondaire: null
   domaine: Trigonometrie
-  objet: Reconnaitre et calculer une expression de la forme cos a cos b - sin a sin b
+  objet: Calculer cos(π/3)cos(π/6) - sin(π/3)sin(π/6)
   reponse_attendue: '0'
   solution: ''
-  si_echoue: 'Reconnaissance de la forme cos a cos b - sin a sin b = cos(a+b).'
+  si_echoue: Reconnaissance de la forme cos a cos b - sin a sin b = cos(a + b). Livret de remédiation
+    1ère D / Tle D, module 11.
 - code: T2
   partie: A
   format: court
   bareme: 0.25
   bareme_classeur: 1.0
   competence: T.EQT
-  competence_secondaire: null
+  competence_secondaire: T.TRIG
   domaine: Trigonometrie
-  objet: Resoudre une inequation trigonometrique en cosinus sur le cercle trigonometrique
-  reponse_attendue: 'S = [2π/3 ; 4π/3]'
-  solution: ''
-  si_echoue: Lecture d'une inequation en cosinus sur le cercle trigonometrique.
+  objet: Résoudre dans [0 ; π] l'inéquation cos x ≤ -1/2
+  reponse_attendue: S = [2π/3 ; π]
+  solution: 'Barème : 1 pt, tout ou rien. Sur [0 ; π] le cosinus est décroissant : une seule borne à déterminer,
+    2π/3, et l''intervalle est fermé.'
+  si_echoue: Lecture d'une inéquation en cosinus sur le cercle trigonométrique. Livret de remédiation
+    1ère D / Tle D, module 11.
 - code: D1
   partie: A
   format: qcm
@@ -258,12 +351,33 @@ questions:
   bareme_classeur: 1.0
   competence: D.DEN
   competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: Calculer un nombre de combinaisons (QCM)
-  reponse_attendue: c) 220
+  domaine: Donnees, proportionnalite, statistique
+  objet: Dénombrer les choix de 3 élèves parmi 12 au lycée de Réo (QCM)
+  reponse_attendue: c
   solution: ''
-  si_echoue: Confusion entre combinaison et arrangement - l'ordre des trois eleves choisis n'intervient
-    pas.
+  options:
+  - lettre: a
+    texte: '1320'
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Calcul de l''arrangement 12 × 11 × 10 = 1 320 : l''ordre des trois élèves est compté alors
+      qu''il n''intervient pas.'
+  - lettre: b
+    texte: '36'
+    correcte: false
+    type_erreur: CNS
+    erreur: 'Produit 12 × 3 = 36 : aucun outil de dénombrement n''est mobilisé.'
+  - lettre: c
+    texte: '220'
+    correcte: true
+  - lettre: d
+    texte: '1728'
+    correcte: false
+    type_erreur: MOD
+    erreur: 'Calcul de 12³ = 1 728 : la situation est modélisée comme trois tirages avec répétition, un
+      même élève pouvant être choisi plusieurs fois.'
+  si_echoue: 'Confusion entre combinaison et arrangement : l''ordre des trois élèves choisis n''intervient
+    pas.'
 - code: G1
   partie: A
   format: qcm
@@ -272,10 +386,31 @@ questions:
   competence: G.PS
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Determiner un reel pour que deux vecteurs soient orthogonaux (QCM)
-  reponse_attendue: d) m = 3/2
+  objet: Trouver m pour que u(m ; 3) et v(4 ; -2) soient orthogonaux (QCM)
+  reponse_attendue: d
   solution: ''
-  si_echoue: 'Expression du produit scalaire en coordonnees et condition d''orthogonalite : u.v=0.'
+  options:
+  - lettre: a
+    texte: -3/2
+    correcte: false
+    type_erreur: PRC
+    erreur: 'Condition juste mais 3 × (-2) écrit +6 : 4m + 6 = 0 donne m = -3/2.'
+  - lettre: b
+    texte: '6'
+    correcte: false
+    type_erreur: CPT
+    erreur: 'Produits croisés comme pour un déterminant : m × (-2) + 3 × 4 = 0 donne -2m + 12 = 0, soit
+      m = 6.'
+  - lettre: c
+    texte: 2/3
+    correcte: false
+    type_erreur: PRC
+    erreur: '4m - 6 = 0 bien posé mais la division est inversée : m = 4/6 = 2/3.'
+  - lettre: d
+    texte: 3/2
+    correcte: true
+  si_echoue: 'Expression du produit scalaire en coordonnées et condition d''orthogonalité : 4m + 3 × (-2)
+    = 0. Livret de remédiation 1ère D / Tle D, module 9.'
 - code: G2
   partie: A
   format: court
@@ -284,10 +419,10 @@ questions:
   competence: G.ESP
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer la diagonale d'un pave droit par deux applications du theoreme de Pythagore
+  objet: Calculer la diagonale AG d'un pavé droit de dimensions 6 cm, 6 cm et 7 cm
   reponse_attendue: AG = 11 cm
   solution: ''
-  si_echoue: 'Diagonale d''un pave droit : AG²=AB²+BC²+AE², soit deux emplois successifs du theoreme
+  si_echoue: 'Diagonale d''un pavé droit : AG² = AB² + BC² + AE², soit deux emplois successifs du théorème
     de Pythagore.'
 - code: L4
   partie: B
@@ -297,52 +432,62 @@ questions:
   competence: L.POLY
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Determiner deux coefficients d'un polynome a partir d'une racine et d'une image, puis le factoriser
-    en trois facteurs du premier degre
-  reponse_attendue: P(x) = (x-2)(x-1)(x+3)
-  solution: 'P(0)=b, donc b=6. P(2)=8+4a-14+6=4a, et 2 est racine, donc a=0. P(x)=x³-7x+6=(x-2)(x²+2x-3)=(x-2)(x-1)(x+3).'
-  si_echoue: Traduction d'une racine et d'une image en equations sur les coefficients, puis factorisation
-    d'un polynome de degre 3.
+  objet: Trouver a si 2 est racine de x³ + ax² - 7x + 6, puis juger si 1 est racine (Moussa)
+  reponse_attendue: a = 0 ; P(1) = 0, 1 est racine, Moussa a raison
+  solution: 'P(2) = 8 + 4a - 14 + 6 = 4a = 0, donc a = 0 ; P(x) = x³ - 7x + 6, P(1) = 1 - 7 + 6 = 0. Barème
+    : 1 pt pour avoir traduit « 2 est racine » par P(2) = 0 et abouti à a = 0 ; 1 pt pour le calcul de
+    P(1) et le jugement justifié. Erreur propagée : le second point est acquis si P(1) est calculé correctement
+    avec la valeur de a trouvée par l''élève et si le jugement est cohérent.'
+  si_echoue: Traduction d'une racine en équation sur un coefficient, puis test d'une racine par calcul
+    d'image. Livret de remédiation 1ère D / Tle D, module 7.
 - code: L5
   partie: B
   format: redige
   bareme: 0.5
   bareme_classeur: 2.0
   competence: L.RATF
-  competence_secondaire: null
+  competence_secondaire: L.INEQ2
   domaine: Calcul litteral et algebre
-  objet: Dresser le tableau de signe d'une fonction rationnelle, puis resoudre une inequation de signe
-  reponse_attendue: 'S = ]-∞ ; -2] ∪ ]1/2 ; 3]'
-  solution: 'x²-x-6=(x-3)(x+2) et 2x-1 s''annule en 1/2. Tableau de signe complet ; f(-2)=f(3)=0, f non
-    definie en 1/2.'
-  si_echoue: Signe d'un quotient et exclusion de la valeur interdite au moment d'ecrire l'ensemble solution.
+  objet: Donner le signe de (x - 3)(x + 2)/(2x - 1) sur ]1/2 ; 3[, juger si -2 résout f(x) ≤ 0
+  reponse_attendue: f(x) < 0 sur ]1/2 ; 3[ ; f(-2) = 0, donc -2 est solution de f(x) ≤ 0
+  solution: 'Sur ]1/2 ; 3[ : x - 3 < 0, x + 2 > 0, 2x - 1 > 0, donc f(x) < 0. f(-2) = (-5) × 0 / (-5)
+    = 0 et 0 ≤ 0. Barème : 1 pt pour le signe des trois facteurs aboutissant à f(x) < 0 ; 1 pt pour f(-2)
+    = 0 et la conclusion que -2 est solution (inégalité large). Refuser « -2 n''est pas solution parce
+    que f(-2) n''est pas strictement négatif » : c''est l''erreur visée.'
+  si_echoue: Signe d'un quotient par le signe de chacun de ses facteurs, et distinction entre inégalité
+    large et inégalité stricte. Livret de remédiation 1ère D / Tle D, module 7.
 - code: L6
   partie: B
   format: redige
   bareme: 0.5
   bareme_classeur: 2.0
-  competence: L.TRI
+  competence: L.EQ2
   competence_secondaire: null
   domaine: Calcul litteral et algebre
-  objet: Discuter selon un parametre l'existence d'une solution double d'une equation du second degre,
-    puis la calculer
-  reponse_attendue: m = 5 (x0 = -2) ou m = -3 (x0 = 2)
-  solution: 'Δ=(m-1)²-16=0 donne m-1=4 ou m-1=-4, soit m=5 ou m=-3. x0=-(m-1)/2.'
-  si_echoue: 'Role du discriminant dans la discussion, et formule de la racine double -b/2a.'
+  objet: Trouver m pour une solution double de x² + (m - 1)x + 4 = 0, juger le cas m = 0
+  reponse_attendue: Δ = (m - 1)² - 16 = 0 ⇔ m = 5 ou m = -3 ; pour m = 0, Δ = -15 < 0, pas de solution
+    réelle, Safiatou a raison
+  solution: 'Barème : 1 pt pour la condition Δ = 0 conduite jusqu''aux deux valeurs m = 5 et m = -3 (les
+    deux exigées) ; 1 pt pour le discriminant -15 dans le cas m = 0 et le jugement justifié « Safiatou
+    a raison ».'
+  si_echoue: Rôle du discriminant dans la discussion du nombre de solutions d'une équation du second degré.
+    Livret de remédiation 1ère D / Tle D, module 7.
 - code: F9
   partie: B
   format: redige
   bareme: 0.5
   bareme_classeur: 2.0
   competence: F.PAR
-  competence_secondaire: null
+  competence_secondaire: F.DEF
   domaine: Fonctions et applications
-  objet: Determiner l'ensemble de definition d'une fonction avec radical au denominateur, puis etudier
-    sa parite
-  reponse_attendue: 'D = ]-3 ; 3[, f est impaire'
-  solution: 'f(x) existe si 9-x²>0, soit -3<x<3. D centre en 0. f(-x)=-x/√(9-x²)=-f(x).'
-  si_echoue: Condition d'existence d'un radical au denominateur, ou conduite du test de parite par le
-    calcul de f(-x).
+  objet: Déterminer D pour x/√(9 - x²) et juger l'affirmation « f est paire » (Talato)
+  reponse_attendue: D = ]-3 ; 3[ ; f(-x) = -f(x), f est impaire, Talato a tort
+  solution: '9 - x² > 0 ⇔ -3 < x < 3 ; D centré en 0 et f(-x) = -x/√(9 - x²) = -f(x). Barème : 1 pt pour
+    D = ]-3 ; 3[ avec l''inégalité stricte (radical au dénominateur) ; 1 pt pour le calcul de f(-x) et
+    le jugement « Talato a tort, f est impaire ». Accepter une réponse qui conclut « f est impaire » sans
+    écrire « paire » dès que f(-x) = -f(x) est établi.'
+  si_echoue: Condition d'existence d'un radical au dénominateur, ou conduite du test de parité par le
+    calcul de f(-x). Livret de remédiation 1ère D / Tle D, module 8.
 - code: F10
   partie: B
   format: redige
@@ -351,12 +496,15 @@ questions:
   competence: F.LIM
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Determiner un parametre pour qu'une fonction rationnelle admette une limite finie en une valeur
-    interdite, puis calculer cette limite
-  reponse_attendue: a = 1, limite = 5
-  solution: 'Le denominateur s''annule en 2. Numerateur nul en 2 : 4+2a-6=0 donne a=1. Alors f(x)=x+3
-    pour x≠2, limite 5.'
-  si_echoue: 'Forme indeterminee 0/0 et factorisation du numerateur par (x-2).'
+  objet: Trouver a pour une limite finie en 2 de (x² + ax - 6)/(x - 2), juger le cas a = 2
+  reponse_attendue: a = 1 ; pour a = 2, limites +∞ à droite et -∞ à gauche de 2, pas de limite, Issouf
+    a tort
+  solution: 'Pour une limite finie, le numérateur doit s''annuler en 2 : 4 + 2a - 6 = 0, a = 1. Pour a
+    = 2, le numérateur vaut 2 en 2. Barème : 1 pt pour a = 1 justifié par l''annulation du numérateur
+    en 2 ; 1 pt pour les deux limites latérales et le jugement « Issouf a tort ». Refuser « Issouf a raison
+    » appuyé sur la seule limite à droite.'
+  si_echoue: Forme indéterminée 0/0, et étude du signe du dénominateur de part et d'autre d'une valeur
+    interdite. Livret de remédiation 1ère D / Tle D, module 12.
 - code: F11
   partie: B
   format: redige
@@ -365,13 +513,13 @@ questions:
   competence: F.ASY
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Reduire une fraction rationnelle en partie entiere plus reste, puis donner les equations des
-    deux asymptotes
-  reponse_attendue: 'f(x) = 2x - 1 + 3/(x-1) ; asymptotes x = 1 et y = 2x - 1'
-  solution: '2x²-3x+4=(x-1)(2x-1)+3, donc f(x)=2x-1+3/(x-1). Asymptote verticale x=1, asymptote oblique
-    y=2x-1.'
-  si_echoue: Reduction d'une fraction rationnelle en partie entiere plus reste, et lecture des asymptotes
-    sur cette forme.
+  objet: Donner les asymptotes de 2x - 1 + 3/(x - 1), juger si la courbe coupe l'oblique
+  reponse_attendue: asymptotes x = 1 et y = 2x - 1 ; f(x) - (2x - 1) = 3/(x - 1) ≠ 0, la courbe ne coupe
+    jamais l'oblique, Rakieta a tort
+  solution: 'Barème : 1 pt pour les deux équations d''asymptotes, verticale x = 1 et oblique y = 2x -
+    1 ; 1 pt pour f(x) - (2x - 1) = 3/(x - 1), constaté jamais nul, et « Rakieta a tort ».'
+  si_echoue: Lecture des asymptotes sur une écriture « partie affine plus reste », et étude de la position
+    d'une courbe par rapport à son asymptote. Livret de remédiation 1ère D / Tle D, module 12.
 - code: F12
   partie: B
   format: redige
@@ -380,25 +528,28 @@ questions:
   competence: F.DER
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Determiner deux parametres d'un polynome a partir de deux conditions sur sa derivee, puis calculer
-    une image de la derivee
-  reponse_attendue: a = -2, b = 1, f'(2) = 5
-  solution: "f'(x)=3x\xB2+2ax+b. f'(0)=b=1. f'(1)=3+2a+1=0 donne a=-2. f'(x)=3x\xB2-4x+1, f'(2)=12-8+1=5."
-  si_echoue: Derivation d'un polynome avec parametres, puis traduction de deux conditions en un systeme.
+  objet: Trouver a et b pour x³ + ax² + bx avec f'(0) = 1 et f'(1) = 0, puis calculer f'(2)
+  reponse_attendue: a = -2, b = 1 ; f'(2) = 5
+  solution: 'f''(x) = 3x² + 2ax + b ; f''(0) = b = 1 ; f''(1) = 4 + 2a = 0, a = -2 ; f''(2) = 12 - 8 +
+    1 = 5. Barème : 1 pt pour a = -2 et b = 1 (les deux exigées) ; 1 pt pour f''(2) = 5. Erreur propagée
+    : f''(2) correctement calculé à partir des valeurs de a et b trouvées, même erronées.'
+  si_echoue: Dérivation d'un polynôme à coefficients paramétrés, puis traduction de deux conditions en
+    un système. Livret de remédiation 1ère D / Tle D, module 12.
 - code: F13
   partie: B
   format: redige
   bareme: 0.5
   bareme_classeur: 2.0
   competence: F.TAN
-  competence_secondaire: null
+  competence_secondaire: F.DER
   domaine: Fonctions et applications
-  objet: Determiner l'abscisse ou la tangente a une courbe est parallele a une droite donnee, son equation,
-    puis verifier l'appartenance d'un point
-  reponse_attendue: 'x = 1 ; y = -3x + 3 ; M(2 ; -3) appartient a la tangente'
-  solution: "f'(x)=3x\xB2-6x. f'(x)=-3 donne (x-1)\xB2=0, x=1. f(1)=0, tangente y=-3x+3. Pour x=2 : y=-3."
-  si_echoue: Identification du coefficient directeur a la derivee, condition de parallelisme, puis appartenance
-    d'un point a une droite.
+  objet: Trouver la tangente à x³ - 3x² + 2 parallèle à la droite y = -3x + 1
+  reponse_attendue: f'(x) = -3 ⇔ x = 1 ; tangente y = -3x + 3
+  solution: 'f''(x) = 3x² - 6x = -3 ⇔ (x - 1)² = 0 ⇔ x = 1 ; f(1) = 0 ; y = -3(x - 1). Barème : 1 pt pour
+    f''(x) = -3 et l''abscisse x = 1 ; 1 pt pour f(1) = 0 et l''équation réduite y = -3x + 3. Erreur propagée
+    : équation correctement formée à partir de l''abscisse trouvée.'
+  si_echoue: Identification du coefficient directeur d'une tangente à la dérivée, puis condition de parallélisme
+    de deux droites. Livret de remédiation 1ère D / Tle D, modules 10 et 12.
 - code: F14
   partie: B
   format: redige
@@ -407,12 +558,14 @@ questions:
   competence: F.VAR
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: Calculer la derivee d'une fonction, etudier son signe, puis dresser le tableau de variation
-  reponse_attendue: 'f croissante sur [0;1], decroissante sur [1;2], croissante sur [2;3] ; f(0)=0, f(1)=5,
-    f(2)=4, f(3)=9'
-  solution: "f'(x)=6x\xB2-18x+12=6(x-1)(x-2), positive sur [0;1] et [2;3], negative sur [1;2]."
-  si_echoue: Passage du signe de la derivee au sens de variation, et calcul des images aux bornes et
-    aux extremums.
+  objet: Etudier f'(x) = 6(x - 1)(x - 2) sur [0 ; 1], juger « f croissante sur [0 ; 3] »
+  reponse_attendue: f' ≥ 0 sur [0 ; 1], f croissante sur [0 ; 1] ; f' < 0 sur ]1 ; 2[, f décroissante,
+    Sibiri a tort
+  solution: 'Barème : 1 pt pour le signe des deux facteurs sur [0 ; 1] aboutissant à f''(x) ≥ 0 et « f
+    croissante sur [0 ; 1] » ; 1 pt pour le signe de f'' sur ]1 ; 2[ et « Sibiri a tort ». Accepter un
+    contre-exemple chiffré (f(1) = 5 et f(2) = 4).'
+  si_echoue: Passage du signe de la dérivée au sens de variation, et portée d'une monotonie limitée à
+    un sous-intervalle. Livret de remédiation 1ère D / Tle D, module 12.
 - code: S4
   partie: B
   format: redige
@@ -421,25 +574,30 @@ questions:
   competence: S.SUI
   competence_secondaire: null
   domaine: Suites et raisonnement
-  objet: Calculer la raison et le premier terme d'une suite arithmetique a partir de deux termes, puis
-    une somme de termes consecutifs
-  reponse_attendue: r = 3, u0 = -2, somme = 588
-  solution: 'u8=u3+5r donne 22=7+5r, r=3. u0=u3-3r=-2. u20=58. Somme=21×(-2+58)/2=588.'
-  si_echoue: 'Relation up=uq+(p-q)r, puis formule de la somme des termes consecutifs.'
+  objet: Calculer la raison avec u₃ = 7 et u₈ = 22, puis dire si 100 est un terme
+  reponse_attendue: r = 3 ; uₙ = 3n - 2 = 100 ⇔ n = 34 entier, 100 = u₃₄ est un terme
+  solution: 'u₈ = u₃ + 5r : 22 = 7 + 5r, r = 3. Barème : 1 pt pour r = 3 ; 1 pt pour uₙ = 100 résolu en
+    n = 34 et la conclusion appuyée sur le fait que 34 est entier. Erreur propagée : uₙ = 100 correctement
+    résolue avec la raison trouvée et nature entière de l''indice discutée.'
+  si_echoue: Relation u_p = u_q + (p - q)r, puis résolution inverse d'une équation en l'indice avec contrôle
+    de son appartenance à ℕ.
 - code: S5
   partie: B
   format: redige
   bareme: 0.5
   bareme_classeur: 2.0
   competence: S.REC
-  competence_secondaire: null
+  competence_secondaire: N.PUI
   domaine: Suites et raisonnement
-  objet: Demontrer par recurrence une formule explicite d'une suite definie par recurrence, puis juger
-    une affirmation sur un terme
-  reponse_attendue: 'un = 2×3ⁿ - 1 pour tout n ; u5 = 485, Aminata a tort'
-  solution: 'Initialisation n=0 : 2×1-1=1=u0. Heredite : un+1=3un+2=3(2×3ⁿ-1)+2=2×3ⁿ⁺¹-1. u5=2×243-1=485.'
-  si_echoue: 'Structure du raisonnement par recurrence : initialisation, hypothese, calcul de un+1 a
-    partir de l''hypothese, conclusion.'
+  objet: Etablir l'hérédité de uₙ = 2 × 3ⁿ - 1 pour uₙ₊₁ = 3uₙ + 2, juger Aminata
+  reponse_attendue: uₙ₊₁ = 3(2 × 3ⁿ - 1) + 2 = 2 × 3ⁿ⁺¹ - 1 ; Aminata a tort, il manque l'initialisation
+    (et la conclusion)
+  solution: 'Barème : 1 pt pour avoir substitué l''hypothèse dans uₙ₊₁ = 3uₙ + 2 et mené le calcul jusqu''à
+    2 × 3ⁿ⁺¹ - 1 ; 1 pt pour « Aminata a tort » accompagné du nom de ce qui manque, l''initialisation
+    (u₀ = 2 × 3⁰ - 1 = 1). Accepter l''initialisation nommée même non vérifiée ; refuser un simple « elle
+    a tort ».'
+  si_echoue: 'Structure du raisonnement par récurrence : les trois temps que sont l''initialisation, l''hérédité
+    et la conclusion, et le rôle de chacun.'
 - code: T3
   partie: B
   format: redige
@@ -448,10 +606,13 @@ questions:
   competence: T.TRIG
   competence_secondaire: null
   domaine: Trigonometrie
-  objet: Calculer un sinus a partir d'un cosinus donne, puis une valeur exacte par une formule d'addition
-  reponse_attendue: 'sin x = 4/5 ; sin(x+π/3) = (4+3√3)/10'
-  solution: 'sin²x=1-9/25=16/25, sin x=4/5 (x dans ]0;π/2[). sin(x+π/3)=sin x cos π/3+cos x sin π/3.'
-  si_echoue: Relation fondamentale, choix du signe selon le quadrant, formule d'addition du sinus.
+  objet: Calculer sin x avec cos x = 3/5 et x dans ]0 ; π/2[, puis sin(x + π/3)
+  reponse_attendue: sin x = 4/5 ; sin(x + π/3) = (4 + 3√3)/10
+  solution: 'sin²x = 1 - 9/25 = 16/25 ; x ∈ ]0 ; π/2[ donc sin x > 0. sin(x + π/3) = (4/5)(1/2) + (3/5)(√3/2).
+    Barème : 1 pt pour sin x = 4/5 avec le signe justifié par le quadrant (non acquis sans justification
+    du signe) ; 1 pt pour la formule d''addition et la valeur exacte (4 + 3√3)/10.'
+  si_echoue: Relation fondamentale de la trigonométrie, choix du signe selon le quadrant, formule d'addition
+    du sinus. Livret de remédiation 1ère D / Tle D, module 11.
 - code: D2
   partie: B
   format: redige
@@ -459,14 +620,14 @@ questions:
   bareme_classeur: 2.0
   competence: D.DEN
   competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: Denombrer des comites respectant une contrainte de type « au moins », par decomposition en
-    cas disjoints
-  reponse_attendue: 66 comites
-  solution: 'Exactement 4 femmes et 1 homme : C(6,4)×C(4,1)=60. Exactement 5 femmes : C(6,5)=6. Total
-    66.'
-  si_echoue: Traduction de « au moins » en reunion de cas disjoints, et choix simultane dans deux groupes
-    par un produit.
+  domaine: Donnees, proportionnalite, statistique
+  objet: Dénombrer les comités de 5 avec au moins 4 femmes (6 femmes, 4 hommes, Sapone)
+  reponse_attendue: C(6,4) × C(4,1) + C(6,5) = 60 + 6 = 66 comités
+  solution: '« Au moins 4 femmes » : exactement 4 femmes et 1 homme (15 × 4 = 60) ou exactement 5 femmes
+    (6), cas disjoints. Barème : 1 pt pour la décomposition en deux cas disjoints avec le produit de combinaisons
+    ; 1 pt pour 60, 6 et le total 66.'
+  si_echoue: Traduction de « au moins » en réunion de cas disjoints, et choix simultané dans deux groupes
+    par un produit de combinaisons.
 - code: G3
   partie: B
   format: redige
@@ -475,454 +636,210 @@ questions:
   competence: G.ESP
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: Calculer une diagonale de base puis une hauteur d'un pave droit connaissant sa grande diagonale,
-    et juger une affirmation sur un angle droit
-  reponse_attendue: 'AC = 5 cm, AE = 12 cm, Boukary a raison'
-  solution: "AC=√(AB\xB2+BC\xB2)=5cm. AG\xB2=AC\xB2+CG\xB2 donne CG\xB2=144, CG=12cm=AE. (CG) perpendiculaire\
-    \ au plan (ABC) donc a (AC) : ACG rectangle en C."
-  si_echoue: Emploi repete du theoreme de Pythagore dans l'espace, et propriete d'une droite perpendiculaire
-    a un plan.
-- code: P1a
+  objet: Calculer AE dans un pavé (AG = 13, AC = 5), juger « ACG rectangle en C » (Boukary)
+  reponse_attendue: AE = CG = 12 cm ; ACG rectangle en C, Boukary a raison
+  solution: '(CG) ⊥ (ABC) : ACG rectangle en C, CG² = 13² - 5² = 144, CG = 12 = AE. Barème : 1 pt pour
+    AE = 12 cm par emploi inverse de Pythagore dans ACG ; 1 pt pour l''angle droit en C justifié par la
+    perpendicularité de (CG) au plan (ABC) et « Boukary a raison ». Autre démarche acceptée : AE² = 169
+    - 9 - 16 = 144.'
+  si_echoue: Emploi du théorème de Pythagore dans l'espace, et propriété d'une droite perpendiculaire
+    à un plan.
+- code: P1.1
   partie: C
   format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
+  bareme: 0.5
+  bareme_classeur: 2.0
   competence: S.SUI
   competence_secondaire: null
   domaine: Suites et raisonnement
-  objet: '[P1, terme 1/5] Calculer les deux termes suivants d''une suite arithmetique definie par contexte'
-  reponse_attendue: u2 = 13 ruches, u3 = 18 ruches
-  solution: ''
-  si_echoue: Terme general et somme d'une suite arithmetique, ou confusion entre combinaison et arrangement.
+  objet: Calculer u₂ et u₃ avec u₁ = 8 et uₙ₊₁ = 3uₙ - 4 (ruches de Ziniaré)
+  reponse_attendue: u₂ = 20 ruches, u₃ = 56 ruches
+  solution: 'u₂ = 3 × 8 - 4 = 20 ; u₃ = 3 × 20 - 4 = 56. Barème (2 pts) : 1 pt pour u₂ = 20, 1 pt pour
+    u₃ = 56.'
+  si_echoue: Calcul des termes d'une suite définie par récurrence.
   probleme_parent: P1
-- code: P1b
+- code: P1.2
   partie: C
   format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: S.SUI
-  competence_secondaire: null
+  bareme: 0.75
+  bareme_classeur: 3.0
+  competence: S.REC
+  competence_secondaire: N.PUI
   domaine: Suites et raisonnement
-  objet: '[P1, terme 2/5] Exprimer le terme general d''une suite arithmetique en fonction de n, sous
-    forme reduite'
-  reponse_attendue: un = 5n + 3
-  solution: ''
-  si_echoue: Terme general et somme d'une suite arithmetique, ou confusion entre combinaison et arrangement.
+  objet: Etablir l'hérédité de uₙ = 2 × 3ⁿ + 2 et conclure la récurrence (ruches)
+  reponse_attendue: hérédité uₙ₊₁ = 3(2 × 3ⁿ + 2) - 4 = 2 × 3ⁿ⁺¹ + 2 ; pour tout n ≥ 1, uₙ = 2 × 3ⁿ +
+    2
+  solution: 'Initialisation donnée : 2 × 3¹ + 2 = 8 = u₁. Conclusion attendue : « P(1) est vraie et la
+    propriété est héréditaire, donc, d''après le principe de récurrence, pour tout entier n ≥ 1, uₙ =
+    2 × 3ⁿ + 2. » Barème (3 pts) : 1 pt pour l''hypothèse de récurrence écrite au rang n, 1 pt pour le
+    calcul d''hérédité par substitution jusqu''à 2 × 3ⁿ⁺¹ + 2, 1 pt pour la phrase de conclusion invoquant
+    l''initialisation et l''hérédité. L''initialisation fournie n''est pas payée ; une hérédité juste
+    sans hypothèse écrite ne vaut pas le premier point.'
+  si_echoue: Modélisation d'une récurrence du type uₙ₊₁ = a·uₙ + b, conduite de l'hérédité à partir d'une
+    hypothèse écrite.
   probleme_parent: P1
-- code: P1c
+- code: P1.3
   partie: C
   format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: S.SUI
-  competence_secondaire: null
-  domaine: Suites et raisonnement
-  objet: '[P1, terme 3/5] Calculer la somme des dix premiers termes d''une suite arithmetique'
-  reponse_attendue: 305 ruches
-  solution: ''
-  si_echoue: Terme general et somme d'une suite arithmetique, ou confusion entre combinaison et arrangement.
-  probleme_parent: P1
-- code: P1d
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
+  bareme: 0.75
+  bareme_classeur: 3.0
   competence: D.DEN
-  competence_secondaire: null
-  domaine: Organisation de donnees
-  objet: '[P1, terme 4/5] Calculer un nombre de choix par combinaison'
-  reponse_attendue: 120 choix
-  solution: ''
-  si_echoue: Terme general et somme d'une suite arithmetique, ou confusion entre combinaison et arrangement.
+  competence_secondaire: S.SUI
+  domaine: Donnees, proportionnalite, statistique
+  objet: Dénombrer 3 ruches parmi 15, juger « plus de 500 ruches la 5e année » (488)
+  reponse_attendue: C(15,3) = 455 ; 488 < 500, Rasmané a tort
+  solution: 'C(15,3) = (15 × 14 × 13)/(3 × 2 × 1) = 455. La cinquième année : 488 ruches < 500. Barème
+    (3 pts) : 1 pt pour la reconnaissance d''une combinaison et la pose de C(15,3), 1 pt pour 455, 1 pt
+    pour la conclusion appuyée sur 488 vs 500. Erreur propagée : valeur cohérente avec une écriture erronée
+    de C(15,3) ; la conclusion garde son point si elle compare 488 à 500 et tranche.'
+  si_echoue: Confusion entre combinaison et arrangement.
   probleme_parent: P1
-- code: P1e
+- code: P2.1
   partie: C
   format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: S.SUI
-  competence_secondaire: null
-  domaine: Suites et raisonnement
-  objet: '[P1, terme 5/5] Conclure sur l''atteinte d''un objectif par comparaison a une somme calculee'
-  reponse_attendue: l'objectif de 300 ruches est atteint (305 ruches installees)
-  solution: ''
-  si_echoue: Terme general et somme d'une suite arithmetique, ou confusion entre combinaison et arrangement.
-  probleme_parent: P1
-- code: P2a
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: F.VAR
-  competence_secondaire: null
-  domaine: Fonctions et applications
-  objet: '[P2, terme 1/5] Traduire une contrainte de perimetre par une expression, et etablir la fonction
-    aire'
-  reponse_attendue: A(x) = 40x - 2x²
-  solution: ''
-  si_echoue: Mise en equation d'un probleme d'optimisation, ou passage du signe de la derivee au tableau
-    de variation.
-  probleme_parent: P2
-- code: P2b
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
+  bareme: 0.5
+  bareme_classeur: 2.0
   competence: F.DER
-  competence_secondaire: null
+  competence_secondaire: L.RATF
   domaine: Fonctions et applications
-  objet: '[P2, terme 2/5] Calculer la derivee de la fonction aire et etudier son signe'
-  reponse_attendue: 'A''(x) = 40 - 4x, positive avant x=10, negative apres'
-  solution: ''
-  si_echoue: Mise en equation d'un probleme d'optimisation, ou passage du signe de la derivee au tableau
-    de variation.
+  objet: Montrer que C'(x) = (x² - 9)/x² pour C(x) = x + 9/x + 4, étudier son signe sur [1 ; 9]
+  reponse_attendue: C'(x) = 1 - 9/x² = (x² - 9)/x² ; négatif sur [1 ; 3[, nul en 3, positif sur ]3 ; 9]
+  solution: 'Sur [1 ; 9], x² > 0 : C''(x) a le signe de (x - 3)(x + 3), donc de x - 3. Barème (2 pts)
+    : 1 pt pour la mise au même dénominateur aboutissant à (x² - 9)/x², 1 pt pour le signe justifié par
+    x² > 0 puis par celui de x - 3. Le nombre d''ouvriers (12) est une donnée inutile.'
+  si_echoue: Dérivée de 1/x et réduction au même dénominateur, signe d'un quotient. Livret de remédiation
+    1ère D / Tle D, modules 7 et 12.
   probleme_parent: P2
-- code: P2c
+- code: P2.2
   partie: C
   format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
+  bareme: 0.75
+  bareme_classeur: 3.0
   competence: F.VAR
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: '[P2, terme 3/5] Dresser le tableau de variation de la fonction aire, avec son maximum'
-  reponse_attendue: maximum 200 m² atteint en x = 10
-  solution: ''
-  si_echoue: Mise en equation d'un probleme d'optimisation, ou passage du signe de la derivee au tableau
-    de variation.
+  objet: Dresser le tableau de variation de C sur [1 ; 9] (C(1) = 14, C(3) = 10, C(9) = 14)
+  reponse_attendue: C décroît de 14 à 10 sur [1 ; 3], puis croît de 10 à 14 sur [3 ; 9]
+  solution: 'Barème (3 pts) : 1 pt pour la ligne de signe de C'' avec le zéro en x = 3, 1 pt pour les
+    deux sens de variation, 1 pt pour les trois valeurs 14, 10 et 14 aux bons endroits. Erreur propagée
+    : un tableau cohérent avec un signe de C'' faux garde les points.'
+  si_echoue: Tableau de variation à partir du signe de la dérivée. Livret de remédiation 1ère D / Tle
+    D, module 12.
   probleme_parent: P2
-- code: P2d
+- code: P2.3
   partie: C
   format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: L.TRI
-  competence_secondaire: null
-  domaine: Calcul litteral et algebre
-  objet: '[P2, terme 4/5] Resoudre une inequation du second degre issue de la fonction aire et interpreter
-    le resultat'
-  reponse_attendue: 8 m < x < 12 m
-  solution: ''
-  si_echoue: Mise en equation d'un probleme d'optimisation, ou passage du signe de la derivee au tableau
-    de variation.
-  probleme_parent: P2
-- code: P2e
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
+  bareme: 0.75
+  bareme_classeur: 3.0
   competence: F.VAR
   competence_secondaire: null
   domaine: Fonctions et applications
-  objet: '[P2, terme 5/5] Juger une affirmation sur une aire par comparaison a l''aire maximale et conclure'
-  reponse_attendue: Drissa a tort, l'aire ne peut pas depasser 200 m²
-  solution: ''
-  si_echoue: Mise en equation d'un probleme d'optimisation, ou passage du signe de la derivee au tableau
-    de variation.
+  objet: Juger « 9 t moins chères par tonne que 1 t » (Fatimata), donner la production optimale
+  reponse_attendue: C(9) = C(1) = 14, Fatimata a tort ; coût moyen minimal pour 3 tonnes (10 000 FCFA
+    la tonne)
+  solution: 'Conclusion : « Fatimata a tort : produire 9 tonnes revient exactement au même coût moyen
+    que produire 1 tonne, soit 14 000 FCFA la tonne ; le coût moyen est minimal pour une production de
+    3 tonnes, où il vaut 10 000 FCFA la tonne. » Barème (3 pts) : 1 pt pour avoir constaté C(1) = C(9)
+    = 14, 1 pt pour le minimum atteint en 3 tonnes, 1 pt pour la conclusion qui invalide l''affirmation
+    et donne la quantité à produire.'
+  si_echoue: Lecture d'un minimum dans un tableau de variation. Livret de remédiation 1ère D / Tle D,
+    module 12.
   probleme_parent: P2
-- code: P3a
+- code: P3.1
   partie: C
   format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
+  bareme: 0.5
+  bareme_classeur: 2.0
   competence: T.TRIG
-  competence_secondaire: null
+  competence_secondaire: F.GRA
   domaine: Trigonometrie
-  objet: '[P3, terme 1/5] Calculer deux valeurs d''un modele trigonometrique'
-  reponse_attendue: h(0) = 3 m, h(3) = 5 m
-  solution: ''
-  si_echoue: Equations et inequations trigonometriques, et travail sur l'angle πt/6 plutot que sur t.
+  objet: Calculer h(0), h(3) pour h(t) = 3 + 2sin(πt/6), donner la hauteur maximale et l'heure
+  reponse_attendue: h(0) = 3 m, h(3) = 5 m ; hauteur maximale 5 m atteinte à t = 3 h
+  solution: 'sin(πt/6) ≤ 1 donc h(t) ≤ 5, égalité pour πt/6 = π/2, t = 3. Barème (2 pts) : 1 pt pour h(0)
+    = 3 m et h(3) = 5 m tous deux justes, 1 pt pour la hauteur maximale 5 m établie à partir de sin ≤
+    1 et l''heure t = 3 (un seul point si la hauteur est donnée sans l''heure — règle jugée ambiguë, anomalie
+    n° 8 du référentiel v1).'
+  si_echoue: Maximum d'une fonction sinusoïdale. Livret de remédiation 1ère D / Tle D, module 11.
   probleme_parent: P3
-- code: P3b
+- code: P3.2
   partie: C
   format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: T.TRIG
-  competence_secondaire: null
-  domaine: Trigonometrie
-  objet: '[P3, terme 2/5] Determiner la valeur maximale d''un modele trigonometrique et le moment ou
-    elle est atteinte'
-  reponse_attendue: hauteur maximale 5 m, atteinte a t = 3 h
-  solution: ''
-  si_echoue: Equations et inequations trigonometriques, et travail sur l'angle πt/6 plutot que sur t.
-  probleme_parent: P3
-- code: P3c
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
+  bareme: 0.75
+  bareme_classeur: 3.0
   competence: T.EQT
   competence_secondaire: null
   domaine: Trigonometrie
-  objet: '[P3, terme 3/5] Resoudre une equation trigonometrique sur un intervalle donne'
-  reponse_attendue: t = 1 ou t = 5
-  solution: ''
-  si_echoue: Equations et inequations trigonometriques, et travail sur l'angle πt/6 plutot que sur t.
+  objet: Résoudre dans [0 ; 12[ l'inéquation 3 + 2sin(πt/6) ≥ 4 (canal de Bagré)
+  reponse_attendue: sin(πt/6) ≥ 1/2 ; πt/6 ∈ [π/6 ; 5π/6] ; S = [1 ; 5]
+  solution: 'h(t) ≥ 4 ⇔ 2 sin(πt/6) ≥ 1. Avec θ = πt/6 parcourant [0 ; 2π[. Barème (3 pts) : 1 pt pour
+    la réduction à sin(πt/6) ≥ 1/2, 1 pt pour l''intervalle [π/6 ; 5π/6] sur l''angle, 1 pt pour le retour
+    à t et S = [1 ; 5].'
+  si_echoue: Résolution d'une inéquation trigonométrique par passage à l'angle πt/6 plutôt que par un
+    travail direct sur t. Livret de remédiation 1ère D / Tle D, module 11.
   probleme_parent: P3
-- code: P3d
+- code: P3.3
   partie: C
   format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: T.EQT
-  competence_secondaire: null
-  domaine: Trigonometrie
-  objet: '[P3, terme 4/5] Resoudre l''inequation trigonometrique associee et donner l''intervalle solution'
-  reponse_attendue: 'S = [1 ; 5]'
-  solution: ''
-  si_echoue: Equations et inequations trigonometriques, et travail sur l'angle πt/6 plutot que sur t.
-  probleme_parent: P3
-- code: P3e
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: F.VAR
-  competence_secondaire: null
+  bareme: 0.75
+  bareme_classeur: 3.0
+  competence: F.GRA
+  competence_secondaire: T.EQT
   domaine: Fonctions et applications
-  objet: '[P3, terme 5/5] Conclure par une phrase donnant une duree de fonctionnement'
-  reponse_attendue: la pompe fonctionne pendant 4 heures, de la 1ere a la 5eme heure
-  solution: ''
-  si_echoue: Equations et inequations trigonometriques, et travail sur l'angle πt/6 plutot que sur t.
+  objet: Déduire la durée où h ≥ 4 m (h = 4 à 1 h et 5 h), juger « 5 heures » (Zénabou)
+  reponse_attendue: la pompe fonctionne de 1 h à 5 h, soit 5 - 1 = 4 heures et non 5 ; Zénabou a tort
+  solution: 'Conclusion : « Zénabou a tort : la pompe fonctionne de 1 h à 5 h, soit pendant 4 heures et
+    non 5 heures. » Barème (3 pts) : 1 pt pour avoir établi que la pompe fonctionne entre les deux heures
+    données et non en dehors, 1 pt pour la durée 4 heures comme différence 5 - 1, 1 pt pour la conclusion.
+    Accepter la justification de [1 ; 5] par le résultat de la question 2.'
+  si_echoue: 'Interprétation d''un intervalle de temps comme une durée : la durée est la différence des
+    bornes, non le nombre d''heures entières citées.'
   probleme_parent: P3
-- code: P4a
+- code: P4.1
   partie: C
   format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: G.RON
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P4, terme 1/5] Calculer deux distances entre bornes en repere orthonorme'
-  reponse_attendue: AB = AC = 2√10
-  solution: ''
-  si_echoue: Distance entre deux points dans un repere orthonorme, ou produit scalaire en coordonnees
-    comme test d'orthogonalite.
-  probleme_parent: P4
-- code: P4b
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
+  bareme: 0.5
+  bareme_classeur: 2.0
   competence: N.RAC
-  competence_secondaire: null
+  competence_secondaire: G.PS
   domaine: Activites numeriques
-  objet: '[P4, terme 2/5] Calculer une troisieme distance sous forme exacte'
-  reponse_attendue: BC = 4√2
-  solution: ''
-  si_echoue: Distance entre deux points dans un repere orthonorme, ou produit scalaire en coordonnees
-    comme test d'orthogonalite.
+  objet: Calculer les valeurs exactes de AB et AC pour A(-2 ; 1), B(4 ; 3), C(0 ; 7)
+  reponse_attendue: AB = √40 = 2√10 ; AC = √40 = 2√10
+  solution: 'AB→(6 ; 2), AC→(2 ; 6). Barème (2 pts) : 1 pt pour AB = 2√10, 1 pt pour AC = 2√10, sous forme
+    exacte ; √40 garde son point, 6,3 ne le garde pas. Le prix de la clôture (2 500 FCFA/m) et l''échelle
+    sont des données inutiles.'
+  si_echoue: Distance entre deux points dans un repère orthonormé. Livret de remédiation 1ère D / Tle
+    D, modules 1 et 9.
   probleme_parent: P4
-- code: P4c
+- code: P4.2
   partie: C
   format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: N.PRIO
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P4, terme 3/5] Convertir une distance exprimee en unites de repere vers des metres, en utilisant
-    l''echelle donnee'
-  reponse_attendue: environ 560 m
-  solution: ''
-  si_echoue: Distance entre deux points dans un repere orthonorme, ou produit scalaire en coordonnees
-    comme test d'orthogonalite.
-  probleme_parent: P4
-- code: P4d
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
+  bareme: 0.75
+  bareme_classeur: 3.0
   competence: G.PS
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: '[P4, terme 4/5] Calculer un produit scalaire en coordonnees'
-  reponse_attendue: AB·AC = 24
-  solution: ''
-  si_echoue: Distance entre deux points dans un repere orthonorme, ou produit scalaire en coordonnees
-    comme test d'orthogonalite.
+  objet: Calculer le produit scalaire AB→ · AC→ pour A(-2 ; 1), B(4 ; 3), C(0 ; 7) (Ouahigouya)
+  reponse_attendue: AB→ · AC→ = 6 × 2 + 2 × 6 = 24
+  solution: 'Barème (3 pts) : 1 pt pour les coordonnées des deux vecteurs, 1 pt pour l''expression du
+    produit scalaire en coordonnées, 1 pt pour la valeur 24.'
+  si_echoue: Produit scalaire en coordonnées. Livret de remédiation 1ère D / Tle D, module 9.
   probleme_parent: P4
-- code: P4e
+- code: P4.3
   partie: C
   format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
+  bareme: 0.75
+  bareme_classeur: 3.0
   competence: G.PS
   competence_secondaire: null
   domaine: Activites geometriques
-  objet: '[P4, terme 5/5] Juger une affirmation sur la nature d''un triangle a partir du produit scalaire'
-  reponse_attendue: le triangle ABC est isocele en A mais pas rectangle
-  solution: ''
-  si_echoue: Distance entre deux points dans un repere orthonorme, ou produit scalaire en coordonnees
-    comme test d'orthogonalite.
+  objet: Juger « ABC isocèle et rectangle en A » (Salif) sachant AB = AC et AB→ · AC→ = 24
+  reponse_attendue: ABC est isocèle en A (AB = AC) mais pas rectangle en A (AB→ · AC→ = 24 ≠ 0) ; Salif
+    n'a raison qu'à moitié
+  solution: 'Conclusion : « Salif n''a raison qu''à moitié : le triangle ABC est bien isocèle en A, puisque
+    AB = AC, mais il n''est pas rectangle en A, puisque le produit scalaire vaut 24 et n''est pas nul.
+    » Barème (3 pts) : 1 pt pour le caractère isocèle justifié par AB = AC, 1 pt pour le refus de l''angle
+    droit justifié par un produit scalaire non nul, 1 pt pour la conclusion nommant la nature du triangle.
+    Une conclusion qui accorde tout à Salif ou qui lui refuse tout ne vaut pas ce dernier point.'
+  si_echoue: Produit scalaire en coordonnées employé comme test d'orthogonalité. Livret de remédiation
+    1ère D / Tle D, modules 1 et 9.
   probleme_parent: P4
-- code: P5a
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: F.VAR
-  competence_secondaire: null
-  domaine: Fonctions et applications
-  objet: '[P5, terme 1/6] Evaluer une fonction de cout moyen en trois points'
-  reponse_attendue: C(1) = 14, C(3) = 10, C(9) = 14
-  solution: ''
-  si_echoue: Derivee de 1/x et reduction au meme denominateur, signe d'un quotient, ou lecture d'un minimum
-    dans un tableau de variation.
-  probleme_parent: P5
-- code: P5b
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: F.DER
-  competence_secondaire: null
-  domaine: Fonctions et applications
-  objet: '[P5, terme 2/6] Calculer la derivee d''une fonction de cout moyen, mise au meme denominateur'
-  reponse_attendue: "C'(x) = (x\xB2 - 9)/x\xB2"
-  solution: ''
-  si_echoue: Derivee de 1/x et reduction au meme denominateur, signe d'un quotient, ou lecture d'un minimum
-    dans un tableau de variation.
-  probleme_parent: P5
-- code: P5c
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: F.VAR
-  competence_secondaire: null
-  domaine: Fonctions et applications
-  objet: '[P5, terme 3/6] Etudier le signe de la derivee sur l''intervalle donne'
-  reponse_attendue: 'C''(x) negative sur [1;3[, positive sur ]3;9]'
-  solution: ''
-  si_echoue: Derivee de 1/x et reduction au meme denominateur, signe d'un quotient, ou lecture d'un minimum
-    dans un tableau de variation.
-  probleme_parent: P5
-- code: P5d
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: F.VAR
-  competence_secondaire: null
-  domaine: Fonctions et applications
-  objet: '[P5, terme 4/6] Dresser le tableau de variation et donner le minimum de la fonction'
-  reponse_attendue: minimum 10 en x = 3
-  solution: ''
-  si_echoue: Derivee de 1/x et reduction au meme denominateur, signe d'un quotient, ou lecture d'un minimum
-    dans un tableau de variation.
-  probleme_parent: P5
-- code: P5e
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: L.TRI
-  competence_secondaire: null
-  domaine: Calcul litteral et algebre
-  objet: '[P5, terme 5/6] Resoudre une inequation ramenee a un carre non positif'
-  reponse_attendue: 'S = {3}'
-  solution: ''
-  si_echoue: Derivee de 1/x et reduction au meme denominateur, signe d'un quotient, ou lecture d'un minimum
-    dans un tableau de variation.
-  probleme_parent: P5
-- code: P5f
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: F.VAR
-  competence_secondaire: null
-  domaine: Fonctions et applications
-  objet: '[P5, terme 6/6] Juger une affirmation en comparant deux couts moyens egaux et conclure sur
-    la quantite optimale'
-  reponse_attendue: Fatimata a tort, C(9)=C(1)=14 ; le cout minimal est atteint pour 3 tonnes
-  solution: ''
-  si_echoue: Derivee de 1/x et reduction au meme denominateur, signe d'un quotient, ou lecture d'un minimum
-    dans un tableau de variation.
-  probleme_parent: P5
-- code: P6a
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: G.PYT
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P6, terme 1/6] Calculer une diagonale de base puis la grande diagonale d''un pave droit'
-  reponse_attendue: AC = 10 m, AG = 5√5 m
-  solution: ''
-  si_echoue: Double emploi du theoreme de Pythagore dans l'espace, conversion des metres cubes en litres,
-    ou valeur approchee d'un radical.
-  probleme_parent: P6
-- code: P6b
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: G.ESP
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P6, terme 2/6] Calculer le volume d''un pave droit'
-  reponse_attendue: 240 metres cubes
-  solution: ''
-  si_echoue: Double emploi du theoreme de Pythagore dans l'espace, conversion des metres cubes en litres,
-    ou valeur approchee d'un radical.
-  probleme_parent: P6
-- code: P6c
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: N.PRIO
-  competence_secondaire: null
-  domaine: Activites numeriques
-  objet: '[P6, terme 3/6] Convertir un volume de metres cubes en litres'
-  reponse_attendue: 240 000 litres
-  solution: ''
-  si_echoue: Double emploi du theoreme de Pythagore dans l'espace, conversion des metres cubes en litres,
-    ou valeur approchee d'un radical.
-  probleme_parent: P6
-- code: P6d
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: G.ESP
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P6, terme 4/6] Reconnaitre qu''une donnee manque pour calculer une duree de remplissage'
-  reponse_attendue: le debit de remplissage manque, le calcul est impossible en l'etat
-  solution: ''
-  si_echoue: Double emploi du theoreme de Pythagore dans l'espace, conversion des metres cubes en litres,
-    ou valeur approchee d'un radical.
-  probleme_parent: P6
-- code: P6e
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: G.PYT
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P6, terme 5/6] Comparer une diagonale a une longueur donnee'
-  reponse_attendue: 11,2 m > 11 m
-  solution: ''
-  si_echoue: Double emploi du theoreme de Pythagore dans l'espace, conversion des metres cubes en litres,
-    ou valeur approchee d'un radical.
-  probleme_parent: P6
-- code: P6f
-  partie: C
-  format: redige
-  bareme: 0.25
-  bareme_classeur: 1.0
-  competence: G.PYT
-  competence_secondaire: null
-  domaine: Activites geometriques
-  objet: '[P6, terme 6/6] Conclure par une phrase sur la possibilite de ranger un objet rectiligne'
-  reponse_attendue: Ousseni peut ranger sa barre, la diagonale (environ 11,2 m) depasse les 11 m
-  solution: ''
-  si_echoue: Double emploi du theoreme de Pythagore dans l'espace, conversion des metres cubes en litres,
-    ou valeur approchee d'un radical.
-  probleme_parent: P6

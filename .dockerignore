@@ -1,0 +1,51 @@
+# Contexte de build de l'image (deploy/Dockerfile). Contexte = racine du dépôt ;
+# Docker lit ce fichier ici. But : ne copier que le nécessaire à l'exécution.
+
+# Secrets — jamais dans l'image (montés en volume au runtime)
+.env
+.env.*
+!.env.example
+credentials/
+
+# Bases locales
+*.sqlite3
+*.db
+
+# Données de production / élèves — jamais dans l'image (voir .gitignore)
+runs/
+logs/
+data/copies/
+data/outputs/
+
+# Frontend : frontend/dist/ DOIT exister avant `docker build` (buildé sur
+# l'hôte, voir l'en-tête de deploy/Dockerfile) et n'est donc PAS exclu ici.
+# Seul node_modules/ l'est — volumineux, jamais utilisé dans l'image.
+frontend/node_modules/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Git / éditeurs / OS
+.git/
+.gitignore
+.github/
+.vscode/
+.idea/
+.claude/
+.DS_Store
+Thumbs.db
+
+# Docs et tests (non nécessaires à l'exécution, réduisent le contexte de build)
+docs/
+tests/
+backend/tests/
+*.md
+!README.md

@@ -2055,19 +2055,7 @@
       | $C$ : double produit $2 \times 3x \times 5 = 30x$, positif. | $C = \left(3x + 5\right)^{2}$ |
 
       | **Vérification :** pour $x = 1$ : $33 = 3 \times 11$ ; $16 = \left(-4\right)^{2}$ ; $64 = 8^{2}$.
-      ✓ | |
-
-
-      > #### MÉTHODE : Démontrer une propriété avec une lettre
-
-      >
-
-      > 1. **Traduis** : $n$ entier, $2n$ pair, $2n + 1$ impair, $n$, $n + 1$, $n + 2$ consécutifs.
-
-      > 2. Écris l''expression demandée, développe, réduis.
-
-      > 3. **Factorise** pour faire apparaître la conclusion. Ainsi $\left(2n + 1\right) + \left(2n +
-      3\right) = 4\left(n + 1\right)$.'
+      ✓ | |'
     erreurs_frequentes:
     - erreur: $\left(x + 3\right)^{2} = x^{2} + 9$.
       correction: 'le double produit manque : $x^{2} + 6x + 9$.'
@@ -2469,23 +2457,7 @@
 
       | On regroupe les $x$ à gauche, les nombres à droite. | $x = 8$ |
 
-      | **Vérification :** $\frac{22}{4} = 5{,}5$ et $\frac{11}{2} = 5{,}5$ ✓ | La solution est $8$. |
-
-
-      > #### 📖 CE QU''IL FAUT RETENIR
-
-      >
-
-      > **L''équation produit**
-
-      >
-
-      > $$A \times B = 0 \quad \text{équivaut à} \quad A = 0 \text{ ou } B = 0$$
-
-      >
-
-      > On **n''ouvre pas** les parenthèses : chaque facteur peut être nul, l''équation a **deux** solutions.
-      Ainsi $\left(x - 3\right)\left(2x + 8\right) = 0$ donne $x = 3$ ou $x = -4$.'
+      | **Vérification :** $\frac{22}{4} = 5{,}5$ et $\frac{11}{2} = 5{,}5$ ✓ | La solution est $8$. |'
     erreurs_frequentes:
     - erreur: de $x + 9 = 4$, conclure $x = 5$.
       correction: 'on soustrait $9$ des deux côtés : $x = -5$.'
@@ -3379,19 +3351,7 @@
       | On cite la réciproque. | alternes-internes égaux $\Rightarrow \left(xy\right) \parallel \left(uv\right)$
       |
 
-      | **Vérification :** on va des angles vers les droites, c''est bien la réciproque. ✓ | |
-
-
-      > #### MÉTHODE : Bissectrice au compas
-
-      >
-
-      > 1. Pointe en $O$, un arc coupe les côtés en $M$ et $N$.
-
-      > 2. Même ouverture, pointe en $M$ puis en $N$ : les arcs se coupent en $P$.
-
-      > 3. Trace $\left[OP\right)$, puis contrôle au rapporteur (angle de $76°$ $\rightarrow$ $38°$ de
-      chaque côté).'
+      | **Vérification :** on va des angles vers les droites, c''est bien la réciproque. ✓ | |'
     erreurs_frequentes:
     - erreur: confondre le théorème **direct** (parallèles $\Rightarrow$ angles égaux) et sa **réciproque**.
       correction: cite celui dont tu te sers, dans le bon sens ; des alternes-internes ne sont égaux **que
@@ -3436,44 +3396,7 @@
 
       | La bissectrice partage en deux angles égaux. | $\widehat{ABD} = \frac{66°}{2} = 33°$ |
 
-      | **Vérification :** $48 + 66 + 66 = 180$. ✓ | |
-
-
-      > #### 📖 CE QU''IL FAUT RETENIR
-
-      >
-
-      > **Les droites remarquables**
-
-      >
-
-      > - **Médiatrice** d''un côté : perpendiculaire à ce côté en son milieu. $M$ est sur la médiatrice
-      de $\left[AB\right]$ **si et seulement si** $MA = MB$ : c''est le sens retour qui localise un point.
-      Les trois médiatrices concourent au centre du **cercle circonscrit**.
-
-      > - **Hauteur** : d''un sommet, perpendiculaire au côté opposé.
-
-      > - **Médiane** : d''un sommet au **milieu** du côté opposé.
-
-      > - Elles ne se confondent que dans un triangle isocèle en $A$ : hauteur, médiane, médiatrice issues
-      de $A$ et bissectrice de $\widehat{BAC}$ sont la même droite.
-
-
-      [SVG: figures/m08_f11.svg]
-
-      *Figure 8.3 : hauteur, médiane et médiatrice sur la même base $\left[BC\right]$.*
-
-
-      > #### DÉCLIC : La somme des angles prépare toute la 3ème
-
-      >
-
-      > Angles inscrits, trigonométrie, polygones : tout finit par « somme $= 180°$ » ou par un triangle
-      isocèle (deux rayons d''un cercle en forment toujours un). Si un calcul d''angle bloque, cherche
-      le triangle caché et demande-toi quel angle tu y connais déjà.
-
-
-      ---'
+      | **Vérification :** $48 + 66 + 66 = 180$. ✓ | |'
     erreurs_frequentes: []
     declic: 'La somme des angles prépare toute la 3ème — Angles inscrits, trigonométrie, polygones : tout
       finit par « somme $= 180°$ » ou par un triangle isocèle (deux rayons d''un cercle en forment toujours
@@ -3919,11 +3842,7 @@
       correction: rayon $r$, diamètre $2r$.
     declic: 'Le rayon fabrique des triangles isocèles — Deux rayons $\left[OA\right]$ et $\left[OB\right]$
       donnent $OA = OB$ : le triangle $OAB$ est **isocèle en $O$**. Réflexe : cercle $\to$ triangle isocèle
-      $\to$ angles à la base égaux (module 8). #### MÉTHODE : Construire un hexagone régulier inscrit
-      1. Trace le cercle de centre $O$ et de rayon $r$, place $S$ dessus. 2. Sans changer l''écartement
-      du compas (il vaut $r$), pique en $S$ : tu obtiens $T$. 3. Recommence de proche en proche jusqu''à
-      revenir en $S$ : six points. 4. Relie-les. **Contrôle :** si le sixième report ne retombe pas sur
-      $S$, l''écartement a bougé.'
+      $\to$ angles à la base égaux (module 8).'
     figures:
     - figures/m09_f8.svg
     - figures/m09_f12.svg

@@ -24,6 +24,8 @@ Décrit le cycle **tel qu'il est décidé et modélisé**. Fait foi sur ce point
         │  T1   CONFIRMATION                                          │
         │       Le système génère un sujet ciblé sur ces hypothèses.  │
         │       Chacune est CONFIRMÉE ou ÉCARTÉE.                     │
+        │       Note T0 < 10/20 : pas de T1, hypothèses confirmées    │
+        │       d'office (D-CEO-46).                                  │
         └───────────────────────────┬─────────────────────────────────┘
                                     ▼
         ┌─────────────────────────────────────────────────────────────┐
@@ -124,6 +126,10 @@ Rien n'est affirmé à ce stade : une réponse fausse peut venir d'une lacune r�
 comme d'une étourderie. C'est toute la raison d'être de T1.
 
 ### T1 — Confirmation
+
+**Seulement si la note T0 est d'au moins 10/20** (D-CEO-46). En dessous, les
+lacunes sont assez nombreuses pour que T1 n'apporte rien : les hypothèses sont
+confirmées d'office et le plan de remédiation est définitif dès le T0.
 
 Le système génère un sujet **ciblé** sur les hypothèses. Ce n'est pas un T0
 raccourci : chaque question est construite pour **départager deux causes possibles

@@ -13,12 +13,16 @@ from src.models.domain import (
     ClaudeResponse,
     ConfirmationRequest,
     ConfirmationSubject,
+    EMPLACEMENTS_EXERCICES,
+    ContenuAcquis,
+    ContenuSection,
     CopyGrade,
+    DemandePlan,
     DiagnosticResult,
     PageTranscription,
     Rubric,
     RubricItem,
-    RemediationSubject,
+    SectionPlanDemande,
     SortieDiagnosticContraint,
     TranscriptionResult,
     VerificationRequest,
@@ -121,13 +125,32 @@ _GRADING_TOOL: dict[str, Any] = {
                     "type": "object",
                     "properties": {
                         "rubric_item_id": {"type": "string"},
+                        # Rempli AVANT la note : le modèle raisonnait jusque-là
+                        # dans `comment` et changeait d'avis en cours de phrase,
+                        # après avoir déjà fixé `points_obtenus` (« 1,5 pt sur 2 :
+                        # … donc le second point est acquis », recette du
+                        # 2026-10-17). Non conservé (ignoré par QuestionGrade).
+                        "analyse": {
+                            "type": "string",
+                            "description": (
+                                "Brouillon rédigé AVANT de noter, pour les items notés critère par "
+                                "critère (score_step < max_score) : chaque critère du barème du "
+                                "corrigé, acquis ou non, au vu de la transcription. Deux phrases au "
+                                "plus. « — » pour un item tout-ou-rien (partie A, QCM) ou une "
+                                "absence de réponse. Non montré à l'enseignant."
+                            ),
+                        },
                         "score": {"type": "number", "minimum": 0},
                         "confidence": {"type": "number"},
                         "comment": {"type": "string"},
                         "observed_answer": {"type": "string"},
                         "requires_review": {"type": "boolean"},
+                        "points_obtenus": {
+                            "type": ["number", "null"],
+                            "description": "Seulement si le RubricItem porte points_corrige : points du corrigé obtenus (multiple de 0.5).",
+                        },
                     },
-                    "required": ["rubric_item_id", "score", "confidence", "comment",
+                    "required": ["rubric_item_id", "analyse", "score", "confidence", "comment",
                                  "observed_answer", "requires_review"],
                 },
             },
@@ -135,6 +158,94 @@ _GRADING_TOOL: dict[str, Any] = {
         "required": ["copy_id", "total_score", "total_possible", "questions"],
     },
 }
+
+_TEXTES = {"type": "array", "items": {"type": "string"}}
+
+#: Contraintes que le mode strict n'accepte pas (documentation Anthropic,
+#: « JSON Schema limitations ») — revalidées par Pydantic côté client.
+_HORS_STRICT = ("minItems", "maxItems", "minimum", "maximum", "minLength", "maxLength")
+
+
+def _outil_strict(outil: dict[str, Any]) -> dict[str, Any]:
+    """Version `strict: true` d'un outil : la sortie suit le schéma à coup
+    sûr (essai réel du 2026-10-26 : sans lui, Opus rendait parfois
+    `causes: [{}]`). Le mode strict veut `additionalProperties: false` et
+    toutes les propriétés requises (une propriété facultative y est
+    nullable), et refuse les bornes numériques et de longueur : elles sont
+    retirées ici, Pydantic les vérifie, et un refus est renvoyé au modèle."""
+    def convertir(noeud: Any) -> Any:
+        if isinstance(noeud, list):
+            return [convertir(n) for n in noeud]
+        if not isinstance(noeud, dict):
+            return noeud
+        resultat = {k: convertir(v) for k, v in noeud.items() if k not in _HORS_STRICT}
+        if resultat.get("type") == "object" and "properties" in resultat:
+            resultat["additionalProperties"] = False
+            resultat["required"] = list(resultat["properties"])
+        return resultat
+
+    return {**outil, "input_schema": convertir(outil["input_schema"]), "strict": True}
+
+
+#: Outil de rédaction d'une section du plan de remédiation — mêmes champs que
+#: `ContenuSection`. Envoyé en mode strict (`_outil_strict`) : les bornes
+#: (5 exercices, listes non vides) sont vérifiées par Pydantic.
+_OUTIL_SECTION_PLAN: dict[str, Any] = _outil_strict({
+    "name": "rediger_section",
+    "description": "Enregistre le contenu rédigé d'une section du plan de remédiation.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "titre": {"type": "string"},
+            "titre_tableau": {"type": ["string", "null"]},
+            "titre_court": {"type": "string"},
+            "ecrits": {
+                "type": "array", "minItems": 1,
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "question": {"type": "string"},
+                        "reponse_eleve": {"type": "string"},
+                        "reponse_attendue": {"type": "string"},
+                        "reussie": {"type": "boolean"},
+                    },
+                    "required": ["question", "reponse_eleve", "reponse_attendue"],
+                },
+            },
+            "ce_qui_ne_va_pas": {"type": "string"},
+            "causes": {**_TEXTES, "minItems": 1},
+            "a_retenir": {**_TEXTES, "minItems": 1},
+            "methode_titre": {"type": "string"},
+            "methode": _TEXTES,
+            "consigne_exercices": {"type": ["string", "null"]},
+            # Un emplacement par exercice (`EMPLACEMENTS_EXERCICES`) : en mode
+            # strict, aucun ne peut manquer, et le niveau découle de la clé.
+            "exercices": {
+                "type": "object",
+                "properties": {
+                    nom: {
+                        "type": "object",
+                        "properties": {"enonce": {"type": "string"}, "reponse": {"type": "string"}},
+                    }
+                    for nom in EMPLACEMENTS_EXERCICES
+                },
+            },
+        },
+        "required": ["titre", "titre_court", "ecrits", "ce_qui_ne_va_pas", "causes",
+                     "a_retenir", "methode_titre", "methode", "exercices"],
+    },
+})
+
+_OUTIL_ACQUIS_PLAN: dict[str, Any] = _outil_strict({
+    "name": "rediger_acquis",
+    "description": "Enregistre l'encadré « Ce que tu sais déjà faire ».",
+    "input_schema": {
+        "type": "object",
+        "properties": {"acquis": _TEXTES},
+        "required": ["acquis"],
+    },
+})
+
 
 def _diagnostic_contraint_tool(
     codes_questions: list[str],
@@ -325,8 +436,18 @@ _retry = retry(
 
 
 class ClaudeClient:
-    def __init__(self) -> None:
+    def __init__(
+        self, *, modele_heavy: str | None = None, modele_opus: str | None = None
+    ) -> None:
         import anthropic
+
+        # Modèles par défaut de CE client. `None` ⇒ valeurs `.env` (`settings`).
+        # Le pipeline les surcharge selon Paramètres → Modèles IA (variante
+        # Sonnet / Opus, src/core/preferences_modeles.py). Les méthodes
+        # `transcribe`/`grade`/`diagnose` acceptent en plus un `model=` ponctuel
+        # qui prime sur ces défauts.
+        self._modele_heavy = modele_heavy or settings.claude_model_heavy
+        self._modele_opus = modele_opus or settings.claude_model_opus
 
         # `anthropic_api_key` est facultative à l'import de la configuration (voir
         # src/core/config.py) pour que les chemins sans IA — migrations Django,
@@ -349,7 +470,8 @@ class ClaudeClient:
         self._diagnostic_plancher_prompt = self._load_prompt(
             "diagnostic_plancher_prompt.md"
         )
-        self._enrichment_subject_prompt = self._load_prompt("enrichment_subject_prompt.md")
+        self._plan_remediation_prompt = self._load_prompt("plan_remediation_prompt.md")
+        self._plan_acquis_prompt = self._load_prompt("plan_acquis_prompt.md")
         self._confirmation_subject_prompt = self._load_prompt("confirmation_subject_prompt.md")
         self._verification_subject_prompt = self._load_prompt("verification_subject_prompt.md")
         self._retention_subject_prompt = self._load_prompt("retention_subject_prompt.md")
@@ -358,7 +480,7 @@ class ClaudeClient:
         prompt_path = Path(__file__).parent.parent.parent / "prompts" / filename
         return prompt_path.read_text(encoding="utf-8")
 
-    def _creer_message(self, *, model: str, **kwargs: Any) -> Any:
+    def _creer_message(self, *, model: str, stream: bool = False, **kwargs: Any) -> Any:
         """Appelle l'API en retirant ce que le modèle visé n'accepte plus.
 
         Un seul passage obligé vers `messages.create`, pour que le filtrage des
@@ -366,7 +488,12 @@ class ClaudeClient:
         dépende pas de la vigilance de chaque appelant. Le retrait est
         journalisé : un `temperature=0` qui disparaît en silence donnerait
         l'illusion d'un déterminisme qu'on n'a plus.
-        """
+
+        `stream=True` : passe par `messages.stream(...)` et rend le message
+        final assemblé (même forme qu'un appel non streamé — `.content`,
+        `.stop_reason`, etc.) — nécessaire au-delà d'un certain `max_tokens`,
+        le SDK Anthropic refuse un appel non streamé au-delà (« Streaming is
+        required for operations that may take longer than 10 minutes »)."""
         if model.startswith(_PREFIXES_SANS_ECHANTILLONNAGE):
             retires = [p for p in _PARAMETRES_ECHANTILLONNAGE if p in kwargs]
             for parametre in retires:
@@ -376,6 +503,9 @@ class ClaudeClient:
                     "%s n'accepte plus %s — paramètre(s) retiré(s) de l'appel.",
                     model, ", ".join(retires),
                 )
+        if stream:
+            with self.client.messages.stream(model=model, **kwargs) as flux:
+                return flux.get_final_message()
         return self.client.messages.create(model=model, **kwargs)
 
     @staticmethod
@@ -393,14 +523,20 @@ class ClaudeClient:
 
     # ── Transcription ──────────────────────────────────────────────────────────
 
-    def transcribe(self, copy_id: str, image_paths: list[Path]) -> ClaudeResponse:
+    def transcribe(
+        self, copy_id: str, image_paths: list[Path], model: str | None = None
+    ) -> ClaudeResponse:
+        modele = model or self._modele_heavy
         logger.info("[%s] Claude transcription — modèle : %s | pages : %d",
-                    copy_id, settings.claude_model_heavy, len(image_paths))
+                    copy_id, modele, len(image_paths))
         if len(image_paths) <= _MAX_PAGES_PER_BATCH:
-            return self._transcribe_batch(copy_id, image_paths, page_offset=0)
-        return self._transcribe_batched(copy_id, image_paths)
+            return self._transcribe_batch(copy_id, image_paths, page_offset=0, model=modele)
+        return self._transcribe_batched(copy_id, image_paths, model=modele)
 
-    def _transcribe_batched(self, copy_id: str, image_paths: list[Path]) -> ClaudeResponse:
+    def _transcribe_batched(
+        self, copy_id: str, image_paths: list[Path], model: str | None = None
+    ) -> ClaudeResponse:
+        modele = model or self._modele_heavy
         batches = [
             (start, image_paths[start : start + _MAX_PAGES_PER_BATCH])
             for start in range(0, len(image_paths), _MAX_PAGES_PER_BATCH)
@@ -409,7 +545,7 @@ class ClaudeClient:
         batch_results: list[tuple[int, ClaudeResponse]] = []
         with ThreadPoolExecutor(max_workers=len(batches)) as pool:
             future_to_offset = {
-                pool.submit(self._transcribe_batch, copy_id, batch, offset): offset
+                pool.submit(self._transcribe_batch, copy_id, batch, offset, modele): offset
                 for offset, batch in batches
             }
             for fut in as_completed(future_to_offset):
@@ -453,7 +589,8 @@ class ClaudeClient:
 
     @_retry
     def _transcribe_batch(
-        self, copy_id: str, image_paths: list[Path], page_offset: int = 0
+        self, copy_id: str, image_paths: list[Path], page_offset: int = 0,
+        model: str | None = None,
     ) -> ClaudeResponse:
         page_hint = (
             f"\nCes images sont les pages {page_offset + 1} à {page_offset + len(image_paths)}."
@@ -485,7 +622,7 @@ class ClaudeClient:
         ]
 
         response = self._creer_message(
-            model=settings.claude_model_heavy,
+            model=model or self._modele_heavy,
             max_tokens=_TOKENS_PER_BATCH,
             temperature=0,
             tools=[_TRANSCRIPTION_TOOL],
@@ -506,9 +643,11 @@ class ClaudeClient:
         expert_instructions: str = "",
         official_answers: str = "",
         temperature: float = 0,
+        model: str | None = None,
     ) -> ClaudeResponse:
+        modele = model or self._modele_heavy
         logger.info("[%s] Claude correction — modèle : %s",
-                    transcription.copy_id, settings.claude_model_heavy)
+                    transcription.copy_id, modele)
         expert_block = (
             f"\n\nINSTRUCTIONS EXPERT:\n{expert_instructions}"
             if expert_instructions.strip() else ""
@@ -543,9 +682,11 @@ class ClaudeClient:
             f"\n\nTRANSCRIPTION:\n{transcription.model_dump_json(indent=2)}"
         )
 
+        # 16000 : le champ `analyse` (un brouillon par question) double à peu
+        # près la sortie — 8192 ne tenait plus sur un barème de 46 items.
         response = self._creer_message(
-            model=settings.claude_model_heavy,
-            max_tokens=8192,
+            model=modele,
+            max_tokens=16000,
             temperature=temperature,
             tools=[_GRADING_TOOL],
             tool_choice={"type": "tool", "name": "save_grading"},
@@ -571,9 +712,12 @@ class ClaudeClient:
     # ── Diagnostic ────────────────────────────────────────────────────────────
 
     @_retry
-    def diagnose(self, grades: CopyGrade, curriculum_context: str = "") -> ClaudeResponse:
+    def diagnose(
+        self, grades: CopyGrade, curriculum_context: str = "", model: str | None = None
+    ) -> ClaudeResponse:
+        modele_diag = model or self._modele_opus
         logger.info("[%s] Claude diagnostic — modèle : %s",
-                    grades.copy_id, settings.claude_model_opus)
+                    grades.copy_id, modele_diag)
         base_prompt = self._diagnostic_prompt.replace(
             "{{CURRICULUM_CONTEXT}}", curriculum_context or ""
         )
@@ -588,11 +732,13 @@ class ClaudeClient:
                 if q.teacher_score is not None and q.teacher_decision.value == "refused"
                 else q.score
             )
-            if effective == 0:
+            if effective < 1:
+                # Échec (0) ou réussite partielle (taux < 1, ex. démarche
+                # absente) : le détail est transmis pour que le diagnostic
+                # puisse nommer ce qui a manqué.
                 all_question_details.append({
                     "question_id": q.rubric_item_id,
-                    "score": 0,
-                    "max_score": q.score if q.score > 0 else 1,  # points disponibles
+                    "score": round(effective, 2),
                     "correct_answer": q.correct_answer or "—",
                     "observed_answer": q.observed_answer,
                     "comment_ia": q.comment,
@@ -616,9 +762,25 @@ class ClaudeClient:
         )
 
         def _call_diagnose(model: str) -> object:
+            # 64000 plutôt que 16384 : `claude_model_opus` pointe en pratique
+            # vers une famille de modèles qui préfixe sa réponse d'un bloc
+            # `thinking` non affiché ici (voir `_texte_reponse`) — sur une
+            # copie où beaucoup de questions échouent (donc un diagnostic
+            # long à produire), le budget peut être épuisé par la pensée
+            # interne avant qu'aucun texte ne soit émis (`stop_reason=
+            # max_tokens`, `_texte_reponse` lève `ValueError`). Constaté en
+            # conditions réelles même à 32000 sur une copie à 45/45 questions
+            # échouées (le pire cas du référentiel) — 64000 réduit le risque
+            # sans l'éliminer complètement ; le fallback GPT-5 ci-dessous
+            # (lui aussi élargi, `openai_client.py`) reste le filet de
+            # sécurité si ça arrive malgré tout.
+            # `stream=True` : à ce niveau de `max_tokens`, le SDK Anthropic
+            # refuse un appel non streamé (« Streaming is required for
+            # operations that may take longer than 10 minutes »).
             return self._creer_message(
                 model=model,
-                max_tokens=16384,
+                stream=True,
+                max_tokens=64000,
                 temperature=0,
                 messages=[
                     {
@@ -636,11 +798,13 @@ class ClaudeClient:
 
         import anthropic as _anthropic
         try:
-            response = _call_diagnose(settings.claude_model_opus)
-        except _anthropic.BadRequestError:
+            response = _call_diagnose(modele_diag)
+        except _anthropic.BadRequestError as refus:
+            # 400 ne veut pas toujours dire « modèle invalide » : un crédit
+            # épuisé répond aussi 400 — le motif réel est journalisé.
             logger.warning(
-                "[%s] claude_model_opus '%s' invalide (400) — fallback diagnostic → %s",
-                grades.copy_id, settings.claude_model_opus, settings.claude_model_heavy,
+                "[%s] diagnostic '%s' refusé (400 : %s) — fallback diagnostic → %s",
+                grades.copy_id, modele_diag, refus, settings.claude_model_heavy,
             )
             try:
                 response = _call_diagnose(settings.claude_model_heavy)
@@ -759,12 +923,12 @@ class ClaudeClient:
 
         try:
             response = _appeler(settings.claude_model_opus)
-        except _anthropic.BadRequestError:
+        except _anthropic.BadRequestError as refus:
             # Même repli que `diagnose()` : un identifiant de modèle invalide ne
             # doit pas priver la copie de son diagnostic.
             logger.warning(
-                "[%s] claude_model_opus '%s' invalide (400) — repli sur %s",
-                copy_id, settings.claude_model_opus, settings.claude_model_heavy,
+                "[%s] claude_model_opus '%s' refusé (400 : %s) — repli sur %s",
+                copy_id, settings.claude_model_opus, refus, settings.claude_model_heavy,
             )
             try:
                 response = _appeler(settings.claude_model_heavy)
@@ -789,6 +953,7 @@ class ClaudeClient:
         catalogue: list[dict[str, Any]],
         codes_types: list[str],
         corrections: str = "",
+        evaluation: str = "Évaluation d'entrée",
     ) -> ClaudeResponse:
         """Diagnostic sans ancrage de question — la mesure « plancher ».
 
@@ -827,7 +992,7 @@ class ClaudeClient:
         prompt = (
             f"{self._diagnostic_plancher_prompt}"
             f"\n\n## Copie analysée\n"
-            f"Évaluation d'entrée en {niveau_test} (copie {copy_id}).\n"
+            f"{evaluation} en {niveau_test} (copie {copy_id}).\n"
             f"\n## Compétences du référentiel déjà enseignées à ce niveau\n"
             f"```json\n{_json.dumps(catalogue, ensure_ascii=False, indent=2)}\n```"
             f"\n\n## Ce que l'élève a écrit\n"
@@ -882,9 +1047,18 @@ class ClaudeClient:
             f"{request.model_dump_json(indent=2)}"
         )
 
+        # `stream=True` + `max_tokens` large : même raison que `_call_diagnose`.
+        # `claude_model_heavy` pointe vers une famille (Sonnet 5) qui préfixe sa
+        # réponse d'un bloc `thinking` non affiché, et l'échantillonnage
+        # (`temperature`) lui est retiré par `_creer_message`. Avec 8192, sur
+        # une dizaine d'hypothèses, la pensée interne épuisait tout le budget
+        # avant qu'aucun texte JSON ne soit émis (`stop_reason=max_tokens`,
+        # `_texte_reponse` lève `ValueError`) — le sujet T1 n'était jamais
+        # généré. Constaté en conditions réelles (copie-b8e7f8db4f78, 2026-09-09).
         response = self._creer_message(
             model=settings.claude_model_heavy,
-            max_tokens=8192,
+            stream=True,
+            max_tokens=64000,
             temperature=0,
             messages=[
                 {
@@ -902,7 +1076,19 @@ class ClaudeClient:
             ],
         )
 
-        raw = self._texte_reponse(response)
+        if getattr(response, "stop_reason", None) == "max_tokens":
+            logger.warning(
+                "[%s] Sujet T1 tronqué (stop_reason=max_tokens) — tentative de réparation JSON.",
+                request.copy_id,
+            )
+        try:
+            raw = self._texte_reponse(response)
+        except ValueError as exc:
+            # Budget encore épuisé par le `thinking` : échec propre plutôt que
+            # remontée d'exception — l'appelant (`taches._generer_sujet_confirmation`)
+            # est best-effort.
+            logger.warning("[%s] Sujet T1 non généré — %s", request.copy_id, exc)
+            return ClaudeResponse(success=False, data=None, confidence=0.0, raw_response="", error=str(exc))
         return self._parse_response(raw, ConfirmationSubject)
 
     # ── Sujet de vérification / rétention (T3, T4, T5, module 5 étendu) ───────
@@ -937,9 +1123,13 @@ class ClaudeClient:
             f"{request.model_dump_json(indent=2)}"
         )
 
+        # `stream=True` + `max_tokens` large : voir `generate_confirmation_subject`
+        # et `_call_diagnose` — le `thinking` de Sonnet 5 épuise sinon le budget
+        # avant tout texte JSON, et le sujet n'est jamais produit.
         response = self._creer_message(
             model=settings.claude_model_heavy,
-            max_tokens=8192,
+            stream=True,
+            max_tokens=64000,
             temperature=0,
             messages=[
                 {
@@ -957,67 +1147,141 @@ class ClaudeClient:
             ],
         )
 
-        raw = self._texte_reponse(response)
-        return self._parse_response(raw, VerificationSubject)
-
-    # ── Sujet d'enrichissement (score parfait) ────────────────────────────────
-
-    @_retry
-    def generate_enrichment_subject(self, grade: CopyGrade, rubric: "Rubric | None" = None) -> ClaudeResponse:
-        """Génère 5 exercices d'approfondissement niveau 2nde/1ère pour un élève à 20/20."""
-        logger.info("[%s] Claude enrichissement — modèle : %s | score parfait 20/20",
-                    grade.copy_id, settings.claude_model_heavy)
-
-        rubric_block = ""
-        if rubric and rubric.items:
-            rubric_block = (
-                f"\n\nSUJET DU TEST (pour contextualiser les thèmes maîtrisés) :\n"
-                f"{rubric.model_dump_json(indent=2)}"
+        if getattr(response, "stop_reason", None) == "max_tokens":
+            logger.warning(
+                "[%s] Sujet %s tronqué (stop_reason=max_tokens) — tentative de réparation JSON.",
+                request.copy_id, request.type_evaluation,
             )
-
-        prompt = (
-            f"{self._enrichment_subject_prompt}"
-            f"{rubric_block}"
-            f"\n\ncopy_id : {grade.copy_id}"
-            "\n\nIMPORTANT: Réponds UNIQUEMENT avec un objet JSON valide commençant"
-            " par { et finissant par }. Aucun texte avant ou après."
-        )
-
-        response = self._creer_message(
-            model=settings.claude_model_heavy,
-            max_tokens=8192,
-            temperature=0,
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": prompt,
-                            "cache_control": {"type": "ephemeral"},
-                        }
-                    ],
-                },
-            ],
-        )
-
         try:
             raw = self._texte_reponse(response)
         except ValueError as exc:
-            # Même situation que diagnose() : le budget de tokens a pu être
-            # entièrement consommé par un bloc `thinking`, sans qu'aucun texte
-            # ne soit produit. L'appelant (`_run_phase_b`) traite un
-            # enrichissement en échec comme non bloquant (score déjà parfait,
-            # rien à remédier) — il ne faut donc pas laisser cette erreur
-            # remonter et interrompre toute la Phase B.
-            logger.error("[%s] Enrichissement — %s", grade.copy_id, exc)
-            return ClaudeResponse(success=False, data=None, confidence=0.0,
-                                  raw_response="", error=str(exc))
+            logger.warning("[%s] Sujet %s non généré — %s", request.copy_id, request.type_evaluation, exc)
+            return ClaudeResponse(success=False, data=None, confidence=0.0, raw_response="", error=str(exc))
+        return self._parse_response(raw, VerificationSubject)
 
-        result = self._parse_response(raw, RemediationSubject)
-        if result.success and result.data is not None:
-            result.data.is_enrichment = True
-        return result
+    # ── Plan de remédiation (cahier élève) ────────────────────────────────────
+
+    def _appel_outil(self, *, copy_id: str, etape: str, prompt_fixe: str, prompt_variable: str,
+                     outil: dict[str, Any], max_tokens: int, modele: str | None = None) -> Any:
+        """Appel à sortie par outil, Opus puis repli Sonnet sur 400 (même
+        repli que `diagnose_constrained`). La partie fixe du prompt (consignes
+        + exemples) est mise en cache : elle est identique pour toutes les
+        sections d'un plan, appelées en parallèle.
+
+        L'outil n'est pas forcé (`tool_choice` auto) : un choix forcé interdit
+        la réflexion préalable, et c'est elle qui fait vérifier au modèle ses
+        calculs avant d'écrire les exercices (essai réel du 2026-10-26 :
+        réponses incohérentes et exercices hors sujet sans elle). Le prompt
+        demande l'appel ; une réponse sans bloc `tool_use` est un échec, que
+        l'appelant redemande.
+
+        `modele` : impose le modèle (dernière tentative d'une section, sur le
+        modèle de repli), sans repli supplémentaire."""
+        import anthropic as _anthropic
+
+        def _appeler(model: str) -> Any:
+            return self._creer_message(
+                model=model,
+                stream=True,
+                max_tokens=max_tokens,
+                thinking={"type": "adaptive"},
+                output_config={"effort": "high"},
+                tools=[outil],
+                tool_choice={"type": "auto"},
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt_fixe, "cache_control": {"type": "ephemeral"}},
+                        {"type": "text", "text": prompt_variable},
+                    ],
+                }],
+            )
+
+        if modele:
+            return _appeler(modele)
+        try:
+            return _appeler(self._modele_opus)
+        except _anthropic.BadRequestError as refus:
+            logger.warning("[%s] %s : modèle '%s' refusé (400 : %s) — repli sur %s",
+                           copy_id, etape, self._modele_opus, refus, self._modele_heavy)
+            return _appeler(self._modele_heavy)
+
+    @property
+    def modele_repli(self) -> str:
+        return self._modele_heavy
+
+    @_retry
+    def generate_plan_section(self, demande: "DemandePlan", section: "SectionPlanDemande",
+                              refus: str = "", modele: str | None = None,
+                              max_tokens: int = 32000) -> ClaudeResponse:
+        """Rédige une section du plan de remédiation. Le squelette (compétence,
+        durée, questions, prérequis) est fixé par l'appelant ; le modèle n'écrit
+        que le contenu (`ContenuSection`).
+
+        `refus` : motif du rejet de la tentative précédente, rendu au modèle
+        pour qu'il le corrige plutôt que de retenter à l'aveugle."""
+        import json as _json
+
+        logger.info("[%s] Plan — section %d (%s), modèle : %s",
+                    demande.copy_id, section.ordre, section.code_competence, modele or self._modele_opus)
+        contexte = {
+            "eleve": {"prenom": demande.prenom, "classe": demande.classe},
+            "test": demande.test_libelle,
+            "section": section.model_dump(exclude={"duree_h"}),
+        }
+        prompt_variable = (
+            "## Section à rédiger\n"
+            "`questions` : les questions de la copie rattachées à cette compétence, "
+            "telles que la correction les a relevées (`citation` : ce que le "
+            "diagnostic a lu sur la copie). `types_erreur` : le diagnostic retenu, "
+            "à expliquer dans `causes`. `libelles_prerequis` : compétences "
+            "travaillées dans les sections précédentes.\n"
+            f"```json\n{_json.dumps(contexte, ensure_ascii=False, indent=2)}\n```"
+        )
+        if refus:
+            prompt_variable += (
+                "\n\n## Ta réponse précédente a été refusée\n"
+                f"{refus}\n"
+                "Rédige à nouveau la section entière en corrigeant ce point, et "
+                "rends-la en appelant l'outil `rediger_section` : tous les champs "
+                "obligatoires remplis (listes non vides, les cinq emplacements d'exercice, aucun texte vide)."
+            )
+        try:
+            response = self._appel_outil(
+                copy_id=demande.copy_id, etape=f"plan section {section.ordre}",
+                prompt_fixe=self._plan_remediation_prompt, prompt_variable=prompt_variable,
+                outil=_OUTIL_SECTION_PLAN, max_tokens=max_tokens, modele=modele,
+            )
+        except Exception as exc:  # noqa: BLE001
+            if _is_retryable(exc):
+                raise  # surcharge, quota : relancé par @_retry
+            logger.error("[%s] Plan — section %d : %s", demande.copy_id, section.ordre, exc)
+            return ClaudeResponse(success=False, data=None, confidence=0.0, raw_response="", error=str(exc))
+        return self._extract_tool_result(response, ContenuSection)
+
+    @_retry
+    def generate_plan_acquis(self, demande: "DemandePlan") -> ClaudeResponse:
+        """Rédige « Ce que tu sais déjà faire » à partir des questions réussies."""
+        import json as _json
+
+        questions = [q.model_dump(include={"code", "intitule", "reponse_eleve", "reponse_attendue"})
+                     for q in demande.questions_reussies]
+        prompt_variable = (
+            f"## Élève\n{demande.prenom}, {demande.classe} — {demande.test_libelle}.\n\n"
+            f"## Questions réussies\n```json\n{_json.dumps(questions, ensure_ascii=False, indent=2)}\n```"
+        )
+        try:
+            response = self._appel_outil(
+                copy_id=demande.copy_id, etape="plan acquis",
+                prompt_fixe=self._plan_acquis_prompt, prompt_variable=prompt_variable,
+                outil=_OUTIL_ACQUIS_PLAN, max_tokens=8000,
+            )
+        except Exception as exc:  # noqa: BLE001
+            if _is_retryable(exc):
+                raise  # surcharge, quota : relancé par @_retry
+            logger.error("[%s] Plan — acquis : %s", demande.copy_id, exc)
+            return ClaudeResponse(success=False, data=None, confidence=0.0, raw_response="", error=str(exc))
+        return self._extract_tool_result(response, ContenuAcquis)
 
     # ── Nom de l'élève depuis la première page ────────────────────────────────
 
@@ -1404,6 +1668,30 @@ class ClaudeClient:
 
         return data
 
+    @staticmethod
+    def _normaliser_listes_texte(data: dict) -> dict:
+        """Listes de textes du plan (`causes`, `a_retenir`, `methode`,
+        `acquis`) : Opus 5 y glisse parfois un objet vide `{}` (essai réel du
+        2026-10-26, section entière rejetée deux fois de suite). Un élément
+        vide est retiré, un objet à valeur texte unique ramené à ce texte ; si
+        la liste se vide, la validation échoue et la section est redemandée."""
+        for champ in ("causes", "a_retenir", "methode", "acquis"):
+            valeurs = data.get(champ)
+            if not isinstance(valeurs, list):
+                continue
+            propres = []
+            for v in valeurs:
+                if isinstance(v, dict):
+                    textes = [x for x in v.values() if isinstance(x, str) and x.strip()]
+                    v = textes[0] if len(textes) == 1 else None
+                if isinstance(v, str) and v.strip():
+                    propres.append(v)
+            if len(propres) != len(valeurs):
+                logger.warning("Plan : %d élément(s) non textuel(s) retiré(s) de « %s »",
+                               len(valeurs) - len(propres), champ)
+            data[champ] = propres
+        return data
+
     def _extract_tool_result(self, response: Any, model_cls: type) -> ClaudeResponse:
         """Extrait le résultat d'un appel tool_use — JSON garanti correctement formé."""
         tool_block = next(
@@ -1465,6 +1753,8 @@ class ClaudeClient:
                 data = self._normalize_transcription(data)
             elif model_cls is SortieDiagnosticContraint:
                 data = self._normaliser_problemes(data)
+            elif model_cls in (ContenuSection, ContenuAcquis):
+                data = self._normaliser_listes_texte(data)
 
             validated = model_cls(**data)
             return ClaudeResponse(
@@ -1507,6 +1797,7 @@ class ClaudeClient:
 
         text = _TRAILING_COMMA.sub(r"\1", text)
 
+        derniere_erreur: Exception | None = None
         for candidate in (text, _close_json(text)):
             candidate = _TRAILING_COMMA.sub(r"\1", candidate)
             try:
@@ -1527,16 +1818,29 @@ class ClaudeClient:
                     raw_response=raw_text,
                     error=None,
                 )
-            except (json.JSONDecodeError, Exception):
+            except Exception as exc:  # noqa: BLE001 — capturée pour être loggée, pas silencieusement perdue
+                derniere_erreur = exc
                 continue
 
-        logger.error("JSON irréparable (%s). Début : %.300s", model_cls.__name__, raw_text)
+        # La raison réelle (JSON malformé vs modèle Pydantic invalide, et le
+        # message précis) était jusqu'ici jetée — seul un extrait de 300
+        # caractères du texte brut survivait, sans dire pourquoi le parsing
+        # avait échoué. Elle est maintenant loggée en entier (DEBUG, peut
+        # être volumineux) pour permettre un post-mortem.
+        logger.error(
+            "JSON irréparable (%s) — %s : %s. Début : %.300s",
+            model_cls.__name__,
+            type(derniere_erreur).__name__ if derniere_erreur else "?",
+            derniere_erreur,
+            raw_text,
+        )
+        logger.debug("[%s] Texte brut complet de la réponse échouée :\n%s", model_cls.__name__, raw_text)
         return ClaudeResponse(
             success=False,
             data=None,
             confidence=0.0,
             raw_response=raw_text,
-            error=f"JSON invalide. Début : {raw_text[:200]}",
+            error=f"JSON invalide ({type(derniere_erreur).__name__ if derniere_erreur else '?'}) : {derniere_erreur}",
         )
 
     def _estimate_confidence(self, result: Any) -> float:

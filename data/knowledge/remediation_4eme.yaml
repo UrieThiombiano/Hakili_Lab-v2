@@ -132,26 +132,15 @@
 
       | Dans $D$, chaque étage à part. | $45 - 15 = 30$ et $2 \times 3 = 6$ |
 
-      | **Vérification :** $D = \frac{30}{6} = 5$, et $C \le 2 \times 50$. ✓ | |
-
-
-      > #### DÉCLIC : un produit est un bloc, une barre de fraction est une parenthèse
-
-      >
-
-      > Si $20 - 3 \times 4$ te semble faire $68$, un produit forme un **bloc** insécable. Si $\frac{12
-      + 8}{4}$ te fait écrire $12 + 2$, la barre vaut deux parenthèses.'
+      | **Vérification :** $D = \frac{30}{6} = 5$, et $C \le 2 \times 50$. ✓ | |'
     erreurs_frequentes:
     - erreur: $7 + 3 \times 6 = 10 \times 6 = 60$.
       correction: $\times$ et $\div$ passent avant $+$ et $-$ ; $7 + 18 = 25$.
     - erreur: simplifier terme à terme, $\frac{12 + 8}{4} = 12 + 2$.
       correction: la barre groupe tout le numérateur ; $\frac{20}{4} = 5$.
-    declic: 'un produit est un bloc, une barre de fraction est une parenthèse — Si $20 - 3 \times 4$ te
+    declic: un produit est un bloc, une barre de fraction est une parenthèse — Si $20 - 3 \times 4$ te
       semble faire $68$, un produit forme un **bloc** insécable. Si $\frac{12 + 8}{4}$ te fait écrire
-      $12 + 2$, la barre vaut deux parenthèses. #### ⚠ ATTENTION ! - **Erreur fréquente :** $7 + 3 \times
-      6 = 10 \times 6 = 60$. **Correction :** $\times$ et $\div$ passent avant $+$ et $-$ ; $7 + 18 =
-      25$. - **Erreur fréquente :** simplifier terme à terme, $\frac{12 + 8}{4} = 12 + 2$. **Correction
-      :** la barre groupe tout le numérateur ; $\frac{20}{4} = 5$.'
+      $12 + 2$, la barre vaut deux parenthèses.
     figures: []
   exercices:
   - numero: 1
@@ -549,16 +538,7 @@
       420$ |
 
       | **Vérification :** $12 \times 420 = 5\,040 = 60 \times 84$, et $\frac{60}{84} = \frac{5}{7}$.
-      ✓ | |
-
-
-      > #### DÉCLIC : Ce n''est pas le PGCD qui bloque, c''est la décomposition
-
-      >
-
-      > Tant que $48 = 2^{4} \times 3$ et $132 = 2^{2} \times 3 \times 11$ ne sortent pas tout seuls,
-
-      > aucune comparaison n''est possible. Reprends la leçon 2.2, décompose dix nombres, puis reviens.'
+      ✓ | |'
     erreurs_frequentes:
     - erreur: garder **tous** les facteurs pour un PGCD, PGCD$\left(60\,;\,90\right) = 180$.
       correction: c'est le PPCM ; le PGCD garde les communs à la plus petite puissance, 30.
@@ -566,13 +546,9 @@
       correction: 'le produit ne convient
 
         que si les nombres sont premiers entre eux ; ici PPCM $= 12$.'
-    declic: 'Ce n''est pas le PGCD qui bloque, c''est la décomposition — Tant que $48 = 2^{4} \times 3$
-      et $132 = 2^{2} \times 3 \times 11$ ne sortent pas tout seuls, aucune comparaison n''est possible.
-      Reprends la leçon 2.2, décompose dix nombres, puis reviens. #### ⚠ ATTENTION ! - **Erreur fréquente
-      :** garder **tous** les facteurs pour un PGCD, PGCD$\left(60\,;\,90\right) = 180$. **Correction
-      :** c''est le PPCM ; le PGCD garde les communs à la plus petite puissance, 30. - **Erreur fréquente
-      :** PPCM$\left(4\,;\,6\right) = 24$. **Correction :** le produit ne convient que si les nombres
-      sont premiers entre eux ; ici PPCM $= 12$.'
+    declic: Ce n'est pas le PGCD qui bloque, c'est la décomposition — Tant que $48 = 2^{4} \times 3$ et
+      $132 = 2^{2} \times 3 \times 11$ ne sortent pas tout seuls, aucune comparaison n'est possible. Reprends
+      la leçon 2.2, décompose dix nombres, puis reviens.
     figures:
     - figures/m02_f3.svg
   exercices:
@@ -1014,10 +990,7 @@
     declic: 'Si tu écris encore $\frac{1}{3} + \frac{1}{4} = \frac{2}{7}$ — « Un tiers plus un quart »,
       c''est « un mouton plus une chèvre » : tant que les objets n''ont pas le même nom, on ne totalise
       rien. Le dénominateur est ce nom, il ne s''additionne pas. Et $\frac{2}{7} < \frac{1}{3}$ : on a
-      ajouté, le résultat aurait diminué. #### MÉTHODE : Additionner ou soustraire deux fractions 1. Simplifie
-      chaque fraction, et écris en fraction l''entier éventuel. 2. Prends le PPCM des dénominateurs. 3.
-      Réécris chaque fraction avec ce dénominateur, numérateur compris. 4. Opère sur les numérateurs seuls,
-      puis simplifie.'
+      ajouté, le résultat aurait diminué.'
     figures:
     - figures/m03_f2.svg
   - id: 4eme_M03_L3
@@ -2055,15 +2028,7 @@
 
       | On développe et on réduit : la lettre disparaît. | $P = 2x + 8 - 2x = 8$ |
 
-      | **Vérification :** avec $x = 5$ : $9$, puis $18$, puis $8$. ✓ | |
-
-
-      > #### DÉCLIC : Une factorisation qui s''arrête en chemin n''est pas fausse, elle est incomplète
-
-      >
-
-      > $12a + 18b = 2\left(6a + 9b\right)$ est vraie, mais $6$ et $9$ ont encore $3$ en commun. Cherche
-      d''emblée le **PGCD** des coefficients : ici $6$, d''où $6\left(2a + 3b\right)$.'
+      | **Vérification :** avec $x = 5$ : $9$, puis $18$, puis $8$. ✓ | |'
     erreurs_frequentes:
     - erreur: factoriser $5a + 3b$ par $5$.
       correction: aucun facteur commun, l'expression reste telle quelle.
@@ -2071,10 +2036,7 @@
       correction: 'un terme entièrement pris laisse $1$ derrière lui : $8x\left(1 - x\right)$.'
     declic: 'Une factorisation qui s''arrête en chemin n''est pas fausse, elle est incomplète — $12a +
       18b = 2\left(6a + 9b\right)$ est vraie, mais $6$ et $9$ ont encore $3$ en commun. Cherche d''emblée
-      le **PGCD** des coefficients : ici $6$, d''où $6\left(2a + 3b\right)$. #### ⚠ ATTENTION ! - **Erreur
-      fréquente :** factoriser $5a + 3b$ par $5$. **Correction :** aucun facteur commun, l''expression
-      reste telle quelle. - **Erreur fréquente :** $8x - 8x^{2} = 8x\left(-x\right)$. **Correction :**
-      un terme entièrement pris laisse $1$ derrière lui : $8x\left(1 - x\right)$.'
+      le **PGCD** des coefficients : ici $6$, d''où $6\left(2a + 3b\right)$.'
     figures: []
   exercices:
   - numero: 1
@@ -2437,10 +2399,7 @@
       correction: bases différentes, rien ne se regroupe.
     declic: 'la règle bloque toujours en amont — $\left(-2\right)^{3}$ te semble valoir $+8$ ? Le blocage
       est dans la règle des signes du produit : reprends le module 4. $5^{2} \times 5^{3}$ te donne $25^{5}$
-      ? Tu fais deux gestes au lieu d''un : la base ne bouge pas. #### MÉTHODE : Choisir la règle, puis
-      l''appliquer 1. Bases différentes et sans parenthèse commune : rien à simplifier. 2. Les parenthèses
-      décident entre distribuer et multiplier. 3. Applique la règle sans toucher à la base, de l''intérieur
-      vers l''extérieur. 4. Recommence tant qu''il reste des puissances de même base.'
+      ? Tu fais deux gestes au lieu d''un : la base ne bouge pas.'
     figures: []
   - id: 4eme_M06_L3
     numero: '6.3'
@@ -2848,16 +2807,7 @@
 
       | On divise par $2$, puis on retranche $55$. | $55 + l = 90$, donc $l = 35$ |
 
-      | **Vérification :** $\left(55 + 35\right) \times 2 = 180$ m ✓ La largeur mesure $35$ m. | |
-
-
-      > #### DÉCLIC : la parenthèse qu''on oublie de distribuer
-
-      >
-
-      > Si $3\left(x + 5\right)$ te semble égal à $3x + 5$, le blocage n''est pas dans les équations :
-      il est dans la distributivité, qui multiplie le facteur par **chacun** des deux termes. Reprends
-      le module 5.'
+      | **Vérification :** $\left(55 + 35\right) \times 2 = 180$ m ✓ La largeur mesure $35$ m. | |'
     erreurs_frequentes:
     - erreur: calculer sans dire ce que représente la lettre.
       correction: écrire d'abord « $x$ est … , en … ».
@@ -2865,10 +2815,7 @@
       correction: c'est $2x + 3$ ; la parenthèse exige le mot **somme**.
     declic: 'la parenthèse qu''on oublie de distribuer — Si $3\left(x + 5\right)$ te semble égal à $3x
       + 5$, le blocage n''est pas dans les équations : il est dans la distributivité, qui multiplie le
-      facteur par **chacun** des deux termes. Reprends le module 5. #### ⚠ ATTENTION ! - **Erreur fréquente
-      :** calculer sans dire ce que représente la lettre. **Correction :** écrire d''abord « $x$ est …
-      , en … ». - **Erreur fréquente :** traduire « le double d''un nombre, augmenté de $3$ » par $2\left(x
-      + 3\right)$. **Correction :** c''est $2x + 3$ ; la parenthèse exige le mot **somme**.'
+      facteur par **chacun** des deux termes. Reprends le module 5.'
     figures: []
   - id: 4eme_M07_L4
     numero: '7.4'
@@ -3204,29 +3151,15 @@
 
       | On multiplie par la longueur demandée. | $800 \times 9 = 7\,200$ FCFA. |
 
-      | Contrôle en croix. | $\left(9 \times 4\,800\right) \div 6 = 7\,200$. ✓ |
-
-
-      > #### DÉCLIC : on multiplie, on n''ajoute pas
-
-      >
-
-      > Écrire « $4$ cahiers de plus, donc $4$ francs de plus », c''est comparer des cahiers à des francs.
-
-      > Quatre cahiers de plus, ce sont $4 \times 75 = 300$ FCFA de plus.'
+      | Contrôle en croix. | $\left(9 \times 4\,800\right) \div 6 = 7\,200$. ✓ |'
     erreurs_frequentes:
     - erreur: tableau déclaré proportionnel parce que tout augmente.
       correction: $10$, $15$, $20$ et $15$, $20$, $25$ augmentent ensemble, pourtant $15 \div 10 \neq
         20 \div 15$.
     - erreur: produit en croix à l'envers, $\left(8 \times 600\right) \div 12$.
       correction: on multiplie **en diagonale**, $\left(12 \times 600\right) \div 8 = 900$.
-    declic: 'on multiplie, on n''ajoute pas — Écrire « $4$ cahiers de plus, donc $4$ francs de plus »,
-      c''est comparer des cahiers à des francs. Quatre cahiers de plus, ce sont $4 \times 75 = 300$ FCFA
-      de plus. #### ⚠ ATTENTION ! - **Erreur fréquente :** tableau déclaré proportionnel parce que tout
-      augmente. **Correction :** $10$, $15$, $20$ et $15$, $20$, $25$ augmentent ensemble, pourtant $15
-      \div 10 \neq 20 \div 15$. - **Erreur fréquente :** produit en croix à l''envers, $\left(8 \times
-      600\right) \div 12$. **Correction :** on multiplie **en diagonale**, $\left(12 \times 600\right)
-      \div 8 = 900$.'
+    declic: on multiplie, on n'ajoute pas — Écrire « $4$ cahiers de plus, donc $4$ francs de plus », c'est
+      comparer des cahiers à des francs. Quatre cahiers de plus, ce sont $4 \times 75 = 300$ FCFA de plus.
     figures: []
   - id: 4eme_M08_L2
     numero: '8.2'
@@ -3819,23 +3752,11 @@
 
       | Elle passe par le milieu. | $HB = HC = 3$ cm |
 
-      | **Vérification :** arcs de $3$ cm centrés en B et C ✓ | |
-
-
-      > #### DÉCLIC : Hauteur ou médiatrice ?
-
-      >
-
-      > La hauteur **part d''un sommet** et ignore le milieu ; la médiatrice **passe par le milieu** et
-      ignore le sommet. Toutes deux sont perpendiculaires au côté : c''est ce point commun qui brouille
-      tout.'
+      | **Vérification :** arcs de $3$ cm centrés en B et C ✓ | |'
     erreurs_frequentes: []
     declic: 'Hauteur ou médiatrice ? — La hauteur **part d''un sommet** et ignore le milieu ; la médiatrice
       **passe par le milieu** et ignore le sommet. Toutes deux sont perpendiculaires au côté : c''est
-      ce point commun qui brouille tout. #### ⚠ ATTENTION ! - **Erreur :** croire l''orthocentre toujours
-      intérieur. **Correction :** il est au sommet de l''angle droit dans un rectangle, à l''extérieur
-      si un angle est obtus. - **Erreur :** tracer la hauteur issue de A « en visant le milieu de $\left[BC\right]$
-      ». **Correction :** c''est la médiane ; la hauteur se trace à l''équerre.'
+      ce point commun qui brouille tout.'
     figures:
     - figures/m09_f7.svg
   exercices:
@@ -4168,15 +4089,7 @@
 
       | Somme des deux moitiés. | $AA'' = 3 + 3 = 6$ cm. |
 
-      | **Vérification :** le pliage selon (d) amène A sur $A''$. ✓ | |
-
-
-      > #### DÉCLIC : Si la perpendiculaire te résiste, ce n''est pas la symétrie qui bloque
-
-      >
-
-      > Perpendiculaire mal posée, médiatrice approximative : l''erreur vient d''avant. Si tracer une
-      perpendiculaire te fait hésiter, reprends le module 9.'
+      | **Vérification :** le pliage selon (d) amène A sur $A''$. ✓ | |'
     erreurs_frequentes:
     - erreur: reporter le point « tout droit en face ».
       correction: $A'$ est sur la perpendiculaire à (D) issue de A.
@@ -4184,9 +4097,7 @@
       correction: on reporte HA ; $AA'$ en est le double.
     declic: 'Si la perpendiculaire te résiste, ce n''est pas la symétrie qui bloque — Perpendiculaire
       mal posée, médiatrice approximative : l''erreur vient d''avant. Si tracer une perpendiculaire te
-      fait hésiter, reprends le module 9. #### ⚠ ATTENTION ! - **Erreur fréquente :** reporter le point
-      « tout droit en face ». **Correction :** $A''$ est sur la perpendiculaire à (D) issue de A. - **Erreur
-      fréquente :** reporter $AA''$ depuis l''axe. **Correction :** on reporte HA ; $AA''$ en est le double.'
+      fait hésiter, reprends le module 9.'
     figures:
     - figures/m10_f1.svg
   - id: 4eme_M10_L2
@@ -4741,9 +4652,7 @@
     declic: 'quand la conversion des volumes résiste — Si tu écris $1$ L $= 100$ cm$^{3}$, le blocage
       est dans le nombre de dimensions : un mètre vaut dix décimètres, donc un mètre cube vaut $10 \times
       10 \times 10 = 1\,000$ décimètres cubes. Longueur de dix en dix, aire de cent en cent, volume de
-      mille en mille. #### MÉTHODE : Convertir un volume en capacité 1. Écris le volume en unité cube,
-      longueurs dans une seule unité. 2. Unité pivot : $1$ dm$^{3} = 1$ L. 3. cm$^{3} \rightarrow$ dm$^{3}$
-      : $\div\ 1\,000$ ; m$^{3} \rightarrow$ dm$^{3}$ : $\times\ 1\,000$. 4. Remplace dm$^{3}$ par L.'
+      mille en mille.'
     figures: []
   exercices:
   - numero: 1
