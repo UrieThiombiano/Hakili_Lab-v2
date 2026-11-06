@@ -172,8 +172,8 @@ _DIAGNOSTIC_SCHEMA = """
 def _parse_structured(raw: str, model_cls: type) -> ClaudeResponse:
     """Parse tolérant d'une réponse JSON structurée → `ClaudeResponse`.
 
-    Renvoie `success=False` en cas d'échec pour laisser le pipeline basculer
-    sur le fallback GPT-5 (`openai_client.py`)."""
+    Renvoie `success=False` en cas d'échec : le pipeline remonte l'erreur,
+    sans basculer sur un autre fournisseur."""
     text = (raw or "").strip()
     m = _JSON_FENCE.search(text)
     if m:
@@ -218,8 +218,9 @@ _TRANSITOIRES_GEMINI = (
 
 def _is_retryable_gemini(exc: BaseException) -> bool:
     msg = f"{type(exc).__name__} {exc}".lower()
-    # Quota journalier épuisé : inutile de réessayer, aller directement au fallback
-    if "perday" in msg:
+    # Quota journalier ou crédits prépayés épuisés (402) : réessayer ne sert à
+    # rien et retarde le message d'erreur de près d'une minute.
+    if "perday" in msg or "402" in msg or "credits are depleted" in msg or "billing" in msg:
         return False
     if isinstance(exc, (ConnectionError, TimeoutError)):
         return True

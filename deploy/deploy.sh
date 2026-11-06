@@ -34,6 +34,15 @@ echo "== 3/5  Build de l'image Docker =="
 docker build -f deploy/Dockerfile -t "$IMAGE" .
 
 echo "== 4/5  Redémarrage du conteneur =="
+# Paramètres → Modèles IA (data/preferences_modeles.json) vivait dans le
+# conteneur et disparaissait à chaque déploiement : il est désormais dans
+# reglages/, monté. Premier passage : on reprend le fichier du conteneur en
+# service, et on donne le dossier à l'utilisateur du conteneur (uid 1000).
+mkdir -p reglages
+if [ ! -f reglages/preferences_modeles.json ]; then
+    docker cp "$CONTENEUR:/app/data/preferences_modeles.json" reglages/preferences_modeles.json 2>/dev/null         && echo "  Réglages des modèles IA repris du conteneur en service." || true
+fi
+docker run --rm -v "$(pwd)/reglages:/r" busybox chown -R 1000:1000 /r
 docker stop "$CONTENEUR" 2>/dev/null || true
 docker rm   "$CONTENEUR" 2>/dev/null || true
 docker run -d \
@@ -42,7 +51,7 @@ docker run -d \
     -p "127.0.0.1:${PORT}:8011" \
     -v "$(pwd)/credentials:/app/credentials:ro" \
     -v "$(pwd)/runs:/app/runs" \
-    -v "$(pwd)/logs:/app/logs" \
+    -v "$(pwd)/logs:/app/logs"     -v "$(pwd)/reglages:/app/reglages"     -e PREFERENCES_MODELES_PATH=/app/reglages/preferences_modeles.json \
     --restart unless-stopped \
     "$IMAGE"
 

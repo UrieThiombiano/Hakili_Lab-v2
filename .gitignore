@@ -75,3 +75,6 @@ htmlcov/
 staticfiles/
 *.sqlite3
 *.db
+
+# Réglages de prod montés dans le conteneur (deploy/deploy.sh)
+reglages/

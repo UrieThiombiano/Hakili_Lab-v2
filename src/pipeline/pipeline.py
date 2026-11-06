@@ -95,8 +95,19 @@ logger = logging.getLogger(__name__)
 # Le repli client reste Claude partout : c'est le seul provider sans trou de
 # couverture (transcription, correction, diagnostic).
 
+def _exiger_cle(tache: str, fournisseur: str) -> None:
+    """Le fournisseur choisi dans Paramètres est le seul utilisé : sans sa clé,
+    on s'arrête avec un message clair plutôt que d'en appeler un autre."""
+    if not preferences_modeles.cle_presente(fournisseur):
+        raise RuntimeError(
+            f"{preferences_modeles.LIBELLES_FOURNISSEUR.get(fournisseur, fournisseur)} est choisi pour "
+            f"« {preferences_modeles.LIBELLES_TACHE[tache]} » dans Paramètres, mais sa clé API est absente."
+        )
+
+
 def _make_transcription_client():
     r = preferences_modeles.resoudre("transcription")
+    _exiger_cle("transcription", r.fournisseur)
     if r.fournisseur == "gemini" and settings.google_api_key:
         from src.api.gemini_client import GeminiTranscriptionClient
         return GeminiTranscriptionClient()
@@ -107,6 +118,7 @@ def _make_transcription_client():
 
 def _make_grading_client():
     r = preferences_modeles.resoudre("correction")
+    _exiger_cle("correction", r.fournisseur)
     if r.fournisseur == "deepseek" and settings.deepseek_api_key:
         from src.api.deepseek_client import DeepSeekClient
         return DeepSeekClient()
@@ -118,6 +130,7 @@ def _make_grading_client():
 
 def _make_diagnostic_client():
     r = preferences_modeles.resoudre("analyse")
+    _exiger_cle("analyse", r.fournisseur)
     if r.fournisseur == "deepseek" and settings.deepseek_api_key:
         from src.api.deepseek_client import DeepSeekClient
         return DeepSeekClient()
@@ -441,10 +454,6 @@ def _run_transcription(
                     "[%s] extract_student_name (%s) échoué : %s",
                     copy_id, type(transcription_client).__name__, exc,
                 )
-        if not extracted and type(transcription_client).__name__ != "OpenAIClient":
-            fallback = _fallback_openai_client()
-            if fallback is not None:
-                extracted = fallback.extract_student_name(ingestion.pages[0])
         if extracted:
             student_name = extracted
 
@@ -468,15 +477,12 @@ def _run_transcription(
     # 2. Transcription
     _progress("transcription", 30)
     trans_resp = transcription_client.transcribe(copy_id, ingestion.pages)
+    # Aucun repli caché : le fournisseur choisi dans Paramètres est le seul
+    # appelé, et c'est son erreur réelle qui est montrée à l'enseignant.
     if not trans_resp.success or trans_resp.data is None:
-        if type(transcription_client).__name__ != "OpenAIClient":
-            fallback = _fallback_openai_client()
-            if fallback is not None:
-                logger.warning("[%s] Fallback transcription → GPT-5", copy_id)
-                trans_resp = fallback.transcribe(copy_id, ingestion.pages)
-                result.model_routing["Transcription"] += " → GPT-5 (fallback)"
-    if not trans_resp.success or trans_resp.data is None:
-        result.errors.append(f"Transcription échouée : {trans_resp.error}")
+        result.errors.append(
+            f"Transcription échouée ({_client_label(transcription_client, 'transcription')}) : {trans_resp.error}"
+        )
         return result
 
     vt = validate_transcription(trans_resp.data)
@@ -573,14 +579,7 @@ def _run_grading(
         """Une correction complète (repli GPT-5 compris), validée."""
         grade_resp = _grading.grade(**grading_kwargs)
         if not grade_resp.success or grade_resp.data is None:
-            if type(_grading).__name__ != "OpenAIClient":
-                fallback = _fallback_openai_client()
-                if fallback is not None:
-                    logger.warning("[%s] Fallback correction → GPT-5", copy_id)
-                    grade_resp = fallback.grade(**grading_kwargs)
-                    repli_utilise.append(True)
-        if not grade_resp.success or grade_resp.data is None:
-            return None, f"Correction échouée : {grade_resp.error}", []
+            return None, f"Correction échouée ({_client_label(_grading, 'grading')}) : {grade_resp.error}", []
         grade = grade_resp.data
         grade.copy_id = copy_id
         vg = validate_grading(grade, rubric_provided=bool(rubric.items), rubric=rubric)
@@ -802,12 +801,6 @@ def _run_phase_b(
         # 5. Diagnostic
         _progress("diagnostic", 75)
         diag_resp = diagnostic_client.diagnose(grade_diag, curriculum_context=curriculum_context)
-        if not diag_resp.success or diag_resp.data is None:
-            if type(diagnostic_client).__name__ != "OpenAIClient":
-                fallback = _fallback_openai_client()
-                if fallback is not None:
-                    logger.warning("[%s] Fallback diagnostic → GPT-5", copy_id)
-                    diag_resp = fallback.diagnose(grade_diag, curriculum_context=curriculum_context)
         if diag_resp.success and diag_resp.data is not None:
             diag_resp.data.competency_gaps = competency_gaps
             vd = validate_diagnostic(diag_resp.data, grade_diag)

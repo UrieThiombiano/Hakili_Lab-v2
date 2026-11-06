@@ -8,7 +8,7 @@ import pytest
 
 from src.api.gemini_client import _parse_structured
 from src.core import preferences_modeles as pm
-from src.models.domain import CopyGrade, DiagnosticResult
+from src.models.domain import CopyGrade, DiagnosticResult, Rubric
 from src.pipeline import pipeline
 
 
@@ -79,3 +79,45 @@ def test_transcription_client_openai(_prefs, monkeypatch):
     })
     monkeypatch.setattr(pipeline, "OpenAIClient", lambda: "client-openai")
     assert pipeline._make_transcription_client() == "client-openai"
+
+
+# ── Le choix de Paramètres est strict (2026-11-06) ──────────────────────────
+# Une transcription Gemini en échec (crédits épuisés) basculait en silence sur
+# GPT-5, et l'enseignant voyait l'erreur d'OpenAI au lieu de celle de Gemini.
+
+def test_fournisseur_sans_cle_arrete_au_lieu_de_basculer(_prefs, monkeypatch):
+    monkeypatch.setattr(pipeline.preferences_modeles, "cle_presente", lambda f: f != "gemini")
+    monkeypatch.setattr(
+        pipeline.preferences_modeles, "resoudre",
+        lambda tache: pm.ResolutionModele(fournisseur="gemini", modele=None),
+    )
+    with pytest.raises(RuntimeError, match="Gemini"):
+        pipeline._make_transcription_client()
+
+
+def test_echec_transcription_sans_repli_gpt5(_prefs, monkeypatch, tmp_path):
+    from types import SimpleNamespace
+
+    class ClientEnPanne:
+        def transcribe(self, copy_id, pages):
+            return SimpleNamespace(success=False, data=None, error="402 credits are depleted")
+
+    appels_openai = []
+    monkeypatch.setattr(pipeline, "_make_transcription_client", lambda: ClientEnPanne())
+    monkeypatch.setattr(pipeline, "OpenAIClient", lambda *a, **k: appels_openai.append(1))
+    monkeypatch.setattr(pipeline, "_verifier_eleve", lambda **k: {"classe": "3e"})
+    monkeypatch.setattr(
+        pipeline, "ingest_images",
+        lambda paths, copy_id, out: SimpleNamespace(pages=[object()]),
+    )
+    img = tmp_path / "p1.png"
+    img.write_bytes(b"x")
+
+    r = pipeline.run_transcription(
+        file_paths=[img], copy_id="C1", student_name="Feryel Sanou",
+        identifiant_hakili="H1", runs_dir=tmp_path,
+        rubric=Rubric(subject="mathematics", total_points=0, items=[]),
+    )
+
+    assert appels_openai == []
+    assert any("402 credits are depleted" in e for e in r.errors)
